@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专利授权统计报告</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f5f7fa; color: #333; padding: 40px 20px; }
+  .container { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 36px; }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 36px; }
+  .card { background: #fff; border-radius: 10px; padding: 24px 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .card .num { font-size: 36px; font-weight: 700; }
+  .card .label { font-size: 13px; color: #888; margin-top: 4px; }
+  .card.total .num { color: #1a73e8; }
+  .card.faming .num { color: #e8453c; }
+  .card.shiyong .num { color: #f5a623; }
+  .card.waiguan .num { color: #34a853; }
+  .section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 24px; }
+  .section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: #f8f9fb; color: #666; font-weight: 500; }
+  td { padding: 10px 12px; border-top: 1px solid #f0f0f0; }
+  tr:hover td { background: #fafbfd; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+  .tag-faming { background: #fdecea; color: #e8453c; }
+  .tag-shiyong { background: #fef7e0; color: #c68a00; }
+  .tag-waiguan { background: #e6f4ea; color: #1e8e3e; }
+  .tag-ruanzhu { background: #e8f0fe; color: #1a73e8; }
+  .bar-chart { margin-top: 8px; }
+  .bar-row { display: flex; align-items: center; margin-bottom: 10px; }
+  .bar-label { width: 60px; font-size: 13px; color: #666; text-align: right; padding-right: 12px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 24px; background: #f0f0f0; border-radius: 4px; overflow: hidden; display: flex; }
+  .bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 500; min-width: 18px; transition: width 0.3s; }
+  .bar-seg.fm { background: #e8453c; }
+  .bar-seg.sy { background: #f5a623; }
+  .bar-seg.wg { background: #34a853; }
+  .bar-seg.rz { background: #1a73e8; }
+  .bar-total { width: 36px; text-align: center; font-size: 13px; font-weight: 600; color: #333; flex-shrink: 0; padding-left: 8px; }
+  .legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 16px; font-size: 12px; color: #666; }
+  .legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .legend .l-fm::before { background: #e8453c; }
+  .legend .l-sy::before { background: #f5a623; }
+  .legend .l-wg::before { background: #34a853; }
+  .legend .l-rz::before { background: #1a73e8; }
+  .footer { text-align: center; color: #bbb; font-size: 12px; margin-top: 40px; }
+  @media (max-width: 640px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>专利授权统计报告</h1>
+<p class="subtitle">统计截止日期：2026年3月31日 &nbsp;|&nbsp; 去重后共计 20 项知识产权</p>
+
+<!-- 汇总卡片 -->
+<div class="cards">
+  <div class="card total"><div class="num">20</div><div class="label">总计</div></div>
+  <div class="card faming"><div class="num">8</div><div class="label">发明专利</div></div>
+  <div class="card shiyong"><div class="num">8</div><div class="label">实用新型</div></div>
+  <div class="card waiguan"><div class="num">3</div><div class="label">外观设计</div></div>
+</div>
+<div class="cards" style="grid-template-columns: repeat(1,1fr); max-width: 240px; margin: -20px auto 36px;">
+  <div class="card" style="border: 1px solid #e8f0fe;"><div class="num" style="color:#1a73e8;">1</div><div class="label">软件著作权</div></div>
+</div>
+
+<!-- 按年度统计 -->
+<div class="section">
+  <h2>按授权年度统计</h2>
+  <div class="legend">
+    <span class="l-fm">发明专利</span>
+    <span class="l-sy">实用新型</span>
+    <span class="l-wg">外观设计</span>
+    <span class="l-rz">软件著作权</span>
+  </div>
+  <div class="bar-chart">
+    <div class="bar-row">
+      <div class="bar-label">2015</div>
+      <div class="bar-track"><div class="bar-seg fm" style="width:100%">1</div></div>
+      <div class="bar-total">1</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">2018</div>
+      <div class="bar-track"><div class="bar-seg fm" style="width:100%">2</div></div>
+      <div class="bar-total">2</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">2019</div>
+      <div class="bar-track"><div class="bar-seg sy" style="width:100%">2</div></div>
+      <div class="bar-total">2</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">2020</div>
+      <div class="bar-track"><div class="bar-seg sy" style="width:100%">4</div></div>
+      <div class="bar-total">4</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">2023</div>
+      <div class="bar-track">
+        <div class="bar-seg fm" style="width:33.3%">1</div>
+        <div class="bar-seg sy" style="width:33.3%">1</div>
+        <div class="bar-seg rz" style="width:33.3%">1</div>
+      </div>
+      <div class="bar-total">3</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">2025</div>
+      <div class="bar-track">
+        <div class="bar-seg fm" style="width:57.1%">4</div>
+        <div class="bar-seg sy" style="width:14.3%">1</div>
+        <div class="bar-seg wg" style="width:14.3%">1</div>
+      </div>
+      <div class="bar-total">6</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">2026</div>
+      <div class="bar-track"><div class="bar-seg wg" style="width:100%">2</div></div>
+      <div class="bar-total">2</div>
+    </div>
+  </div>
+</div>
+
+<!-- 专利明细 -->
+<div class="section">
+  <h2>专利明细清单</h2>
+  <table>
+    <thead>
+      <tr><th>序号</th><th>专利名称</th><th>类型</th><th>专利号/登记号</th><th>授权日期</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>离心试验中三维可移动的挡浆砂箱通联系统</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2014 1 0080576.7</td><td>2015-07-29</td></tr>
+      <tr><td>2</td><td>类矩形盾构减摩泥浆扩散试验系统</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2016 1 0031568.9</td><td>2018-07-13</td></tr>
+      <tr><td>3</td><td>短肢结构抗旋转力储圆形土体的室内试验装置</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2015 1 0804311.8</td><td>2018-09</td></tr>
+      <tr><td>4</td><td>一种钢筋笼主筋焊接定位架</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2019 2 0451945.4</td><td>2019-12-06</td></tr>
+      <tr><td>5</td><td>一种用于人工挖孔桩爆破的出渣防护装置</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2019 2 0429200.7</td><td>2019-12-20</td></tr>
+      <tr><td>6</td><td>一种组合式牛腿支撑结构</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2019 2 1155293.5</td><td>2020-05-01</td></tr>
+      <tr><td>7</td><td>一种钢护筒插打立体限位导向架</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2019 2 1155274.2</td><td>2020-05-01</td></tr>
+      <tr><td>8</td><td>一种浮式钻孔平台</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2019 2 1155175.4</td><td>2020-05-19</td></tr>
+      <tr><td>9</td><td>一种超高横梁支架的预压结构</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2019 2 1155171.6</td><td>2020-05-22</td></tr>
+      <tr><td>10</td><td>一种装配式混凝土围堰及其安装方法</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2022 1 0779076.3</td><td>2023-08-18</td></tr>
+      <tr><td>11</td><td>运架一体拱上吊机计算软件 V1.0</td><td><span class="tag tag-ruanzhu">软著</span></td><td>2023SR1058313</td><td>2023-09-13</td></tr>
+      <tr><td>12</td><td>一种防止钢桁梁支座处脱空的后锚固结构</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2023 2 1316513.4</td><td>2023-10-03</td></tr>
+      <tr><td>13</td><td>用于电子设备的运架一体拱上吊机计算软件用户界面</td><td><span class="tag tag-waiguan">外观设计</span></td><td>ZL 2024 3 0053744.4</td><td>2025-01-28</td></tr>
+      <tr><td>14</td><td>拱上吊机抗倾覆性分析方法及计算机设备</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2025 1 0352229.X</td><td>2025-06-24</td></tr>
+      <tr><td>15</td><td>桥梁裂缝测量装置</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2025 1 0847024.9</td><td>2025-09-09</td></tr>
+      <tr><td>16</td><td>一种基于主副双肢拱肋整体侧转的检测装置及其使用方法</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2025 1 0873387.X</td><td>2025-09-12</td></tr>
+      <tr><td>17</td><td>一种施工现场用拱肋节段焊接装置</td><td><span class="tag tag-shiyong">实用新型</span></td><td>ZL 2025 2 2336120.5</td><td>2025-12-16</td></tr>
+      <tr><td>18</td><td>基于拱梁协同顶推的偏移量实时测量装置及其使用方法</td><td><span class="tag tag-faming">发明</span></td><td>ZL 2025 1 1294387.0</td><td>2025-12-16</td></tr>
+      <tr><td>19</td><td>用于电子设备的圆弧顶推偏移量计算软件图形用户界面</td><td><span class="tag tag-waiguan">外观设计</span></td><td>ZL 2025 3 0200377.0</td><td>2026-03-13</td></tr>
+      <tr><td>20</td><td>用于电子设备的缆索吊主索验算软件图形用户界面</td><td><span class="tag tag-waiguan">外观设计</span></td><td>ZL 2025 3 0200350.1</td><td>2026-03-13</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="footer">报告生成日期：2026-03-31</p>
+</div>
+</body>
+</html>
