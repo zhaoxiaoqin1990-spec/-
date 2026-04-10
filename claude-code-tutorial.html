@@ -40,6 +40,30 @@
     margin: 0 auto;
   }
 
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary-dark);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 20px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(31, 30, 28, 0.04);
+    transition: all 0.25s ease;
+  }
+
+  .back-link:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(217, 119, 87, 0.15);
+  }
+
   header {
     text-align: center;
     padding: 60px 20px 50px;
@@ -296,6 +320,8 @@
 </head>
 <body>
 <div class="container">
+
+  <a href="index.html" class="back-link">← 返回主页</a>
 
   <header>
     <h1>Claude Code 常用命令使用教程</h1>

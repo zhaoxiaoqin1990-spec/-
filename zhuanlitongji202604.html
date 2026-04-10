@@ -46,11 +46,15 @@
   .legend .l-wg::before { background: #34a853; }
   .legend .l-rz::before { background: #1a73e8; }
   .footer { text-align: center; color: #bbb; font-size: 12px; margin-top: 40px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: #1a73e8; text-decoration: none; font-size: 13px; font-weight: 500; margin-bottom: 20px; padding: 8px 16px; border-radius: 8px; background: #fff; border: 1px solid #e0e4ea; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.25s ease; }
+  .back-link:hover { background: #e8f0fe; border-color: #1a73e8; transform: translateX(-3px); box-shadow: 0 2px 8px rgba(26,115,232,0.15); }
   @media (max-width: 640px) { .cards { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
 <div class="container">
+
+<a href="index.html" class="back-link">← 返回主页</a>
 
 <h1>专利授权统计报告</h1>
 <p class="subtitle">统计截止日期：2026年3月31日 &nbsp;|&nbsp; 去重后共计 20 项知识产权</p>
