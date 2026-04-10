@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>赵晓琴个人笔记</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --primary: #d97757;
+    --primary-dark: #b85a3e;
+    --primary-light: #f5e6de;
+    --bg: #faf9f7;
+    --card-bg: #ffffff;
+    --text: #1f1e1c;
+    --text-soft: #5a5754;
+    --text-muted: #8b8680;
+    --border: #e8e4dd;
+    --shadow: 0 4px 24px rgba(31, 30, 28, 0.06);
+    --shadow-hover: 0 12px 40px rgba(31, 30, 28, 0.12);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    padding: 80px 20px 70px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 24px;
+    color: white;
+    margin-bottom: 50px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  header::after {
+    content: "";
+    position: absolute;
+    bottom: -40%;
+    left: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .avatar {
+    width: 88px;
+    height: 88px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  header h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    position: relative;
+    letter-spacing: -0.5px;
+  }
+
+  header p.subtitle {
+    font-size: 1.15rem;
+    opacity: 0.92;
+    position: relative;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 28px;
+    position: relative;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+    color: var(--text);
+    margin: 0 4px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::before {
+    content: "";
+    width: 4px;
+    height: 22px;
+    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+    border-radius: 2px;
+  }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .note-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .note-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .note-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary-light);
+  }
+
+  .note-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .note-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+    font-weight: 700;
+  }
+
+  .note-card h3 {
+    font-size: 1.2rem;
+    color: var(--text);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .note-card p {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+    flex: 1;
+    margin-bottom: 18px;
+  }
+
+  .note-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .note-tag {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .note-arrow {
+    color: var(--primary);
+    font-weight: 600;
+    transition: transform 0.3s ease;
+  }
+
+  .note-card:hover .note-arrow {
+    transform: translateX(4px);
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 20px 20px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  footer p {
+    margin-bottom: 6px;
+  }
+
+  footer .heart {
+    color: var(--primary);
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 20px 12px; }
+    header { padding: 50px 20px 45px; }
+    header h1 { font-size: 2rem; }
+    header p.subtitle { font-size: 1rem; }
+    .avatar { width: 72px; height: 72px; font-size: 1.8rem; }
+    .stats { gap: 24px; }
+    .stat-num { font-size: 1.5rem; }
+    .notes-grid { grid-template-columns: 1fr; gap: 18px; }
+    .note-card { padding: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="avatar">赵</div>
+    <h1>赵晓琴个人笔记</h1>
+    <p class="subtitle">记录个人工作及学习笔记</p>
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-num" id="note-count">1</span>
+        <span class="stat-label">篇笔记</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">持续更新</span>
+      </div>
+    </div>
+  </header>
+
+  <h2 class="section-title">全部笔记</h2>
+
+  <div class="notes-grid">
+
+    <a href="claude-code-tutorial.html" class="note-card">
+      <div class="note-icon">C</div>
+      <h3>Claude Code 常用命令使用教程</h3>
+      <p>从入门到熟练掌握 Claude Code 的高效工作流,包含斜杠命令、启动参数、快捷技巧、记忆文件等内容。</p>
+      <div class="note-meta">
+        <span class="note-tag">工具</span>
+        <span class="note-arrow">阅读 →</span>
+      </div>
+    </a>
+
+    <!-- 新增笔记时,复制上面的 <a> 块,修改 href、标题、描述、标签即可 -->
+
+  </div>
+
+  <footer>
+    <p>© 2026 赵晓琴 · 用 <span class="heart">♥</span> 记录成长</p>
+    <p>最后更新:2026-04-10</p>
+  </footer>
+
+</div>
+
+<script>
+  // 自动统计笔记数量
+  document.addEventListener('DOMContentLoaded', function() {
+    const count = document.querySelectorAll('.note-card').length;
+    document.getElementById('note-count').textContent = count;
+  });
+</script>
+</body>
+</html>

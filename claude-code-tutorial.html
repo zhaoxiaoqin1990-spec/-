@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 常用命令使用教程</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --primary: #d97757;
+    --primary-dark: #b85a3e;
+    --primary-light: #f5e6de;
+    --bg: #faf9f7;
+    --card-bg: #ffffff;
+    --text: #1f1e1c;
+    --text-soft: #5a5754;
+    --border: #e8e4dd;
+    --code-bg: #f4f1ec;
+    --shadow: 0 4px 24px rgba(31, 30, 28, 0.06);
+    --shadow-hover: 0 8px 32px rgba(31, 30, 28, 0.1);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    padding: 60px 20px 50px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 20px;
+    color: white;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  header h1 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    position: relative;
+    letter-spacing: -0.5px;
+  }
+
+  header p {
+    font-size: 1.1rem;
+    opacity: 0.92;
+    position: relative;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    margin-top: 16px;
+    backdrop-filter: blur(10px);
+    position: relative;
+  }
+
+  section {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  section:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(217, 119, 87, 0.3);
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    color: var(--text);
+    margin: 20px 0 12px;
+    font-weight: 600;
+  }
+
+  p {
+    color: var(--text-soft);
+    margin-bottom: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 16px 0;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  thead {
+    background: var(--primary-light);
+  }
+
+  th {
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--primary-dark);
+    font-size: 0.95rem;
+  }
+
+  td {
+    padding: 13px 18px;
+    border-top: 1px solid var(--border);
+    color: var(--text-soft);
+    font-size: 0.95rem;
+  }
+
+  tbody tr {
+    transition: background 0.2s ease;
+  }
+
+  tbody tr:hover {
+    background: #fdfaf7;
+  }
+
+  td:first-child {
+    width: 32%;
+  }
+
+  code {
+    font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    background: var(--code-bg);
+    color: var(--primary-dark);
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: 500;
+  }
+
+  pre {
+    background: #1f1e1c;
+    color: #f4f1ec;
+    padding: 20px 24px;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 16px 0;
+    border: 1px solid #2a2926;
+    position: relative;
+  }
+
+  pre::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    width: 12px;
+    height: 12px;
+    background: #ff5f57;
+    border-radius: 50%;
+    box-shadow: 20px 0 0 #febc2e, 40px 0 0 #28c840;
+  }
+
+  pre code {
+    background: none;
+    color: #f4f1ec;
+    padding: 0;
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 24px;
+    line-height: 1.65;
+  }
+
+  .comment {
+    color: #8b8680;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  ul li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    color: var(--text-soft);
+  }
+
+  ul li::before {
+    content: "▸";
+    position: absolute;
+    left: 4px;
+    color: var(--primary);
+    font-weight: bold;
+  }
+
+  ul li strong {
+    color: var(--text);
+  }
+
+  .tip {
+    background: linear-gradient(135deg, #fff8f3 0%, #fdf2ea 100%);
+    border-left: 4px solid var(--primary);
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 16px 0;
+    color: var(--text-soft);
+    font-size: 0.95rem;
+  }
+
+  .tip strong {
+    color: var(--primary-dark);
+  }
+
+  footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+  }
+
+  footer a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 20px 12px; }
+    header { padding: 40px 20px; }
+    header h1 { font-size: 1.9rem; }
+    section { padding: 24px 20px; }
+    h2 { font-size: 1.3rem; }
+    table { font-size: 0.85rem; }
+    th, td { padding: 10px 12px; }
+    td:first-child { width: 40%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Claude Code 常用命令使用教程</h1>
+    <p>从入门到熟练 —— 掌握 Claude Code 的高效工作流</p>
+    <span class="badge">更新于 2026-04-10</span>
+  </header>
+
+  <section>
+    <h2><span class="num">1</span>斜杠命令 Slash Commands</h2>
+    <p>在对话输入框中直接输入 <code>/</code> 即可唤出命令菜单，常用命令如下：</p>
+    <table>
+      <thead>
+        <tr><th>命令</th><th>作用</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/help</code></td><td>查看帮助文档</td></tr>
+        <tr><td><code>/clear</code></td><td>清空当前对话历史</td></tr>
+        <tr><td><code>/compact</code></td><td>压缩历史对话以节省上下文</td></tr>
+        <tr><td><code>/model</code></td><td>切换模型（Opus / Sonnet / Haiku）</td></tr>
+        <tr><td><code>/config</code></td><td>打开配置界面</td></tr>
+        <tr><td><code>/status</code></td><td>查看当前会话状态</td></tr>
+        <tr><td><code>/cost</code></td><td>查看本次会话的 token 消耗</td></tr>
+        <tr><td><code>/login</code> / <code>/logout</code></td><td>登录 / 登出账号</td></tr>
+        <tr><td><code>/init</code></td><td>在项目中生成 CLAUDE.md 记忆文件</td></tr>
+        <tr><td><code>/memory</code></td><td>编辑记忆文件</td></tr>
+        <tr><td><code>/review</code></td><td>让 Claude 审查当前代码改动</td></tr>
+        <tr><td><code>/pr-comments</code></td><td>查看 GitHub PR 评论</td></tr>
+        <tr><td><code>/bug</code></td><td>上报 bug</td></tr>
+        <tr><td><code>/doctor</code></td><td>诊断 Claude Code 运行环境</td></tr>
+        <tr><td><code>/fast</code></td><td>切换快速输出模式</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>命令行启动参数</h2>
+    <p>在终端使用 <code>claude</code> 命令启动，支持多种参数：</p>
+<pre><code>claude                     <span class="comment"># 交互模式</span>
+claude "帮我写单元测试"      <span class="comment"># 直接发送一个提示词</span>
+claude -c                  <span class="comment"># 继续上一次会话</span>
+claude -r                  <span class="comment"># 选择历史会话恢复</span>
+claude -p "修复bug"         <span class="comment"># 非交互一次性输出（print 模式）</span>
+claude --model opus        <span class="comment"># 指定模型启动</span>
+claude --add-dir ../lib    <span class="comment"># 增加可访问目录</span></code></pre>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>输入框快捷技巧</h2>
+    <p>这些技巧能显著提升你与 Claude Code 的交互效率：</p>
+    <table>
+      <thead>
+        <tr><th>输入</th><th>作用</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>!&lt;命令&gt;</code></td><td>直接执行 shell 命令（如 <code>!git status</code>）</td></tr>
+        <tr><td><code>@&lt;文件路径&gt;</code></td><td>引用文件让 Claude 读取</td></tr>
+        <tr><td><code>#&lt;内容&gt;</code></td><td>快速写入记忆（CLAUDE.md）</td></tr>
+        <tr><td><code>Shift + Tab</code></td><td>切换自动编辑 / 计划模式</td></tr>
+        <tr><td><code>Esc</code></td><td>中断 Claude 正在进行的操作</td></tr>
+        <tr><td>连按两次 <code>Esc</code></td><td>回退到上一条消息编辑</td></tr>
+        <tr><td><code>Ctrl + C</code></td><td>退出 Claude Code</td></tr>
+        <tr><td><code>Ctrl + L</code></td><td>清屏</td></tr>
+        <tr><td><code>↑</code> / <code>↓</code></td><td>浏览历史输入</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>权限与工作模式</h2>
+    <ul>
+      <li><strong>默认模式</strong>：执行前会请求授权，最安全的工作方式</li>
+      <li><strong>Plan 模式</strong>（Shift+Tab 切换）：只规划不改文件，适合需求评审</li>
+      <li><strong>Auto-accept 模式</strong>：自动批准编辑操作，适合熟悉的重复性任务</li>
+      <li><strong>Bypass 模式</strong>：跳过权限检查，请谨慎使用</li>
+    </ul>
+    <div class="tip">
+      <strong>小提示：</strong>涉及删除、force push、数据库写入等高风险操作时，建议切回默认模式，确保每一步都在掌控之中。
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span>记忆文件 CLAUDE.md</h2>
+    <p>Claude 会在每次会话自动加载记忆文件，放置位置决定作用范围：</p>
+    <ul>
+      <li><code>./CLAUDE.md</code> —— <strong>项目级记忆</strong>，随项目共享</li>
+      <li><code>~/.claude/CLAUDE.md</code> —— <strong>全局用户记忆</strong>，所有项目生效</li>
+      <li><code>./CLAUDE.local.md</code> —— <strong>本地个人记忆</strong>，不提交到 git</li>
+    </ul>
+    <p>可写入项目规范、常用命令、编码约定、架构说明等。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">6</span>常用工作流示例</h2>
+    <h3>分析并修复 Bug</h3>
+<pre><code>claude "看看 src/main.cpp 里的崩溃问题并修复"</code></pre>
+
+    <h3>代码审查与提交</h3>
+<pre><code>/review                    <span class="comment"># 审查当前改动</span>
+/commit                    <span class="comment"># 生成规范的提交信息</span></code></pre>
+
+    <h3>引用文件进行重构</h3>
+<pre><code>@src/components/Button.tsx 帮我重构这个组件，抽取通用逻辑</code></pre>
+
+    <h3>恢复之前的会话</h3>
+<pre><code>claude -c                  <span class="comment"># 继续最近一次对话</span>
+claude -r                  <span class="comment"># 从列表中选择历史会话</span></code></pre>
+
+    <div class="tip">
+      <strong>效率建议：</strong>把常用的 prompt 写进 <code>CLAUDE.md</code>，比如"测试命令用 npm test"、"不要修改生成的文件"等，可以减少重复交代。
+    </div>
+  </section>
+
+  <footer>
+    <p>Claude Code · 让 AI 成为你的结对编程伙伴</p>
+    <p>教程生成于 2026-04-10</p>
+  </footer>
+
+</div>
+</body>
+</html>
