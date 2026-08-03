@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公路桥梁风荷载计算工具（依据 JTG/T 3360-01—2018）</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+    --primary:#1d4ed8; --primary-dark:#1e3a8a; --border:#e2e8f0;
+    --accent:#0891b2; --warn:#b45309; --good:#166534;
+    --tab-bg:#eef2f7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Microsoft YaHei","PingFang SC","Segoe UI",Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6;
+  }
+  header{
+    background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+    color:#fff; padding:22px 24px;
+  }
+  header h1{margin:0 0 6px 0; font-size:22px;}
+  header p{margin:0; font-size:13px; opacity:0.9;}
+  .wrap{max-width:1180px; margin:0 auto; padding:20px;}
+  .grid{display:grid; grid-template-columns: 380px 1fr; gap:20px;}
+  @media (max-width: 900px){ .grid{grid-template-columns: 1fr;} }
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:10px;
+    padding:18px 20px; margin-bottom:18px; box-shadow:0 1px 2px rgba(0,0,0,0.03);
+  }
+  .card h2{font-size:16px; margin:0 0 14px 0; color:var(--primary-dark); border-left:4px solid var(--primary); padding-left:10px;}
+  .card h3{font-size:14px; margin:16px 0 8px 0; color:var(--text);}
+  label{display:block; font-size:13px; color:var(--muted); margin-bottom:4px; margin-top:10px;}
+  select, input[type=number], input[type=text]{
+    width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px;
+    font-size:14px; background:#fff; color:var(--text);
+  }
+  select:focus, input:focus{outline:2px solid var(--primary); outline-offset:1px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+  .radio-group{display:flex; gap:14px; flex-wrap:wrap; margin-top:6px;}
+  .radio-group label{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text); margin:0;}
+  .radio-group input{width:auto;}
+  .hint{font-size:12px; color:var(--muted); margin-top:4px;}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;}
+  .tab-btn{
+    padding:9px 16px; border-radius:8px; border:1px solid var(--border); background:var(--tab-bg);
+    cursor:pointer; font-size:13px; color:var(--text); transition:all .15s;
+  }
+  .tab-btn.active{background:var(--primary); color:#fff; border-color:var(--primary);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .result-box{
+    background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:16px; margin-top:16px;
+  }
+  .result-box.warn{background:#fffbeb; border-color:#fde68a;}
+  .result-main{font-size:26px; font-weight:700; color:var(--primary-dark); margin:4px 0;}
+  .result-main span{font-size:14px; font-weight:400; color:var(--muted);}
+  table.calc-steps{width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;}
+  table.calc-steps td, table.calc-steps th{padding:6px 8px; border-bottom:1px solid var(--border); text-align:left;}
+  table.calc-steps th{color:var(--muted); font-weight:600; width:40%;}
+  table.calc-steps td.val{font-family:Consolas,Menlo,monospace; color:var(--primary-dark); font-weight:600;}
+  .clause{font-size:11px; color:#94a3b8;}
+  .badge{
+    display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600;
+  }
+  .badge.R1{background:#fee2e2; color:#b91c1c;}
+  .badge.R2{background:#ffedd5; color:#c2410c;}
+  .badge.R3{background:#dcfce7; color:#15803d;}
+  .action-btn{
+    padding:9px 16px; border-radius:8px; border:1px solid var(--border); background:var(--tab-bg);
+    cursor:pointer; font-size:13px; color:var(--text); transition:all .15s;
+  }
+  footer{text-align:center; font-size:12px; color:var(--muted); padding:20px;}
+  .small-note{font-size:12px; color:var(--muted); background:#f8fafc; border-radius:6px; padding:10px 12px; margin-top:10px;}
+  .flex-between{display:flex; justify-content:space-between; align-items:baseline;}
+  .section-formula{
+    font-family:Consolas,Menlo,monospace; background:#f8fafc; border:1px dashed var(--border);
+    border-radius:6px; padding:8px 12px; font-size:13px; margin:8px 0; color:#334155;
+  }
+  a.ref-link{color:var(--primary); text-decoration:none;}
+  .divider{height:1px; background:var(--border); margin:14px 0;}
+  .toggle-manual{margin-top:8px;}
+
+  /* ===== 规范样式公式排版（分式、上下标） ===== */
+  .formula-box{
+    background:#f8fafc; border:1px dashed var(--border); border-radius:6px;
+    padding:14px 16px; margin:10px 0; text-align:center;
+    font-family:"Times New Roman","STIX Two Math","Cambria Math",SimSun,serif;
+    font-size:17px; color:#1e293b;
+  }
+  .formula-box.result{ background:#ecfdf5; border:1px solid #6ee7b7; font-weight:700; }
+  .formula-box .fvar{ font-style:italic; }
+  .formula-box .frac{
+    display:inline-flex; flex-direction:column; vertical-align:middle;
+    text-align:center; margin:0 4px; line-height:1.15; position:relative; top:0.28em;
+  }
+  .formula-box .frac .num{ border-bottom:1.3px solid currentColor; padding:0 5px 1px 5px; }
+  .formula-box .frac .den{ padding:1px 5px 0 5px; }
+  .formula-box sub{ font-size:0.68em; }
+  .formula-box sup{ font-size:0.68em; }
+  .subst-box{
+    background:#f8fafc; border:1px dashed var(--border); border-radius:6px;
+    padding:10px 16px; margin:8px 0; text-align:center;
+    font-family:"Times New Roman","STIX Two Math","Cambria Math",SimSun,serif;
+    font-size:15px; color:#334155;
+  }
+
+  /* ===== 桌面版视觉分区：输入参数 / 输出结果 ===== */
+  :root{
+    --input-bg:#f6f9ff; --input-line:#bfd3ff; --input-strong:#2563eb;
+    --output-bg:#f2fbf6; --output-line:#86d6ac; --output-strong:#087443;
+  }
+  body{background:linear-gradient(180deg,#eef4ff 0,#f5f7fb 220px,#f5f7fb 100%);}
+  header{box-shadow:0 8px 28px rgba(30,58,138,.18);}
+  .wrap{max-width:1240px;}
+  .toolbar{
+    background:rgba(255,255,255,.96)!important; border-color:#d8e3f3!important;
+    box-shadow:0 8px 24px rgba(30,64,175,.08)!important; backdrop-filter:blur(10px);
+  }
+  .grid{grid-template-columns:390px minmax(0,1fr); align-items:start;}
+  .section-label{
+    display:flex; align-items:center; gap:10px; margin:0 0 10px; padding:10px 14px;
+    border-radius:10px; font-size:13px; font-weight:700; letter-spacing:.04em;
+  }
+  .section-label::before{
+    display:grid; place-items:center; width:24px; height:24px; border-radius:7px;
+    color:#fff; font-size:13px;
+  }
+  .section-label.input{color:#1746a2; background:#e8f0ff; border:1px solid #c7d8ff;}
+  .section-label.input::before{content:"入"; background:var(--input-strong);}
+  .section-label.output{color:#08603a; background:#e5f7ed; border:1px solid #aee3c7;}
+  .section-label.output::before{content:"出"; background:var(--output-strong);}
+  .input-column>.card,.input-card{
+    background:linear-gradient(145deg,#fff 0%,var(--input-bg) 100%);
+    border-color:var(--input-line); box-shadow:0 5px 18px rgba(37,99,235,.055);
+  }
+  .input-column>.card h2,.input-card h2{color:#173f91;}
+  .input-column input[type=number],.input-column input[type=text],.input-column select,
+  .input-card input[type=number],.input-card input[type=text],.input-card select{
+    border-color:#b9cbed; background:#fff; min-height:38px; transition:border-color .15s,box-shadow .15s;
+  }
+  .input-column input:hover,.input-column select:hover,
+  .input-card input:hover,.input-card select:hover{border-color:#7ea5ef;}
+  .input-column input:focus,.input-column select:focus,
+  .input-card input:focus,.input-card select:focus{
+    outline:none; border-color:var(--input-strong); box-shadow:0 0 0 3px rgba(37,99,235,.12);
+  }
+  .output-card{
+    background:linear-gradient(145deg,#fff 0%,var(--output-bg) 100%);
+    border:1px solid var(--output-line); box-shadow:0 10px 28px rgba(8,116,67,.09);
+  }
+  .output-card h2{color:var(--output-strong); border-left-color:var(--output-strong);}
+  .output-card .result-box{background:#fff;border:1px solid #a9ddc1;box-shadow:inset 4px 0 0 var(--output-strong);}
+  .output-card .result-main,.output-card #resultForce{color:var(--output-strong)!important;}
+  .output-card table.calc-steps tr:last-child td,.output-card table.calc-steps tr:last-child th{border-bottom:0;}
+  .tab-btn{font-weight:600;}
+  .action-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(15,23,42,.10);}
+  #btnCalc{min-width:92px;font-size:14px!important;box-shadow:0 6px 16px rgba(37,99,235,.24);}
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr;}
+    .toolbar{top:0!important;}
+  }
+  @media (max-width:600px){
+    html,body{width:100%;max-width:100%;overflow-x:hidden;}
+    header{padding:18px 12px;}
+    header h1{font-size:20px;line-height:1.35;}
+    header p{font-size:12px;line-height:1.6;}
+    header,footer{max-width:100vw;overflow:hidden;}
+    header p{overflow-wrap:anywhere;}
+    .grid,.input-column,.calculation-column{width:100%;max-width:100%;min-width:0;}
+    .wrap{width:auto!important;max-width:none!important;margin:0!important;padding:12px!important;}
+    header .wrap{padding:0!important;}
+    .card{width:auto!important;max-width:100%;min-width:0;margin-left:0;margin-right:0;}
+    .toolbar{
+      display:flex!important;flex-wrap:wrap;gap:8px!important;
+      padding:12px!important;align-items:center!important;
+    }
+    .toolbar>span{flex:0 0 100%;margin-right:0!important;line-height:1.55;min-width:0;overflow-wrap:anywhere;}
+    .toolbar>#btnReset{margin-left:auto;}
+    .toolbar>#btnCalc{min-width:82px;}
+    .card{padding:15px 14px;margin-bottom:14px;}
+    .row2,.row3{grid-template-columns:1fr;gap:4px;}
+    input,select{min-width:0;max-width:100%;}
+    .radio-group{gap:8px 16px;}
+    .flex-between{flex-wrap:wrap;gap:4px 10px;min-width:0;}
+    .flex-between>*{min-width:0;max-width:100%;}
+    .result-main{font-size:22px;word-break:break-word;}
+    table.calc-steps{font-size:12px;table-layout:fixed;}
+    table.calc-steps th{width:46%;}
+    table.calc-steps td{word-break:break-word;}
+    .tabs{gap:5px;}
+    .tab-btn{padding:8px 11px;}
+    .section-label{margin-bottom:9px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap" style="padding:0;">
+    <h1>公路桥梁风荷载计算工具</h1>
+    <p>依据《公路桥梁抗风设计规范》（JTG/T 3360-01—2018） · 基本风速数据库覆盖全国 764 个气象台站</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card toolbar" style="display:flex; gap:12px; align-items:center; justify-content:flex-end; position:sticky; top:8px; z-index:50;">
+    <a href="index.html" class="action-btn" style="text-decoration:none; display:inline-block; margin-right:auto;">← 返回主页</a>
+    <span style="font-size:12px; color:var(--muted);">填写左侧与右侧参数后，点击"计算"按钮得到结果；"重置"可恢复全部默认输入。</span>
+    <button id="btnReset" class="action-btn">重置</button>
+    <button id="btnCalc" class="action-btn" style="background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600;">计算</button>
+  </div>
+  <div class="grid">
+
+    <!-- LEFT: 基本参数 -->
+    <div class="input-column">
+      <div class="section-label input">基础输入参数</div>
+      <div class="card">
+        <h2>① 基本风速 U<sub>10</sub></h2>
+
+        <div class="radio-group">
+          <label><input type="radio" name="windSrc" value="auto" checked> 按地区自动查询（附录A.3）</label>
+          <label><input type="radio" name="windSrc" value="manual"> 手动输入基本风速</label>
+        </div>
+
+        <div id="autoWindBlock">
+          <label>省/直辖市/自治区</label>
+          <select id="provinceSelect"></select>
+          <label>气象台站</label>
+          <select id="stationSelect"></select>
+          <label>重现期（表A.3）</label>
+          <select id="periodSelect">
+            <option value="10">10年</option>
+            <option value="20">20年</option>
+            <option value="30">30年</option>
+            <option value="40">40年</option>
+            <option value="50">50年</option>
+            <option value="100" selected>100年（规范4.1.1条规定的基本风速U₁₀默认取值）</option>
+            <option value="120">120年</option>
+            <option value="150">150年</option>
+          </select>
+          <div class="hint">规范4.1.1条基本风速U₁₀默认取100年重现期值；若需按W1风作用水平（10年重现期，3.2.2条）或其他重现期复核，可在此切换，其余计算逻辑不变。</div>
+          <div class="hint" id="stationHint"></div>
+        </div>
+
+        <div id="manualWindBlock" style="display:none;">
+          <label>基本风速 U<sub>10</sub>（m/s，10min平均、100年重现期）</label>
+          <input type="number" id="manualU10" value="28.0" step="0.1">
+          <div class="hint">若来自当地气象站或已知规范值，直接输入。</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="flex-between">
+          <span style="font-size:13px;color:var(--muted);">基本风速 U₁₀</span>
+          <b id="u10Display" style="font-size:16px;color:var(--primary-dark);">-- m/s</b>
+        </div>
+        <div class="flex-between" style="margin-top:6px;">
+          <span style="font-size:13px;color:var(--muted);">抗风风险区域（表3.2.1）</span>
+          <span id="riskBadge">--</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>② 场地与地形参数</h2>
+        <label>地表类别（表4.2.1）</label>
+        <select id="terrainSelect">
+          <option value="A">A类：海面、海岸、开阔水面、沙漠（α₀=0.12）</option>
+          <option value="B" selected>B类：田野、乡村、丛林、平坦开阔地（α₀=0.16）</option>
+          <option value="C">C类：树木及低层建筑密集区（α₀=0.22）</option>
+          <option value="D">D类：中高层建筑密集区、起伏丘陵地（α₀=0.30）</option>
+        </select>
+
+        <label>地形条件系数 k<sub>t</sub>（4.2.6条）</label>
+        <select id="ktSelect">
+          <option value="1.0">平坦开阔地形：1.0</option>
+          <option value="1.2">峡谷谷口、山口（下限）：1.2</option>
+          <option value="1.35">峡谷谷口、山口（中值）：1.35</option>
+          <option value="1.5">峡谷谷口、山口（上限）：1.5</option>
+          <option value="custom">自定义...</option>
+        </select>
+        <input type="number" id="ktCustom" style="display:none; margin-top:8px;" step="0.01" value="1.2">
+
+        <label>抗风风险系数 k<sub>f</sub>（表4.2.6-1）</label>
+        <select id="kfSelect">
+          <option value="auto">按风险区域自动判定</option>
+          <option value="1.05">R1（U₁₀&gt;32.6m/s）：1.05</option>
+          <option value="1.02">R2（24.5～32.6m/s）：1.02</option>
+          <option value="1.00">R3（U₁₀≤24.5m/s）：1.00</option>
+        </select>
+
+        <div class="hint">桥梁设计基本风速 U<sub>s10</sub> = k<sub>c</sub>·U<sub>10</sub>，其中 k<sub>c</sub> 为地表类别转换系数（表4.2.4：A=1.174, B=1.0, C=0.785, D=0.564）。</div>
+      </div>
+
+      <div class="card">
+        <h2>③ 施工阶段设计风速（4.2.9条，可选）</h2>
+        <label><input type="checkbox" id="constructionCheck"> 本次按施工阶段计算风荷载</label>
+        <div id="constructionInputs" style="display:none;">
+          <label>桥梁施工年限（年）</label>
+          <select id="constructionYears">
+            <option value="le3">≤3年</option>
+            <option value="gt3">&gt;3年</option>
+          </select>
+          <div class="hint">施工期抗风风险系数 k<sub>sf</sub> 按表4.2.9，根据施工年限与抗风风险区域（R1/R2/R3）查取；施工阶段设计风速 U<sub>sd</sub>=k<sub>sf</sub>·U<sub>d</sub>，替代设计基准风速参与后续等效静阵风计算。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>④ 空气密度</h2>
+        <label>空气密度 ρ（kg/m³）</label>
+        <input type="number" id="rhoInput" value="1.25" step="0.001">
+        <div class="hint">规范建议取 1.25 kg/m³；如需按温度/气压修正，可参考表5-5自行调整。</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: 构件计算 -->
+    <div class="calculation-column">
+      <div class="section-label input">构件与几何输入参数</div>
+      <div class="card input-card">
+        <h2>⑤ 选择计算对象</h2>
+        <div style="margin-bottom:12px;">
+          <button type="button" id="btnShowZRef" class="action-btn" style="font-size:12px; padding:6px 12px;">📖 查看/收起 规范表4.2.2 及 图4.2.3（基准高度Z确定方法）</button>
+        </div>
+        <div id="zRefPanel" style="display:none; margin-bottom:16px; border:1px solid var(--border); border-radius:8px; padding:18px 20px; background:#fafafa;">
+          <div style="text-align:center; font-weight:700; font-size:14px; margin-bottom:10px;">表 4.2.2　基准高度 Z 的确定方法</div>
+          <table style="width:100%; border-collapse:collapse; font-size:13px; background:#fff;">
+            <tr style="background:#eef2f7;">
+              <th style="border:1px solid #94a3b8; padding:8px;">构　件</th>
+              <th style="border:1px solid #94a3b8; padding:8px;">悬索桥、斜拉桥</th>
+              <th style="border:1px solid #94a3b8; padding:8px;">拱　桥</th>
+              <th style="border:1px solid #94a3b8; padding:8px;">其他桥型</th>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">主梁</td>
+              <td style="border:1px solid #94a3b8; padding:8px;" colspan="2">主梁主跨桥面距水面或地面的平均高度</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">取下列两条中的较大值：<br>①支点平均高度＋（桥面最大高程－支点平均高程）×0.8；<br>②桥梁设计高度</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">吊杆、拉索或主缆</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">构件的平均高度距水面或地面的高度</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">吊杆的中点距水面或地面的高度</td>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">—</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">桥塔（墩、柱）</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">水面或地面以上塔（墩、柱）65%高度处</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">立柱的中点距水面或地面的高度</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">水面或地面以上塔（墩、柱）65%高度处</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">拱肋</td>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">—</td>
+              <td style="border:1px solid #94a3b8; padding:8px;">拱顶距水面或地面的高度</td>
+              <td style="border:1px solid #94a3b8; padding:8px; text-align:center;">—</td>
+            </tr>
+          </table>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px;">注：水面以河流或海面的最低水位作为参考面。</div>
+
+          <div style="text-align:center; font-weight:700; font-size:14px; margin:22px 0 10px;">图 4.2.3　跨越深切河谷或山谷桥梁的基准高度示意</div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; background:#fff; padding:14px; border:1px solid var(--border); border-radius:6px;">
+            <svg viewBox="0 0 380 400" style="width:360px; max-width:48%; min-width:280px;" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ah1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+                <marker id="ah2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+              </defs>
+              <!-- 主梁 -->
+              <rect x="40" y="70" width="300" height="9" fill="#94a3b8" stroke="#334155"/>
+              <text x="345" y="79" font-size="13">主梁</text>
+              <!-- 斜拉索/塔示意 -->
+              <line x1="110" y1="70" x2="90" y2="35" stroke="#334155" stroke-width="2"/>
+              <line x1="130" y1="70" x2="115" y2="35" stroke="#334155" stroke-width="2"/>
+              <!-- 山谷轮廓 -->
+              <polyline points="10,90 60,140 100,220 190,375 280,220 320,140 370,90" fill="none" stroke="#334155" stroke-width="2"/>
+              <!-- 山体阴影线（左） -->
+              <line x1="20" y1="95" x2="10" y2="105" stroke="#334155"/>
+              <line x1="35" y1="110" x2="22" y2="122" stroke="#334155"/>
+              <line x1="50" y1="128" x2="35" y2="140" stroke="#334155"/>
+              <line x1="65" y1="150" x2="50" y2="162" stroke="#334155"/>
+              <line x1="80" y1="175" x2="65" y2="187" stroke="#334155"/>
+              <!-- 山体阴影线（右） -->
+              <line x1="358" y1="95" x2="370" y2="105" stroke="#334155"/>
+              <line x1="345" y1="110" x2="358" y2="122" stroke="#334155"/>
+              <line x1="330" y1="128" x2="345" y2="140" stroke="#334155"/>
+              <line x1="315" y1="150" x2="330" y2="162" stroke="#334155"/>
+              <line x1="300" y1="175" x2="315" y2="187" stroke="#334155"/>
+              <!-- 计算起始高度虚线 -->
+              <line x1="30" y1="255" x2="350" y2="255" stroke="#334155" stroke-width="1.3" stroke-dasharray="5,4"/>
+              <text x="245" y="252" font-size="12">计算起始高度</text>
+              <!-- Z 竖向标注 x2 -->
+              <line x1="128" y1="80" x2="128" y2="255" stroke="#334155" marker-start="url(#ah2)" marker-end="url(#ah1)"/>
+              <text x="119" y="170" font-size="13" font-style="italic">Z</text>
+              <line x1="150" y1="80" x2="150" y2="255" stroke="#334155" marker-start="url(#ah2)" marker-end="url(#ah1)"/>
+              <text x="153" y="170" font-size="13" font-style="italic">Z</text>
+              <!-- Z=2/3Zh 竖向标注 -->
+              <line x1="200" y1="80" x2="200" y2="255" stroke="#334155" marker-start="url(#ah2)" marker-end="url(#ah1)"/>
+              <text x="203" y="175" font-size="12" font-style="italic">Z=<tspan baseline-shift="super" font-size="9">2</tspan>⁄<tspan baseline-shift="sub" font-size="9">3</tspan>Z_h</text>
+              <!-- Zh 竖向标注（到谷底） -->
+              <line x1="245" y1="80" x2="245" y2="372" stroke="#334155" marker-start="url(#ah2)" marker-end="url(#ah1)"/>
+              <text x="248" y="300" font-size="13" font-style="italic">Z<tspan baseline-shift="sub" font-size="9">h</tspan></text>
+              <!-- 谷底箭头 -->
+              <line x1="190" y1="375" x2="230" y2="385" stroke="#334155" marker-end="url(#ah1)"/>
+              <text x="200" y="398" font-size="12">谷底</text>
+              <text x="140" y="418" font-size="13" text-anchor="middle">a）跨越山谷桥梁</text>
+            </svg>
+
+            <svg viewBox="0 0 380 400" style="width:360px; max-width:48%; min-width:280px;" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="bh1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+                <marker id="bh2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+              </defs>
+              <rect x="40" y="70" width="300" height="9" fill="#94a3b8" stroke="#334155"/>
+              <text x="345" y="79" font-size="13">主梁</text>
+              <line x1="110" y1="70" x2="90" y2="35" stroke="#334155" stroke-width="2"/>
+              <line x1="130" y1="70" x2="115" y2="35" stroke="#334155" stroke-width="2"/>
+              <polyline points="10,90 60,140 100,220 190,320 280,220 320,140 370,90" fill="none" stroke="#334155" stroke-width="2"/>
+              <line x1="20" y1="95" x2="10" y2="105" stroke="#334155"/>
+              <line x1="35" y1="110" x2="22" y2="122" stroke="#334155"/>
+              <line x1="50" y1="128" x2="35" y2="140" stroke="#334155"/>
+              <line x1="65" y1="150" x2="50" y2="162" stroke="#334155"/>
+              <line x1="80" y1="175" x2="65" y2="187" stroke="#334155"/>
+              <line x1="358" y1="95" x2="370" y2="105" stroke="#334155"/>
+              <line x1="345" y1="110" x2="358" y2="122" stroke="#334155"/>
+              <line x1="330" y1="128" x2="345" y2="140" stroke="#334155"/>
+              <line x1="315" y1="150" x2="330" y2="162" stroke="#334155"/>
+              <line x1="300" y1="175" x2="315" y2="187" stroke="#334155"/>
+              <!-- 水面 -->
+              <path d="M130,318 Q160,310 190,318 T250,318 L250,330 L130,330 Z" fill="#93c5fd" stroke="#334155"/>
+              <line x1="230" y1="322" x2="270" y2="322" stroke="#334155" marker-end="url(#bh1)"/>
+              <text x="272" y="326" font-size="12">水面</text>
+              <!-- 计算起始高度虚线 -->
+              <line x1="30" y1="235" x2="350" y2="235" stroke="#334155" stroke-width="1.3" stroke-dasharray="5,4"/>
+              <text x="245" y="232" font-size="12">计算起始高度</text>
+              <!-- Z 竖向标注 x2 -->
+              <line x1="128" y1="80" x2="128" y2="235" stroke="#334155" marker-start="url(#bh2)" marker-end="url(#bh1)"/>
+              <text x="119" y="160" font-size="13" font-style="italic">Z</text>
+              <line x1="150" y1="80" x2="150" y2="235" stroke="#334155" marker-start="url(#bh2)" marker-end="url(#bh1)"/>
+              <text x="153" y="160" font-size="13" font-style="italic">Z</text>
+              <!-- Z=2/3Zh -->
+              <line x1="200" y1="80" x2="200" y2="235" stroke="#334155" marker-start="url(#bh2)" marker-end="url(#bh1)"/>
+              <text x="203" y="160" font-size="12" font-style="italic">Z=<tspan baseline-shift="super" font-size="9">2</tspan>⁄<tspan baseline-shift="sub" font-size="9">3</tspan>Z_h</text>
+              <!-- Zh 到水面 -->
+              <line x1="245" y1="80" x2="245" y2="316" stroke="#334155" marker-start="url(#bh2)" marker-end="url(#bh1)"/>
+              <text x="248" y="270" font-size="13" font-style="italic">Z<tspan baseline-shift="sub" font-size="9">h</tspan></text>
+              <text x="140" y="418" font-size="13" text-anchor="middle">b）跨越河谷桥梁</text>
+            </svg>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:8px; text-align:center;">（本工具按规范4.2.2/4.2.3条内容自绘示意，非规范原图扫描件）</div>
+        </div>
+        <div class="tabs" id="objTabs">
+          <button class="tab-btn active" data-tab="girder">主梁</button>
+          <button class="tab-btn" data-tab="pier">桥墩 / 桥塔</button>
+          <button class="tab-btn" data-tab="arch">拱肋</button>
+          <button class="tab-btn" data-tab="cable">斜拉索 / 吊杆 / 主缆</button>
+          <button class="tab-btn" data-tab="member">其他构件（矩形/圆形）</button>
+        </div>
+
+        <!-- 主梁 -->
+        <div class="tab-panel active" id="panel-girder">
+          <h3>基准高度 Z 计算助手（表4.2.2 / 式4.2.3，可选）</h3>
+          <label>桥梁类型/工况</label>
+          <select id="g_zMode">
+            <option value="manual">不使用助手，下方直接输入 Z</option>
+            <option value="susp">悬索桥、斜拉桥（表4.2.2）：主梁主跨桥面距水面或地面的平均高度</option>
+            <option value="valley">跨越深切河谷或山谷（式4.2.3-1）：Z = 2/3 × Z_h</option>
+            <option value="other">其他桥型（表4.2.2）：取两条中的较大值</option>
+          </select>
+
+          <div id="g_zSusp" style="display:none;">
+            <label>主梁主跨桥面距水面或地面的平均高度（m）</label>
+            <input type="number" id="g_zSuspVal" step="0.1" value="30">
+          </div>
+
+          <div id="g_zValley" style="display:none;">
+            <label>桥面距水面或谷底的高度 Z_h（m，见图4.2.3）</label>
+            <input type="number" id="g_zValleyZh" step="0.1" value="60">
+            <div class="hint">Z = 2/3 × Z_h（式4.2.3-1）</div>
+          </div>
+
+          <div id="g_zOther" style="display:none;">
+            <div class="row2">
+              <div><label>支点平均高度（m）</label><input type="number" id="g_zOtherH0" step="0.1" value="20"></div>
+              <div><label>桥梁设计高度（m）</label><input type="number" id="g_zOtherHdesign" step="0.1" value="25"></div>
+            </div>
+            <div class="row2">
+              <div><label>桥面最大高程（m）</label><input type="number" id="g_zOtherHmax" step="0.1" value="35"></div>
+              <div><label>支点平均高程（m）</label><input type="number" id="g_zOtherHavg" step="0.1" value="20"></div>
+            </div>
+            <div class="hint">Z = max( 支点平均高度 + (桥面最大高程－支点平均高程) × 0.8，桥梁设计高度 )</div>
+          </div>
+
+          <div class="hint" id="g_zAutoResult" style="display:none; font-weight:600; color:var(--good);"></div>
+
+          <div class="divider"></div>
+          <h3>基准高度 / 加载长度 / 特征高度</h3>
+          <div class="row2">
+            <div>
+              <label>基准高度 Z（m）</label>
+              <input type="number" id="g_Z" value="30" step="0.5">
+            </div>
+            <div>
+              <label>水平加载长度 L（m，一般取主跨跨径）</label>
+              <input type="number" id="g_L" value="200" step="1">
+            </div>
+          </div>
+          <div class="hint">基准高度取法参见表4.2.2：一般桥型取「支点平均高度+（桥面最高程-支点平均高程）×0.8」与「桥梁设计高度」两者较大值；跨越深切河谷或山谷时按式4.2.3取用。上方"计算助手"可自动填入本栏。</div>
+
+          <label>主梁特征高度 D（m，投影高度）</label>
+          <input type="number" id="g_D" value="3" step="0.1">
+          <div class="hint">D 用于式(5.3.1) F_g = ½ρU_g²C_H·D，对所有截面类型均需填写，不受下方截面类型选择影响。</div>
+
+          <h3>截面形式与横向力系数 C<sub>H</sub></h3>
+          <label>截面类型</label>
+          <select id="g_type">
+            <option value="box">工形/Π形/箱形截面（式5.3.2-1）</option>
+            <option value="truss">桁架式（表5.3.2-1/2-2）</option>
+            <option value="closedbox">闭口流线型箱梁（表5-6经验值）</option>
+            <option value="manual">直接输入 C<sub>H</sub></option>
+          </select>
+
+          <div id="g_box_inputs">
+            <label>主梁特征宽度 B（m）</label>
+            <input type="number" id="g_B" value="20" step="0.1">
+            <label><input type="checkbox" id="g_slopeCheck"> 主梁截面带斜腹板</label>
+            <div id="g_slopeInput" style="display:none;">
+              <label>腹板倾角 β<sub>d</sub>（°）</label>
+              <input type="number" id="g_beta" value="30" step="1">
+            </div>
+          </div>
+
+          <div id="g_truss_inputs" style="display:none;">
+            <div class="row2">
+              <div>
+                <label>构件类型</label>
+                <select id="g_trussShape">
+                  <option value="rect">矩形/H形截面构件</option>
+                  <option value="cyl_low">圆柱形构件（dU_d ≤ 6 m²/s）</option>
+                  <option value="cyl_high">圆柱形构件（dU_d &gt; 6 m²/s）</option>
+                </select>
+              </div>
+              <div><label>桁架实面积比（净面积/轮廓面积）</label>
+                <select id="g_solidRatio">
+                  <option value="0.1">0.1</option>
+                  <option value="0.2">0.2</option>
+                  <option value="0.3">0.3</option>
+                  <option value="0.4">0.4</option>
+                  <option value="0.5" selected>0.5</option>
+                </select>
+              </div>
+            </div>
+            <label><input type="checkbox" id="g_trussMulti"> 双片及以上桁架（考虑遮挡系数 η）</label>
+            <div id="g_trussEtaInputs" style="display:none;">
+              <label>间距比（两桁架中心距 / 迎风桁架高度）</label>
+              <select id="g_spacingRatio">
+                <option value="1">≤1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6" selected>6</option>
+              </select>
+            </div>
+            <div class="hint">桥面系构造的横向力系数取 1.3（规范5.3.2条第3款），本工具仅计算主桁部分，桥面系部分请按需另计。</div>
+          </div>
+
+          <div id="g_closedbox_inputs" style="display:none;">
+            <label>工况</label>
+            <select id="g_closedState">
+              <option value="1.1">成桥状态：C_H = 1.1</option>
+              <option value="0.8">施工状态（无栏杆防撞护栏）：C_H = 0.8</option>
+            </select>
+            <div class="hint">增设风障等附加措施时宜通过风洞试验确定，此处仅为规范经验参考值。</div>
+          </div>
+
+          <div id="g_manual_inputs" style="display:none;">
+            <label>C<sub>H</sub> 横向力系数</label>
+            <input type="number" id="g_CHmanual" value="1.5" step="0.01">
+          </div>
+
+          <div class="small-note">顺桥向风荷载（5.3.5条）：跨径≤200m时，实体式主梁取横向风荷载的0.25倍，桁架式取0.50倍；跨径&gt;200m时按摩擦力公式（5.3.6）计算。竖向力与扭矩系数（C_V、C_M）规范未给出通用公式，需通过风洞试验确定，本工具暂不计算。</div>
+        </div>
+
+        <!-- 桥墩桥塔 -->
+        <div class="tab-panel" id="panel-pier">
+          <h3>基准高度 Z 计算助手（表4.2.2，可选）</h3>
+          <label>桥型/部位</label>
+          <select id="p_zMode">
+            <option value="manual">不使用助手，下方直接输入 Z</option>
+            <option value="pct65">悬索桥、斜拉桥或其他桥型：水面/地面以上塔（墩、柱）65%高度处</option>
+            <option value="archMid">拱桥立柱：立柱中点距水面或地面的高度（50%高度处）</option>
+          </select>
+          <div id="p_zAutoInput" style="display:none;">
+            <label>塔/墩/柱总高度 h（m，自水面或地面起算）</label>
+            <input type="number" id="p_zTotalH" step="0.1" value="60">
+            <div class="hint" id="p_zAutoResult" style="font-weight:600; color:var(--good);"></div>
+          </div>
+          <div class="divider"></div>
+          <div class="row2">
+            <div><label>基准高度 Z（m，塔墩65%高度处）</label><input type="number" id="p_Z" value="40" step="0.5"></div>
+            <div><label>加载长度 L（m，一般取桥墩/桥塔高度）</label><input type="number" id="p_L" value="50" step="1"></div>
+          </div>
+          <div class="row2">
+            <div><label>顺风向宽度 w（m，迎风面宽度）</label><input type="number" id="p_w" value="3" step="0.1"></div>
+            <div><label>顺风向厚度 t（m）</label><input type="number" id="p_t" value="3" step="0.1"></div>
+          </div>
+          <label>桥墩/桥塔总高度 h（m，用于 h/w）</label>
+          <input type="number" id="p_h" value="40" step="0.5">
+
+          <label>截面形状</label>
+          <select id="p_shape">
+            <option value="rect">矩形（按 t/w 由表5.4.2-1查取）</option>
+            <option value="octagon">正方形切角/八角形</option>
+            <option value="dodeca">12边形</option>
+            <option value="circle_low">光滑圆形（dU_d ≥ 6 m²/s）</option>
+            <option value="circle_high">圆形（dU_d &lt; 6 m²/s 或粗糙/带凸起）</option>
+          </select>
+
+          <div class="hint">表5.4.2-1 按 t/w 与 h/w 双向查表（线性插值）。对带圆弧角矩形墩，C_D需再乘以 (1-1.5r/w) 或0.5取大值——如有需要请手动修正下方直接输入的 C_D。</div>
+
+          <label><input type="checkbox" id="p_manualCD"> 直接输入 C<sub>D</sub>（覆盖查表结果）</label>
+          <input type="number" id="p_CDmanual" style="display:none; margin-top:6px;" value="1.5" step="0.01">
+        </div>
+
+        <!-- 拱肋 -->
+        <div class="tab-panel" id="panel-arch">
+          <div class="row2">
+            <div><label>基准高度 Z（m，表4.2.2：拱顶距水面/地面高度）</label><input type="number" id="a_Z" value="35" step="0.5"></div>
+            <div><label>加载长度 L（m，一般取拱肋跨径或拱轴线长度）</label><input type="number" id="a_L" value="150" step="1"></div>
+          </div>
+          <div class="row2">
+            <div><label>顺风向宽度 w（m）</label><input type="number" id="a_w" value="2" step="0.1"></div>
+            <div><label>顺风向厚度 t（m）</label><input type="number" id="a_t" value="2" step="0.1"></div>
+          </div>
+          <label>拱肋高度 h（m，用于 h/w，可取拱肋计算长度）</label>
+          <input type="number" id="a_h" value="30" step="0.5">
+          <label>截面形状</label>
+          <select id="a_shape">
+            <option value="rect">矩形/箱形（按 t/w 由表5.4.2-1查取）</option>
+            <option value="octagon">正方形切角/八角形</option>
+            <option value="dodeca">12边形</option>
+            <option value="circle_low">光滑圆形钢管拱（dU_d ≥ 6 m²/s）</option>
+            <option value="circle_high">圆形钢管拱（dU_d &lt; 6 m²/s 或粗糙）</option>
+          </select>
+          <div class="hint">规范未对拱肋单列体型系数表，按表4.2.2其基准高度取拱顶距水面或地面的高度，阻力系数沿用表5.4.2-1（构件通用表）。跨越深切河谷/山谷时，按4.2.3条第2款，非主梁构件的基准高度规则不变（仍取构件中点/顶点位置与地面或水面的距离）。断面复杂时宜通过风洞试验确定。</div>
+          <label><input type="checkbox" id="a_manualCD"> 直接输入 C<sub>D</sub>（覆盖查表结果）</label>
+          <input type="number" id="a_CDmanual" style="display:none; margin-top:6px;" value="1.2" step="0.01">
+        </div>
+
+        <!-- 斜拉索/吊杆/主缆 -->
+        <div class="tab-panel" id="panel-cable">
+          <div class="row2">
+            <div><label>基准高度 Z（m，表4.2.2：悬索桥/斜拉桥取构件平均高度距水面或地面的高度；拱桥吊杆取中点距水面或地面的高度）</label><input type="number" id="c_Z" value="60" step="0.5"></div>
+            <div><label>加载长度 L（m，索长在水平方向投影长度）</label><input type="number" id="c_L" value="150" step="1"></div>
+          </div>
+          <label>外径 d（m）</label>
+          <input type="number" id="c_d" value="0.2" step="0.005">
+
+          <label>构件类型</label>
+          <select id="c_type">
+            <option value="stay_w1">斜拉索（光滑/凹坑/螺旋线表面），W1风作用水平：C_D=1.0</option>
+            <option value="stay_w2">斜拉索（光滑/凹坑/螺旋线表面），W2风作用水平：C_D=0.8</option>
+            <option value="hanger">吊索（杆），中心距≥4倍直径：C_D=1.0</option>
+            <option value="cable_single">悬索桥主缆，单独考虑（中心距≥4倍直径）：C_D=0.7</option>
+            <option value="cable_combined">悬索桥主缆，合并为一根计算（中心距&lt;4倍直径）：C_D=1.0</option>
+            <option value="manual">直接输入 C_D</option>
+          </select>
+          <div id="c_manual_inputs" style="display:none;">
+            <label>C<sub>D</sub> 阻力系数</label>
+            <input type="number" id="c_CDmanual" value="1.0" step="0.01">
+          </div>
+          <div class="hint">其他外形、并列布置及覆冰工况的阻力系数宜通过风洞试验或虚拟风洞试验获取（5.4.5条）。</div>
+
+          <div id="c_stayExtra" style="display:none;">
+            <div class="divider"></div>
+            <label><input type="checkbox" id="c_longCheck"> 同时计算顺桥向风荷载（斜拉索专用，式5.4.6）</label>
+            <div id="c_longInputs" style="display:none;">
+              <label>斜拉索倾斜角 α<sub>c</sub>（°，与水平面夹角）</label>
+              <input type="number" id="c_alpha" value="30" step="1">
+              <div class="hint">C_D 按5.4.5条选取（与上方一致），外径取上方 d 值；F_g = ½ρU_g²C_D·D_c·sin²α_c。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 其他构件 -->
+        <div class="tab-panel" id="panel-member">
+          <div class="row2">
+            <div><label>基准高度 Z（m）</label><input type="number" id="m_Z" value="20" step="0.5"></div>
+            <div><label>加载长度 L（m）</label><input type="number" id="m_L" value="30" step="1"></div>
+          </div>
+          <div class="row2">
+            <div><label>顺风向宽度 w（m）</label><input type="number" id="m_w" value="0.5" step="0.05"></div>
+            <div><label>顺风向厚度 t（m）</label><input type="number" id="m_t" value="0.5" step="0.05"></div>
+          </div>
+          <label>构件高度 h（m，用于 h/w；栏杆等短构件可取实际高度）</label>
+          <input type="number" id="m_h" value="1.2" step="0.1">
+          <label>截面形状</label>
+          <select id="m_shape">
+            <option value="rect">矩形（按 t/w 由表5.4.2-1查取）</option>
+            <option value="octagon">正方形切角/八角形</option>
+            <option value="dodeca">12边形</option>
+            <option value="circle_low">光滑圆形（dU_d ≥ 6 m²/s）</option>
+            <option value="circle_high">圆形（dU_d &lt; 6 m²/s 或粗糙）</option>
+          </select>
+          <div class="hint">适用于栏杆、检修车轨道等一般杆件/构件，按表5.4.2-1通用矩形/圆形体型系数估算。复杂型钢截面（角钢、T形、十字形等）请参见规范表5.4.2-2，本工具暂未内置，建议手动查表输入。</div>
+          <label><input type="checkbox" id="m_manualCD"> 直接输入 C<sub>D</sub>（覆盖查表结果）</label>
+          <input type="number" id="m_CDmanual" style="display:none; margin-top:6px;" value="1.5" step="0.01">
+        </div>
+
+      </div>
+
+      <!-- 计算结果 -->
+      <div class="section-label output">计算输出内容</div>
+      <div class="card output-card">
+        <h2>⑥ 计算结果</h2>
+        <div class="result-box">
+          <div class="flex-between">
+            <span>作用在该构件单位长度上的等效静阵风荷载 F<sub>g</sub></span>
+          </div>
+          <div class="result-main" id="resultFg">-- kN/m <span>(-- N/m)</span></div>
+          <div class="flex-between" style="margin-top:10px; padding-top:10px; border-top:1px dashed #bae6fd;">
+            <span style="font-size:13px;color:var(--muted);">合力 F = F<sub>g</sub> × 加载长度 L</span>
+            <b id="resultForce" style="font-size:18px;color:var(--primary-dark);">-- kN</b>
+          </div>
+          <div id="resultLongBox" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #bae6fd;">
+            <div class="flex-between">
+              <span style="font-size:13px;color:var(--muted);">顺桥向风荷载 F<sub>g(顺)</sub>（式5.4.6）</span>
+              <b id="resultFgLong" style="font-size:16px;color:var(--accent);">-- kN/m</b>
+            </div>
+            <div class="flex-between" style="margin-top:4px;">
+              <span style="font-size:13px;color:var(--muted);">顺桥向合力 F<sub>(顺)</sub></span>
+              <b id="resultForceLong" style="font-size:16px;color:var(--accent);">-- kN</b>
+            </div>
+          </div>
+          <table class="calc-steps" id="stepsTable"></table>
+        </div>
+        <div class="small-note" id="extraNote" style="display:none;"></div>
+        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="btnPreviewReport" class="action-btn" style="background:var(--accent); color:#fff; border-color:var(--accent);">预览计算书</button>
+          <button id="btnExportDoc" class="action-btn" style="background:var(--primary); color:#fff; border-color:var(--primary);">导出计算书（Word）</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  数据来源：《公路桥梁抗风设计规范》(JTG/T 3360-01—2018) 附录A.3、第4章、第5章。本工具计算结果仅供工程初步估算参考，正式设计请以规范原文及专业风洞试验结果为准。
+</footer>
+
+<!-- 计算书预览弹层 -->
+<div id="reportModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:999; padding:24px; overflow:auto;">
+  <div style="max-width:860px; margin:0 auto; background:#fff; border-radius:10px; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; background:#f1f5f9; border-bottom:1px solid var(--border);">
+      <b style="font-size:15px;">计算书预览</b>
+      <div style="display:flex; gap:8px;">
+        <button id="btnExportDoc2" class="action-btn" style="background:var(--primary); color:#fff; border-color:var(--primary);">导出 Word</button>
+        <button id="btnCloseReport" class="action-btn">关闭</button>
+      </div>
+    </div>
+    <div id="reportContent" style="padding:26px 34px; max-height:75vh; overflow:auto;"></div>
+  </div>
+</div>
+
+<script>
+/* ===================== 基本风速数据（附录A.3，764个台站，100年重现期为规范4.1.1条基本风速U10） ===================== */
+/* 数组结构：[省份, 台站, r10, r20, r30, r40, r50, r100, r120, r150] */
+const WIND_DATA = [["北京","密云",24.0,25.1,25.8,26.4,26.8,28.4,28.9,29.4],["北京","北京",26.0,27.4,28.2,28.8,29.2,30.6,31.0,31.4],["天津","武清",28.3,30.3,31.5,32.4,33.2,35.6,36.4,37.2],["天津","天津",30.8,32.6,33.7,34.5,35.1,37.1,37.7,38.4],["天津","塘沽",27.7,28.7,29.2,29.5,29.8,30.6,30.8,31.0],["上海","宝山",28.8,30.1,30.8,31.3,31.7,32.8,33.1,33.4],["重庆","巫溪",19.3,20.8,21.8,22.6,23.3,25.5,26.2,27.1],["重庆","奉节",27.7,29.7,31.0,32.0,32.8,35.5,36.2,37.2],["重庆","梁平",20.2,21.5,22.3,22.8,23.3,24.8,25.2,25.7],["重庆","万州",22.2,23.3,23.8,24.1,24.4,25.0,25.1,25.2],["重庆","荣昌",23.2,23.7,24.0,24.1,24.3,24.6,24.7,24.8],["重庆","沙坪坝",25.7,27.1,28.0,28.7,29.2,30.9,31.4,31.9],["重庆","巴南",22.5,23.3,23.7,23.9,24.0,24.4,24.5,24.5],["重庆","涪陵",22.2,23.4,24.1,24.6,25.1,26.5,26.9,27.4],["重庆","綦江",23.1,23.8,24.1,24.2,24.3,24.6,24.6,24.7],["重庆","酉阳",18.6,20.1,21.1,21.8,22.4,24.5,25.1,25.8],["河北","张北",33.2,34.2,34.8,35.2,35.6,36.6,36.9,37.3],["河北","蔚县",24.1,25.3,26.1,26.6,27.1,28.8,29.3,29.9],["河北","石家庄",23.6,24.9,25.7,26.2,26.6,27.9,28.2,28.6],["河北","邢台",25.6,26.2,26.5,26.7,26.9,27.3,27.4,27.5],["河北","丰宁",26.3,27.1,27.5,27.9,28.1,28.8,29.0,29.3],["河北","围场",25.6,26.5,27.0,27.4,27.7,28.6,28.8,29.1],["河北","张家口",26.9,27.7,28.2,28.5,28.7,29.5,29.8,30.0],["河北","涿鹿",26.3,27.1,27.5,27.8,28.1,28.9,29.1,29.4],["河北","怀来",26.0,26.9,27.4,27.7,28.0,28.8,29.0,29.2],["河北","承德",21.9,23.4,24.4,25.2,25.9,28.3,29.0,29.9],["河北","遵化",26.2,27.1,27.7,28.1,28.4,29.2,29.5,29.7],["河北","青龙",26.8,27.5,27.8,28.0,28.1,28.4,28.5,28.5],["河北","秦皇岛",24.2,25.5,26.3,26.9,27.4,29.0,29.5,30.0],["河北","青龙县青龙镇",26.5,27.2,27.6,27.8,28.0,28.7,28.9,29.1],["河北","廊坊",26.2,27.0,27.4,27.7,28.0,28.7,28.9,29.1],["河北","唐山",28.0,28.2,28.3,28.4,28.4,28.4,28.4,28.4],["河北","滦南",24.3,25.6,26.3,26.8,27.2,28.5,28.9,29.3],["河北","乐亭",25.8,26.7,27.2,27.6,27.8,28.6,28.9,29.1],["河北","保定",27.1,28.9,30.0,30.9,31.6,34.0,34.7,35.5],["河北","衡水饶阳",25.1,26.0,26.5,26.8,27.1,27.8,28.0,28.3],["河北","泊头",25.7,26.4,26.8,27.0,27.3,27.9,28.1,28.3],["河北","黄骅",25.8,27.0,27.6,28.1,28.4,29.4,29.6,29.9],["河北","南宫",25.4,26.6,27.3,27.8,28.2,29.3,29.6,30.0],["山西","右玉",27.5,28.4,28.9,29.2,29.5,30.3,30.5,30.7],["山西","大同",31.5,32.7,33.5,34.0,34.4,35.6,36.0,36.4],["山西","天镇",28.2,28.8,29.1,29.3,29.4,29.7,29.7,29.8],["山西","河曲",28.6,29.1,29.2,29.3,29.4,29.5,29.5,29.6],["山西","朔州",26.6,27.4,27.8,28.2,28.4,29.3,29.5,29.7],["山西","灵丘",28.0,28.4,28.6,28.6,28.7,28.8,28.8,28.8],["山西","五寨",26.4,27.2,27.6,27.9,28.1,28.7,28.9,29.1],["山西","兴县",24.4,25.7,26.4,26.9,27.3,28.5,28.8,29.1],["山西","原平",24.8,26.0,26.7,27.2,27.6,28.9,29.3,29.7],["山西","晋阳",26.9,27.7,28.1,28.5,28.7,29.5,29.7,30.0],["山西","离石",24.1,25.5,26.3,27.0,27.5,29.1,29.6,30.2],["山西","太原",26.6,28.3,29.4,30.1,30.7,32.6,33.1,33.7],["山西","晋中",24.6,25.5,26.0,26.4,26.7,27.5,27.7,28.0],["山西","榆社",23.0,24.3,25.1,25.7,26.1,27.4,27.7,28.1],["山西","隰县",24.3,25.4,26.2,26.7,27.1,28.5,28.9,29.3],["山西","介休",26.4,27.3,27.6,27.8,27.9,28.2,28.2,28.2],["山西","临汾",23.2,24.2,24.8,25.3,25.6,26.8,27.2,27.6],["山西","安泽",31.0,32.1,32.7,33.2,33.6,34.8,35.2,35.6],["山西","长治",24.2,25.0,25.5,25.9,26.1,26.9,27.1,27.3],["山西","潞城",25.4,26.1,26.4,26.6,26.7,27.0,27.0,27.1],["山西","运城",27.5,28.1,28.4,28.5,28.6,28.9,29.0,29.1],["山西","侯马",23.4,24.4,24.9,25.3,25.6,26.5,26.8,27.0],["山西","垣曲",23.2,24.6,25.6,26.3,27.0,29.3,30.0,30.8],["山西","阳城",25.5,26.1,26.4,26.6,26.8,27.2,27.4,27.5],["山西","潼关",24.6,25.3,25.6,25.8,25.9,26.3,26.4,26.4],["内蒙古","额尔古纳",24.6,25.9,26.7,27.3,27.7,29.2,29.6,30.1],["内蒙古","牙克石市图里河镇",21.7,23.1,24.0,24.7,25.3,27.3,27.9,28.7],["内蒙古","满洲里",30.8,31.9,32.6,33.0,33.4,34.3,34.6,34.9],["内蒙古","海拉尔",31.7,33.1,33.8,34.3,34.7,35.9,36.2,36.6],["内蒙古","鄂伦春小二沟",24.8,26.0,26.6,27.1,27.5,28.6,28.9,29.2],["内蒙古","新巴尔虎右旗",31.4,32.5,33.1,33.6,34.0,35.2,35.6,36.0],["内蒙古","新巴尔虎左旗阿木古朗",29.1,30.5,31.4,32.1,32.6,34.2,34.7,35.2],["内蒙古","牙克石市博克图",28.0,28.8,29.2,29.4,29.5,29.8,29.9,30.0],["内蒙古","扎兰屯",25.8,27.0,27.7,28.2,28.6,30.0,30.4,30.9],["内蒙古","科右翼前旗阿尔山",30.1,30.7,31.0,31.2,31.3,31.8,31.9,32.0],["内蒙古","科右翼前旗索伦",29.5,30.2,30.5,30.7,30.8,31.1,31.2,31.2],["内蒙古","乌兰浩特",28.4,30.2,31.3,32.2,32.9,35.1,35.8,36.6],["内蒙古","东乌珠穆沁旗",28.8,29.9,30.5,31.0,31.3,32.5,32.8,33.1],["内蒙古","额济纳旗",29.2,29.9,30.3,30.6,30.8,31.4,31.5,31.7],["内蒙古","阿左旗巴彦毛道",32.6,33.3,33.6,33.7,33.8,34.0,34.0,34.1],["内蒙古","阿拉善右旗",27.8,28.6,28.9,29.1,29.2,29.5,29.5,29.6],["内蒙古","二连浩特",32.8,34.0,34.6,35.0,35.3,36.0,36.1,36.3],["内蒙古","那仁宝力格",31.8,32.5,33.0,33.3,33.6,34.4,34.6,34.8],["内蒙古","达茂旗满都拉",31.8,32.7,33.3,33.6,33.9,34.7,34.9,35.2],["内蒙古","阿巴嘎旗",29.6,30.8,31.5,32.1,32.5,34.0,34.4,34.9],["内蒙古","苏尼特左旗",33.6,34.1,34.3,34.4,34.4,34.5,34.5,34.6],["内蒙古","苏尼特右旗朱日和",31.3,32.0,32.4,32.7,32.9,33.5,33.7,33.9],["内蒙古","乌拉特中旗海流图",30.8,31.6,32.1,32.5,32.7,33.5,33.7,33.9],["内蒙古","达尔罕联合旗百灵庙",34.6,34.8,34.9,34.9,35.0,35.0,35.0,35.0],["内蒙古","四子王旗",28.6,30.1,31.1,31.9,32.5,34.6,35.3,36.0],["内蒙古","武川",31.6,32.1,32.3,32.3,32.4,32.5,32.6,32.6],["内蒙古","化德",33.6,34.3,34.7,35.0,35.3,36.0,36.2,36.4],["内蒙古","包头",28.9,29.8,30.2,30.5,30.8,31.5,31.7,31.9],["内蒙古","呼和浩特",31.7,32.6,33.2,33.5,33.8,34.7,35.0,35.3],["内蒙古","集宁",33.9,35.1,35.9,36.4,36.9,38.3,38.8,39.2],["内蒙古","阿拉善左旗吉兰泰",26.7,27.9,28.5,28.9,29.2,30.2,30.4,30.7],["内蒙古","临河",27.0,28.2,29.0,29.6,30.1,31.7,32.1,32.7],["内蒙古","鄂托克旗",29.7,30.9,31.6,32.0,32.4,33.5,33.8,34.1],["内蒙古","东胜",27.6,28.5,28.9,29.2,29.5,30.2,30.4,30.6],["内蒙古","鄂尔多斯乌审旗",28.6,29.2,29.4,29.5,29.6,29.8,29.8,29.8],["内蒙古","阿拉善左旗巴彦浩特",27.0,27.8,28.2,28.4,28.6,29.0,29.1,29.2],["内蒙古","西乌珠穆沁旗",28.1,29.0,29.5,29.8,30.0,30.8,31.0,31.2],["内蒙古","扎鲁特旗",27.0,27.9,28.5,28.9,29.2,30.1,30.4,30.7],["内蒙古","巴林左旗",28.2,28.8,29.0,29.1,29.2,29.4,29.4,29.5],["内蒙古","锡林浩特",29.7,31.0,31.8,32.4,32.8,34.4,34.8,35.3],["内蒙古","林西",33.5,36.0,37.4,38.4,39.2,41.7,42.3,43.1],["内蒙古","开鲁",28.0,29.3,30.1,30.7,31.2,32.8,33.3,33.8],["内蒙古","通辽",28.8,30.5,31.5,32.3,32.8,34.7,35.2,35.8],["内蒙古","多伦",29.6,30.7,31.3,31.7,32.0,33.0,33.2,33.5],["内蒙古","翁牛特旗",25.0,26.0,26.6,27.1,27.5,28.7,29.1,29.5],["内蒙古","赤峰",24.7,25.9,26.6,27.1,27.5,28.6,28.9,29.2],["内蒙古","宝国图",26.5,27.3,27.7,28.0,28.3,29.0,29.1,29.4],["辽宁","彰武",27.2,28.2,28.7,29.1,29.5,30.4,30.7,31.0],["辽宁","阜新",25.7,26.9,27.6,28.0,28.3,29.3,29.5,29.8],["辽宁","开原",29.2,29.8,30.2,30.4,30.6,31.2,31.3,31.5],["辽宁","马家寨",26.7,28.7,30.1,31.2,32.1,35.7,36.8,38.2],["辽宁","清原",23.2,24.8,25.8,26.5,27.1,29.2,29.8,30.5],["辽宁","朝阳",27.6,28.2,28.4,28.6,28.7,28.9,28.9,28.9],["辽宁","凌源",25.5,26.4,26.9,27.2,27.5,28.5,28.8,29.2],["辽宁","新民",27.5,28.2,28.6,28.8,29.0,29.4,29.6,29.7],["辽宁","凌海",27.6,28.4,28.7,28.8,28.9,29.2,29.3,29.3],["辽宁","黑山",33.0,33.4,33.5,33.5,33.6,33.6,33.6,33.6],["辽宁","锦州",29.2,30.0,30.5,30.8,31.1,31.8,32.0,32.2],["辽宁","鞍山",27.7,28.3,28.6,28.8,29.0,29.5,29.6,29.8],["辽宁","沈阳",32.7,33.7,34.2,34.5,34.8,35.6,35.8,36.0],["辽宁","辽阳",25.9,27.6,28.6,29.2,29.7,31.3,31.7,32.1],["辽宁","本溪满族自治县",26.7,27.4,27.8,28.1,28.3,28.8,29.0,29.2],["辽宁","章党",24.7,25.8,26.5,27.1,27.5,29.0,29.4,29.9],["辽宁","华来",23.4,24.9,25.7,26.3,26.7,28.2,28.5,29.0],["辽宁","桓仁",23.4,24.5,25.2,25.8,26.3,27.9,28.3,28.9],["辽宁","绥中",25.0,26.3,27.0,27.5,27.9,29.2,29.5,29.9],["辽宁","兴城",25.6,26.8,27.6,28.2,28.7,30.3,30.8,31.3],["辽宁","大洼",24.3,25.5,26.4,27.1,27.6,29.6,30.1,30.9],["辽宁","营口",27.6,28.8,29.6,30.1,30.6,32.0,32.4,32.9],["辽宁","盖州",27.9,28.6,28.9,29.1,29.3,29.7,29.8,30.0],["辽宁","盖县熊岳",27.2,28.3,29.0,29.5,29.8,31.0,31.3,31.7],["辽宁","岫岩",26.3,27.4,28.0,28.4,28.7,29.7,29.9,30.2],["辽宁","宽甸",22.6,24.1,25.0,25.8,26.4,28.5,29.2,29.9],["辽宁","丹东",25.2,26.2,26.8,27.3,27.7,28.9,29.2,29.6],["辽宁","普兰店",28.0,29.2,29.9,30.3,30.7,31.7,31.9,32.3],["辽宁","长海",30.3,32.3,33.7,34.7,35.5,38.6,39.5,40.6],["辽宁","庄河",28.0,29.6,30.4,31.0,31.4,32.7,33.1,33.5],["辽宁","旅顺口",33.9,35.4,36.2,36.7,37.1,38.4,38.7,39.1],["辽宁","大连",29.5,30.6,31.3,31.7,32.0,33.0,33.3,33.6],["吉林","白城",29.8,30.5,30.8,31.0,31.1,31.4,31.5,31.6],["吉林","大安",28.8,29.6,30.0,30.3,30.5,31.1,31.3,31.5],["吉林","乾安",29.1,29.8,30.1,30.4,30.5,31.0,31.1,31.2],["吉林","前郭尔罗斯",28.9,29.9,30.3,30.5,30.7,31.1,31.2,31.3],["吉林","通榆",29.6,30.3,30.7,31.0,31.3,32.0,32.2,32.4],["吉林","长岭",26.8,27.9,28.5,29.0,29.3,30.5,30.9,31.3],["吉林","三岔河",31.5,32.7,33.4,33.8,34.2,35.2,35.5,35.8],["吉林","农安",29.4,30.6,31.3,31.9,32.3,33.7,34.0,34.5],["吉林","双辽",26.8,28.0,28.6,29.1,29.4,30.6,30.9,31.2],["吉林","昌图",25.9,27.1,27.8,28.2,28.6,29.7,30.0,30.4],["吉林","长春",31.1,32.2,32.8,33.2,33.6,34.6,34.8,35.1],["吉林","伊通",27.6,28.2,28.6,28.8,29.1,29.7,29.9,30.1],["吉林","永吉",26.6,27.4,27.9,28.3,28.6,29.5,29.7,30.0],["吉林","蛟河",27.8,28.6,28.9,29.1,29.2,29.4,29.5,29.5],["吉林","敦化",26.2,27.2,27.9,28.3,28.7,29.9,30.3,30.7],["吉林","延吉",23.7,24.9,25.6,26.2,26.6,28.0,28.4,28.9],["吉林","西丰",27.0,28.4,29.1,29.7,30.1,31.3,31.7,32.1],["吉林","辉南",24.1,25.5,26.2,26.8,27.2,28.5,28.8,29.2],["吉林","梅河口",25.8,26.6,27.1,27.4,27.7,28.6,28.9,29.2],["吉林","桦甸",26.8,27.3,27.6,27.8,27.9,28.2,28.3,28.4],["吉林","靖宇",23.8,24.8,25.5,26.0,26.4,27.7,28.1,28.6],["吉林","抚松",22.1,23.7,24.8,25.6,26.3,28.7,29.4,30.3],["吉林","安图",27.5,28.8,29.7,30.3,30.8,32.5,32.9,33.5],["吉林","和龙",24.1,24.9,25.4,25.8,26.0,26.8,27.0,27.3],["吉林","龙井",24.1,25.0,25.5,25.8,26.1,27.0,27.3,27.6],["吉林","通化",26.0,26.6,26.9,27.1,27.3,27.7,27.8,27.9],["吉林","临江",24.1,24.9,25.4,25.8,26.0,26.9,27.1,27.3],["吉林","集安",24.2,25.0,25.4,25.8,26.1,26.9,27.2,27.5],["吉林","长白",26.8,27.4,27.8,28.0,28.2,28.6,28.7,28.9],["黑龙江","漠河",19.1,19.9,20.3,20.5,20.7,21.2,21.3,21.5],["黑龙江","塔河",21.1,21.7,22.0,22.2,22.4,22.9,23.0,23.2],["黑龙江","呼中",22.3,22.5,22.6,22.6,22.7,22.7,22.7,22.7],["黑龙江","新林",22.7,24.0,24.8,25.5,26.0,27.7,28.2,28.8],["黑龙江","呼玛",22.6,23.8,24.5,25.1,25.6,27.3,27.8,28.4],["黑龙江","大兴安岭",22.5,23.6,24.3,24.9,25.3,26.8,27.3,27.8],["黑龙江","黑河",26.7,28.3,29.4,30.2,30.9,33.2,33.9,34.7],["黑龙江","嫩江",29.8,30.7,31.2,31.5,31.7,32.2,32.4,32.5],["黑龙江","孙吴",27.0,27.8,28.3,28.6,28.9,29.8,30.1,30.4],["黑龙江","北安",25.5,26.8,27.7,28.3,28.8,30.6,31.2,31.8],["黑龙江","克山",26.5,27.6,28.3,28.8,29.2,30.5,30.8,31.3],["黑龙江","红星",28.4,29.3,29.8,30.1,30.3,31.0,31.2,31.3],["黑龙江","龙江",27.5,28.6,29.2,29.6,29.8,30.6,30.8,31.0],["黑龙江","富裕",30.0,30.3,30.4,30.5,30.5,30.6,30.6,30.6],["黑龙江","齐齐哈尔",26.7,28.4,29.4,30.1,30.7,32.5,33.0,33.6],["黑龙江","海伦",27.9,29.2,30.0,30.6,31.1,32.7,33.2,33.7],["黑龙江","明水",28.9,29.6,30.0,30.3,30.5,31.2,31.3,31.5],["黑龙江","伊春",27.2,28.6,29.3,29.8,30.2,31.4,31.7,32.1],["黑龙江","大榆树",28.6,29.9,30.6,31.0,31.3,32.0,32.2,32.4],["黑龙江","富锦",27.8,30.0,31.6,32.8,33.8,37.4,38.5,39.9],["黑龙江","泰来",29.6,30.3,30.6,30.7,30.8,31.1,31.1,31.2],["黑龙江","绥化",31.6,32.5,32.9,33.1,33.3,33.8,33.9,34.0],["黑龙江","安达",29.0,29.8,30.3,30.5,30.8,31.4,31.6,31.7],["黑龙江","铁力",29.6,30.3,30.7,30.9,31.1,31.7,31.8,32.0],["黑龙江","佳木斯",29.6,30.2,30.5,30.7,30.9,31.3,31.4,31.5],["黑龙江","依兰",29.1,30.0,30.5,30.8,31.0,31.6,31.8,32.0],["黑龙江","宝清",26.9,28.1,28.8,29.2,29.6,30.7,31.0,31.3],["黑龙江","肇源",36.2,37.3,37.9,38.4,38.7,39.7,39.9,40.2],["黑龙江","哈尔滨",30.8,32.2,33.2,34.0,34.6,36.8,37.5,38.3],["黑龙江","双城",29.0,31.3,32.7,33.7,34.6,37.4,38.2,39.2],["黑龙江","通河",29.5,30.8,31.5,32.0,32.4,33.5,33.8,34.1],["黑龙江","尚志",29.6,30.2,30.4,30.6,30.8,31.1,31.2,31.3],["黑龙江","林口",27.0,28.1,28.7,29.2,29.5,30.7,31.0,31.3],["黑龙江","鸡西",28.0,28.9,29.3,29.6,29.8,30.3,30.5,30.6],["黑龙江","虎林",27.5,28.1,28.5,28.7,28.8,29.2,29.4,29.5],["黑龙江","牡丹江",28.0,28.6,29.0,29.2,29.4,29.9,30.0,30.1],["黑龙江","绥芬河",26.4,27.4,27.9,28.3,28.6,29.5,29.7,30.0],["山东","陵县",25.4,26.2,26.6,26.8,27.1,27.6,27.8,28.0],["山东","惠民",25.2,26.0,26.5,26.9,27.2,28.0,28.2,28.5],["山东","泰安",26.4,27.8,28.6,29.2,29.7,31.2,31.7,32.2],["山东","垦利",27.1,28.5,29.3,30.0,30.5,32.3,32.9,33.5],["山东","龙口",32.2,33.7,34.5,35.1,35.6,37.1,37.5,37.9],["山东","招远",27.2,28.2,28.9,29.3,29.7,30.9,31.3,31.7],["山东","栖霞",31.2,31.5,31.6,31.6,31.7,31.7,31.7,31.7],["山东","威海",31.9,33.2,34.0,34.5,34.9,36.2,36.6,37.0],["山东","荣城",36.4,38.0,39.0,39.7,40.3,42.0,42.5,43.1],["山东","济南",26.5,27.4,27.8,28.1,28.3,28.9,29.0,29.2],["山东","泰山",41.5,42.6,43.2,43.6,43.8,44.6,44.8,45.0],["山东","沂源",24.8,25.9,26.5,26.8,27.1,27.8,28.0,28.2],["山东","昌邑",25.3,26.7,27.5,28.1,28.6,30.3,30.8,31.4],["山东","潍坊",26.5,27.5,27.9,28.2,28.4,28.9,29.0,29.1],["山东","青岛",30.8,32.4,33.4,34.1,34.7,36.6,37.1,37.8],["山东","海阳",28.3,29.6,30.4,30.9,31.3,32.7,33.1,33.5],["山东","定陶",25.5,26.0,26.2,26.3,26.4,26.6,26.7,26.7],["山东","兖州",25.0,25.9,26.5,26.9,27.2,28.2,28.5,28.8],["山东","费县",24.3,25.3,25.8,26.2,26.4,27.3,27.5,27.8],["山东","莒县",23.3,24.4,25.1,25.6,26.0,27.5,27.9,28.4],["山东","日照",25.4,26.3,26.8,27.2,27.4,28.1,28.2,28.4],["江苏","邳州",22.8,24.0,24.6,25.1,25.5,26.6,26.9,27.3],["江苏","徐州",24.3,25.0,25.3,25.6,25.8,26.3,26.4,26.6],["江苏","新沂",22.7,23.9,24.7,25.2,25.7,27.3,27.8,28.4],["江苏","宿迁",23.9,24.9,25.4,25.7,26.0,26.7,26.9,27.2],["江苏","赣榆",23.9,25.2,26.1,26.7,27.2,28.8,29.3,29.9],["江苏","连云港",24.0,25.1,25.7,26.1,26.4,27.2,27.4,27.7],["江苏","泗洪",23.5,24.4,24.9,25.2,25.5,26.3,26.6,26.8],["江苏","流均",23.4,24.6,25.3,25.8,26.2,27.3,27.6,27.9],["江苏","射阳",25.5,26.4,26.9,27.2,27.4,28.1,28.3,28.5],["江苏","盐城",24.8,25.9,26.5,27.0,27.3,28.3,28.6,28.9],["江苏","南京",25.8,27.0,27.6,28.0,28.2,28.9,29.1,29.3],["江苏","高邮",26.4,26.7,26.8,26.8,26.8,26.9,26.9,26.9],["江苏","东台",24.8,26.0,26.7,27.1,27.4,28.4,28.6,28.9],["江苏","镇江",25.4,25.9,26.2,26.3,26.5,26.9,27.0,27.1],["江苏","泰州",24.5,25.8,26.5,27.0,27.4,28.6,28.9,29.3],["江苏","南通",26.2,27.6,28.5,29.1,29.5,31.1,31.5,32.0],["江苏","吕泗",28.9,29.9,30.5,30.9,31.2,32.1,32.3,32.6],["江苏","常州",25.7,26.8,27.3,27.7,27.9,28.6,28.7,28.9],["江苏","溧阳",23.0,24.4,25.2,25.8,26.3,27.9,28.4,28.9],["江苏","无锡",23.6,24.9,25.8,26.4,26.9,28.6,29.1,29.7],["江苏","昆山",28.6,29.4,29.9,30.3,30.6,31.5,31.8,32.0],["江苏","吴县东山",26.9,27.9,28.3,28.6,28.8,29.2,29.3,29.4],["浙江","临安",23.5,24.7,25.5,26.0,26.4,27.7,28.0,28.4],["浙江","德清县",24.5,25.6,26.3,26.9,27.3,28.8,29.2,29.7],["浙江","杭州",24.2,25.6,26.4,27.1,27.6,29.4,29.9,30.5],["浙江","平湖",28.3,29.7,30.5,31.1,31.6,33.2,33.6,34.2],["浙江","慈溪",29.0,30.4,31.4,32.1,32.6,34.5,35.0,35.6],["浙江","嵊泗",51.1,54.4,56.1,57.2,58.0,60.3,60.8,61.4],["浙江","定海",37.5,39.5,40.6,41.3,41.9,43.6,44.1,44.6],["浙江","淳安",23.9,24.9,25.5,25.9,26.2,27.3,27.5,27.9],["浙江","金华",25.3,26.3,26.9,27.2,27.5,28.4,28.7,28.9],["浙江","绍兴",25.7,27.5,28.7,29.6,30.2,32.5,33.1,33.9],["浙江","嵊县",27.9,29.3,30.1,30.6,31.0,32.3,32.6,33.0],["浙江","义乌",28.6,29.5,29.8,30.0,30.2,30.5,30.5,30.6],["浙江","鄞县",33.9,35.3,36.0,36.5,36.8,37.8,38.1,38.4],["浙江","石浦",50.7,53.8,55.2,56.0,56.6,58.1,58.4,58.8],["浙江","衢州",25.7,26.4,26.7,26.9,27.0,27.3,27.3,27.4],["浙江","丽水",24.2,25.8,26.8,27.5,28.1,29.9,30.4,31.0],["浙江","永嘉",29.5,30.8,31.6,32.2,32.7,34.1,34.5,35.0],["浙江","温岭",37.4,39.4,40.4,41.0,41.5,42.6,42.8,43.1],["浙江","大陈岛",54.7,58.7,60.7,62.0,63.0,65.7,66.3,67.0],["浙江","玉环",45.3,48.6,50.3,51.6,52.5,55.4,56.1,57.0],["浙江","龙泉",26.3,27.2,27.7,28.1,28.4,29.3,29.5,29.8],["浙江","苍南",29.6,32.4,34.2,35.4,36.5,39.7,40.6,41.7],["浙江","洞头县大榴山",39.8,43.7,46.2,48.2,49.8,55.5,57.1,59.2],["安徽","砀山",21.7,23.2,24.0,24.6,25.0,26.3,26.6,27.0],["安徽","亳州",21.6,23.1,24.0,24.7,25.2,27.0,27.5,28.0],["安徽","涡阳",21.2,22.4,23.2,23.9,24.4,26.1,26.7,27.3],["安徽","利辛",21.6,22.9,23.6,24.2,24.6,26.1,26.5,27.0],["安徽","宿州",21.7,22.8,23.6,24.1,24.6,26.1,26.6,27.1],["安徽","灵璧",23.0,24.0,24.6,25.0,25.3,26.2,26.5,26.8],["安徽","阜阳",24.5,26.2,27.5,28.5,29.3,32.4,33.3,34.5],["安徽","寿县",23.9,25.0,25.7,26.1,26.5,27.5,27.8,28.1],["安徽","蚌埠",23.0,24.0,24.5,24.9,25.2,26.0,26.3,26.5],["安徽","长丰",24.0,24.9,25.4,25.8,26.1,26.9,27.1,27.4],["安徽","滁州",21.5,23.0,24.0,24.8,25.5,27.7,28.4,29.3],["安徽","六安",23.0,24.2,24.7,25.1,25.3,26.0,26.2,26.3],["安徽","霍山",24.6,25.1,25.4,25.6,25.7,26.0,26.0,26.1],["安徽","桐城",32.0,33.7,34.8,35.6,36.2,38.3,39.0,39.7],["安徽","合肥",25.5,26.3,26.7,27.0,27.3,27.9,28.1,28.3],["安徽","巢湖",25.2,25.6,25.7,25.8,25.9,26.0,26.0,26.0],["安徽","芜湖",23.5,24.8,25.6,26.2,26.7,28.3,28.8,29.4],["安徽","繁昌",23.9,24.9,25.4,25.8,26.0,26.8,27.0,27.3],["安徽","太湖",26.1,27.0,27.3,27.5,27.7,28.0,28.0,28.1],["安徽","东至",22.7,23.6,24.1,24.5,24.8,25.8,26.0,26.3],["安徽","安庆",22.5,23.4,24.0,24.4,24.7,25.8,26.1,26.5],["安徽","池州",23.8,25.7,26.9,27.8,28.6,31.1,31.8,32.7],["安徽","宁国",25.5,26.0,26.2,26.4,26.4,26.6,26.6,26.6],["安徽","黄山",31.6,33.0,33.7,34.2,34.6,35.5,35.8,36.0],["安徽","浮梁",22.8,23.8,24.3,24.7,24.9,25.7,25.9,26.1],["安徽","休宁",24.1,25.1,25.7,26.1,26.5,27.5,27.8,28.1],["江西","修水",20.8,22.1,23.0,23.5,24.0,25.4,25.8,26.2],["江西","万载",22.9,23.6,24.0,24.2,24.4,25.0,25.1,25.2],["江西","宜春",21.1,22.3,23.1,23.6,24.1,25.6,26.0,26.6],["江西","吉安",21.7,22.5,22.9,23.2,23.5,24.2,24.4,24.6],["江西","井冈山",22.8,24.3,25.2,25.9,26.4,28.0,28.5,29.0],["江西","遂川",21.5,22.4,22.9,23.3,23.6,24.4,24.6,24.9],["江西","赣州",19.5,20.6,21.4,21.9,22.3,23.8,24.3,24.8],["江西","九江",24.4,25.3,25.8,26.2,26.5,27.5,27.7,28.0],["江西","庐山",32.2,33.3,34.0,34.4,34.7,35.5,35.7,36.0],["江西","武宁",24.3,24.8,25.0,25.1,25.2,25.4,25.4,25.4],["江西","波阳",24.0,25.5,26.4,27.1,27.7,29.5,30.1,30.7],["江西","景德镇",21.5,22.6,23.2,23.7,24.1,25.5,25.9,26.3],["江西","高安",19.4,21.2,22.3,23.3,24.1,26.8,27.7,28.7],["江西","南昌",26.8,28.0,28.5,28.8,29.0,29.6,29.8,29.9],["江西","樟树",22.7,23.3,23.7,24.0,24.2,24.8,24.9,25.1],["江西","弋阳",21.8,23.1,23.9,24.5,25.0,26.6,27.0,27.5],["江西","贵溪",20.6,21.8,22.5,23.1,23.6,25.1,25.6,26.1],["江西","玉山",24.6,25.2,25.5,25.6,25.8,26.1,26.2,26.3],["江西","铅山",22.7,24.0,24.8,25.3,25.7,27.1,27.4,27.9],["江西","吉水",23.2,23.7,23.9,24.0,24.1,24.3,24.3,24.4],["江西","宜黄",22.8,23.8,24.4,24.9,25.2,26.5,26.8,27.2],["江西","南丰",18.7,20.1,21.1,21.8,22.5,25.0,25.8,26.7],["江西","宁都",22.1,22.8,23.1,23.4,23.6,24.1,24.3,24.4],["江西","广昌",21.6,22.5,22.9,23.3,23.5,24.2,24.4,24.7],["江西","石城",21.6,22.6,23.1,23.4,23.7,24.4,24.6,24.9],["江西","全南",21.3,22.2,22.8,23.2,23.5,24.6,24.9,25.2],["江西","寻乌",24.9,25.1,25.2,25.3,25.3,25.3,25.3,25.3],["江西","邵武",23.9,24.4,24.7,24.8,24.9,25.1,25.2,25.2],["福建","武夷山",24.4,25.0,25.3,25.5,25.7,26.2,26.3,26.4],["福建","浦城",23.0,24.0,24.7,25.1,25.5,26.7,27.1,27.5],["福建","建阳",24.8,26.1,26.9,27.4,27.9,29.4,29.9,30.4],["福建","建瓯",24.6,25.6,26.0,26.3,26.4,26.9,27.0,27.1],["福建","周宁",29.1,29.7,30.0,30.1,30.2,30.4,30.4,30.4],["福建","福鼎",29.0,32.8,35.3,37.2,38.8,44.1,45.7,47.5],["福建","泰宁",20.8,22.0,22.7,23.3,23.7,25.2,25.7,26.2],["福建","南平",22.9,24.2,25.0,25.5,26.0,27.5,27.9,28.4],["福建","尤溪",22.2,23.7,24.7,25.4,26.0,28.0,28.6,29.3],["福建","霞浦",37.2,38.2,38.5,38.6,38.7,38.9,39.0,39.0],["福建","宁德",27.9,29.5,30.5,31.2,31.7,33.4,33.8,34.4],["福建","福州",30.5,32.0,32.6,33.0,33.3,34.0,34.2,34.4],["福建","长汀",21.7,22.6,23.2,23.5,23.8,24.7,25.0,25.2],["福建","上杭",24.1,24.6,24.8,25.0,25.1,25.5,25.6,25.7],["福建","永安",25.0,25.5,25.8,26.0,26.1,26.5,26.6,26.6],["福建","漳平",23.2,24.4,25.1,25.7,26.1,27.7,28.1,28.6],["福建","龙岩",24.3,25.3,25.9,26.2,26.5,27.3,27.5,27.7],["福建","德化",39.8,41.6,42.8,43.6,44.3,46.6,47.2,48.0],["福建","古田",27.5,28.2,28.5,28.6,28.7,29.0,29.0,29.1],["福建","南安",30.2,31.5,32.0,32.3,32.6,33.2,33.3,33.4],["福建","平潭",39.8,40.9,41.4,41.7,41.9,42.4,42.6,42.7],["福建","平和",27.0,28.8,29.8,30.6,31.1,32.8,33.3,33.8],["福建","崇武",35.5,37.0,37.8,38.4,38.8,40.0,40.3,40.6],["福建","厦门",35.5,38.6,40.5,41.9,43.0,46.7,47.7,48.9],["福建","东山",44.3,47.5,49.6,51.1,52.4,56.8,58.1,59.7],["陕西","榆林",27.4,27.9,28.1,28.3,28.4,28.6,28.7,28.7],["陕西","榆阳",25.1,26.5,27.4,28.0,28.5,30.3,30.8,31.5],["陕西","定边",30.0,31.5,32.5,33.3,33.9,36.0,36.6,37.4],["陕西","靖边",21.8,23.3,24.4,25.1,25.7,27.9,28.6,29.4],["陕西","吴起",24.3,25.1,25.6,26.0,26.3,27.4,27.7,28.0],["陕西","横山",27.2,28.7,29.6,30.3,30.9,32.6,33.2,33.8],["陕西","绥德",27.2,28.4,29.1,29.6,30.1,31.4,31.8,32.3],["陕西","延安",21.1,22.6,23.6,24.3,25.0,27.1,27.8,28.6],["陕西","延安市宝塔区",26.0,26.6,26.8,26.9,27.0,27.1,27.1,27.2],["陕西","宜川",24.6,25.3,25.8,26.1,26.3,27.0,27.1,27.3],["陕西","长武",23.2,24.2,24.8,25.2,25.5,26.4,26.6,26.9],["陕西","洛川",22.3,23.4,24.2,24.7,25.2,26.7,27.1,27.7],["陕西","临潼",25.7,27.1,27.9,28.4,28.8,29.9,30.2,30.5],["陕西","合阳",23.2,24.2,24.8,25.2,25.5,26.4,26.7,26.9],["陕西","陈仓",23.5,24.6,25.1,25.5,25.8,26.7,27.0,27.3],["陕西","宝鸡",23.3,24.6,25.3,25.8,26.2,27.4,27.7,28.0],["陕西","太白",24.2,24.8,25.1,25.3,25.5,25.9,26.0,26.2],["陕西","武功",22.4,23.5,24.2,24.6,25.0,26.1,26.4,26.7],["陕西","周至",22.4,23.8,24.6,25.2,25.7,27.1,27.6,28.0],["陕西","礼泉",25.2,25.7,25.9,26.0,26.0,26.2,26.2,26.2],["陕西","华阴市华山镇",32.8,34.0,34.6,35.0,35.4,36.4,36.6,36.9],["陕西","兴平",23.5,24.8,25.5,26.0,26.4,27.6,27.9,28.3],["陕西","蓝田",23.7,24.6,25.0,25.3,25.5,26.2,26.3,26.5],["陕西","略阳",21.3,22.8,23.8,24.6,25.3,27.5,28.2,29.0],["陕西","勉县",22.0,23.1,23.8,24.2,24.6,25.6,25.9,26.3],["陕西","汉中",18.5,20.1,21.2,22.1,22.8,25.5,26.4,27.4],["陕西","洋县",24.5,24.9,25.1,25.3,25.4,25.7,25.8,25.8],["陕西","柞水",24.5,26.6,28.0,29.0,29.9,33.1,34.0,35.2],["陕西","商州",23.9,24.9,25.4,25.8,26.1,26.8,27.0,27.3],["陕西","镇安",26.1,27.9,28.9,29.6,30.2,31.8,32.2,32.7],["陕西","商南",20.9,22.3,23.1,23.8,24.3,26.1,26.6,27.2],["陕西","石泉",23.5,24.5,25.1,25.5,25.8,26.6,26.9,27.1],["陕西","镇巴",21.9,23.0,23.6,24.0,24.4,25.4,25.7,26.0],["陕西","安康",26.6,28.3,29.3,29.9,30.4,32.0,32.4,32.9],["甘肃","马鬃山镇",27.0,28.4,29.2,29.7,30.1,31.4,31.8,32.2],["甘肃","敦煌",30.2,30.7,30.9,31.0,31.1,31.2,31.2,31.3],["甘肃","安西",31.6,32.5,32.9,33.2,33.5,34.2,34.4,34.5],["甘肃","玉门",27.6,28.8,29.6,30.2,30.6,32.1,32.5,33.0],["甘肃","鼎新",26.8,28.1,28.8,29.3,29.7,31.0,31.4,31.8],["甘肃","金塔",26.2,27.5,28.3,28.8,29.2,30.4,30.8,31.1],["甘肃","酒泉",29.2,29.9,30.3,30.5,30.7,31.3,31.5,31.6],["甘肃","高台",25.7,27.0,27.8,28.3,28.7,29.8,30.1,30.5],["甘肃","张掖",26.0,27.4,28.3,29.0,29.6,31.4,31.9,32.6],["甘肃","山丹",24.8,25.9,26.7,27.2,27.6,29.1,29.5,30.1],["甘肃","永昌",27.5,28.0,28.2,28.4,28.5,28.9,28.9,29.0],["甘肃","武威",26.7,27.3,27.6,27.8,27.9,28.3,28.4,28.5],["甘肃","民勤",26.2,27.1,27.6,28.0,28.3,29.2,29.5,29.8],["甘肃","乌鞘岭",30.2,31.6,32.5,33.1,33.6,35.3,35.7,36.3],["甘肃","景泰",26.1,26.9,27.4,27.8,28.1,29.1,29.3,29.6],["甘肃","靖远",24.1,25.2,25.7,26.1,26.4,27.3,27.5,27.8],["甘肃","榆中",23.4,24.6,25.3,25.9,26.4,27.9,28.4,28.9],["甘肃","临夏",25.7,26.4,26.7,26.9,27.0,27.4,27.4,27.5],["甘肃","康乐",24.6,25.4,25.8,26.1,26.4,27.1,27.3,27.5],["甘肃","通渭",28.6,29.9,30.8,31.5,32.1,34.0,34.6,35.3],["甘肃","环县",24.6,25.5,25.9,26.2,26.5,27.2,27.4,27.7],["甘肃","平凉",24.7,25.3,25.7,25.9,26.1,26.5,26.6,26.8],["甘肃","酒泉市西峰镇",25.6,26.1,26.2,26.3,26.4,26.5,26.6,26.6],["甘肃","甘南",25.2,26.1,26.5,26.9,27.2,28.0,28.3,28.6],["甘肃","夏河",25.0,25.9,26.4,26.7,26.9,27.7,27.9,28.1],["甘肃","岷县",23.9,24.8,25.2,25.6,25.8,26.6,26.7,27.0],["甘肃","武都",24.5,25.0,25.3,25.5,25.6,25.9,26.0,26.1],["甘肃","天水",19.6,21.1,22.1,22.9,23.6,26.1,26.9,27.9],["宁夏","惠农",31.6,33.1,34.0,34.6,35.0,36.4,36.8,37.2],["宁夏","吴忠",24.6,25.7,26.4,26.9,27.3,28.6,28.9,29.4],["宁夏","永宁",27.7,29.0,29.8,30.3,30.8,32.2,32.6,33.1],["宁夏","陶乐",26.0,26.9,27.5,27.9,28.2,29.1,29.4,29.6],["宁夏","中卫",24.9,25.9,26.5,26.8,27.1,27.9,28.1,28.3],["宁夏","中宁",26.3,26.9,27.2,27.3,27.5,27.8,27.9,28.0],["宁夏","盐池",25.3,26.2,26.8,27.2,27.6,28.7,29.0,29.4],["宁夏","海源",25.2,25.8,26.2,26.4,26.6,27.1,27.3,27.5],["宁夏","同心",24.7,25.7,26.1,26.4,26.7,27.3,27.4,27.6],["宁夏","固原",25.2,25.8,26.1,26.3,26.5,26.9,27.0,27.1],["宁夏","西吉",22.6,23.8,24.6,25.2,25.7,27.3,27.7,28.3],["宁夏","隆德",31.0,32.1,32.7,33.1,33.4,34.4,34.6,34.9],["青海","茫崖",33.2,34.0,34.5,34.7,34.9,35.5,35.6,35.8],["青海","冷湖",33.9,35.9,37.2,38.2,39.0,41.7,42.5,43.5],["青海","托勒",29.7,30.8,31.4,31.8,32.1,33.0,33.2,33.5],["青海","野牛沟",30.7,31.3,31.6,31.7,31.8,32.0,32.0,32.0],["青海","祁连",27.2,28.0,28.4,28.6,28.8,29.4,29.5,29.7],["青海","小灶火",33.8,34.1,34.1,34.2,34.2,34.2,34.2,34.2],["青海","大柴旦",27.9,29.1,29.8,30.3,30.7,32.0,32.3,32.7],["青海","德令哈",27.3,28.8,29.5,30.0,30.3,31.2,31.4,31.6],["青海","刚察",27.3,28.6,29.5,30.1,30.6,32.4,33.0,33.6],["青海","门源",27.0,27.7,28.0,28.2,28.4,28.7,28.8,28.9],["青海","格尔木",28.8,29.9,30.7,31.2,31.7,33.1,33.5,34.0],["青海","诺木洪",33.3,34.4,35.2,35.7,36.1,37.5,37.9,38.4],["青海","乌兰",29.3,29.9,30.2,30.4,30.5,30.9,31.0,31.1],["青海","都兰",24.2,26.0,27.1,28.0,28.7,31.2,31.9,32.8],["青海","乌兰县茶卡",27.6,28.8,29.6,30.2,30.7,32.3,32.7,33.2],["青海","共和",25.6,26.7,27.4,27.9,28.3,29.6,29.9,30.4],["青海","西宁",25.9,26.7,27.2,27.5,27.7,28.6,28.8,29.1],["青海","贵德",26.9,27.5,27.8,28.0,28.2,28.7,28.9,29.1],["青海","民和",26.1,26.7,27.1,27.3,27.4,27.9,28.0,28.1],["青海","五道梁",33.6,34.6,35.1,35.5,35.8,36.7,37.0,37.3],["青海","兴海",28.3,29.7,30.5,31.1,31.6,33.0,33.4,33.9],["青海","贵南",26.3,27.3,27.8,28.3,28.6,29.7,30.0,30.3],["青海","同仁",23.2,24.6,25.5,26.1,26.6,28.1,28.6,29.1],["青海","托托河",35.7,36.7,37.2,37.5,37.8,38.6,38.8,39.0],["青海","杂多",30.5,31.2,31.5,31.7,31.9,32.3,32.4,32.6],["青海","曲麻莱",30.8,31.5,31.9,32.1,32.2,32.7,32.8,32.9],["青海","玉树",25.2,27.1,28.3,29.1,29.8,31.9,32.5,33.2],["青海","玛多",28.7,29.9,30.6,31.2,31.6,33.1,33.6,34.1],["青海","清水河",28.7,29.6,30.1,30.5,30.8,31.8,32.1,32.4],["青海","果洛",27.3,28.2,28.7,29.1,29.4,30.2,30.4,30.7],["青海","达日",27.9,28.9,29.6,30.0,30.4,31.5,31.9,32.3],["青海","河南",29.8,31.7,32.9,33.8,34.5,37.1,37.9,38.8],["青海","久治",26.2,27.0,27.5,27.8,28.0,28.7,28.9,29.1],["青海","囊谦",30.0,30.5,30.7,30.8,31.0,31.3,31.4,31.4],["青海","班玛",31.7,32.2,32.4,32.6,32.7,33.1,33.1,33.2],["新疆","哈巴河",29.9,30.7,31.1,31.4,31.7,32.4,32.6,32.8],["新疆","吉木乃",29.8,31.1,31.8,32.4,32.8,34.1,34.5,34.9],["新疆","福海",30.9,31.3,31.4,31.4,31.5,31.5,31.5,31.6],["新疆","阿勒泰",27.4,28.9,29.9,30.6,31.2,33.1,33.6,34.3],["新疆","富蕴",26.6,27.1,27.3,27.4,27.5,27.7,27.7,27.8],["新疆","塔城",34.3,35.2,35.6,35.8,36.0,36.3,36.4,36.5],["新疆","青河",19.6,21.0,21.9,22.7,23.3,25.4,26.1,26.9],["新疆","阿拉山口",44.2,46.4,47.8,48.9,49.7,52.8,53.7,54.7],["新疆","塔秀",27.5,29.2,30.4,31.3,32.0,34.5,35.2,36.1],["新疆","克拉玛依",36.9,38.7,39.8,40.7,41.3,43.5,44.1,44.9],["新疆","温泉",31.2,32.1,32.7,33.1,33.4,34.3,34.5,34.8],["新疆","精河",30.4,31.1,31.5,31.7,31.8,32.2,32.2,32.3],["新疆","乌苏",28.2,29.3,30.0,30.5,30.9,32.1,32.5,32.9],["新疆","呼图壁",26.5,28.2,29.4,30.2,30.9,33.4,34.2,35.1],["新疆","奇台",30.8,32.1,32.6,32.9,33.2,33.7,33.8,33.9],["新疆","伊宁",28.3,29.3,29.9,30.3,30.7,31.8,32.1,32.4],["新疆","巩留",27.4,28.6,29.2,29.7,30.0,31.0,31.3,31.6],["新疆","昭苏",27.6,28.9,29.7,30.3,30.8,32.2,32.6,33.0],["新疆","乌鲁木齐",31.6,33.2,34.2,35.0,35.5,37.3,37.8,38.4],["新疆","萨尔托斯",19.5,22.8,25.5,27.8,29.9,38.3,41.1,44.7],["新疆","达坂城",33.9,35.6,36.7,37.6,38.3,40.9,41.6,42.5],["新疆","库米什",29.1,30.4,31.1,31.7,32.2,33.7,34.1,34.7],["新疆","巴音布鲁克",27.7,28.9,29.6,30.0,30.4,31.5,31.7,32.1],["新疆","吐鲁番",29.3,30.6,31.4,31.9,32.4,33.8,34.3,34.7],["新疆","鄯善",27.3,28.7,29.5,30.1,30.6,32.2,32.6,33.2],["新疆","阿克苏",24.9,26.8,28.0,28.9,29.5,31.8,32.5,33.2],["新疆","库车",25.9,28.1,29.6,30.9,31.9,35.7,36.8,38.3],["新疆","尉犁",29.0,30.1,30.8,31.3,31.7,33.0,33.4,33.8],["新疆","库尔勒",29.9,30.9,31.5,31.9,32.2,33.0,33.3,33.5],["新疆","喀什市",27.8,29.4,30.4,31.2,31.8,34.0,34.7,35.5],["新疆","乌恰",32.1,33.2,33.6,33.8,34.0,34.4,34.5,34.6],["新疆","喀什疏附县",29.2,30.7,31.5,32.1,32.5,33.8,34.2,34.5],["新疆","阿合奇",27.9,28.6,29.0,29.2,29.4,30.0,30.1,30.3],["新疆","巴楚",24.4,25.5,26.2,26.6,26.9,28.0,28.3,28.6],["新疆","若羌",31.5,33.2,34.4,35.3,36.1,38.7,39.6,40.6],["新疆","塔什库尔干",27.5,28.2,28.6,28.9,29.1,29.8,29.9,30.1],["新疆","皮山",22.2,22.8,23.1,23.3,23.5,24.0,24.1,24.2],["新疆","和田",20.9,21.6,22.0,22.3,22.5,23.1,23.3,23.5],["新疆","民丰",22.3,23.2,23.8,24.2,24.5,25.5,25.7,26.1],["新疆","于田",20.7,21.4,21.7,22.0,22.2,22.7,22.9,23.0],["新疆","哈密",27.4,28.1,28.5,28.8,29.0,29.5,29.6,29.8],["河南","安阳",27.4,28.8,29.6,30.1,30.6,31.8,32.1,32.4],["河南","新乡",24.9,25.5,25.8,26.0,26.2,26.6,26.7,26.8],["河南","三门峡",24.1,24.8,25.2,25.5,25.7,26.3,26.4,26.6],["河南","卢氏",23.1,24.0,24.6,25.0,25.3,26.2,26.5,26.8],["河南","宜阳",26.4,27.4,28.0,28.5,28.8,30.0,30.4,30.8],["河南","栾川",23.5,24.4,24.9,25.2,25.4,26.2,26.4,26.6],["河南","郑州",24.7,25.3,25.7,26.0,26.2,26.9,27.0,27.3],["河南","许昌",22.2,23.4,24.1,24.6,25.0,26.3,26.7,27.2],["河南","开封",22.8,23.7,24.3,24.8,25.2,26.5,26.9,27.3],["河南","西峡",23.4,24.2,24.7,25.0,25.3,26.2,26.4,26.7],["河南","南阳",24.3,24.9,25.3,25.5,25.7,26.3,26.4,26.6],["河南","宝丰",25.8,26.1,26.2,26.3,26.3,26.4,26.4,26.4],["河南","西华",23.5,25.2,26.4,27.3,28.1,31.0,31.9,33.0],["河南","桐柏",23.6,24.5,25.0,25.4,25.6,26.4,26.6,26.9],["河南","驻马店",27.6,28.2,28.5,28.7,28.8,29.2,29.3,29.4],["河南","信阳",23.5,24.8,25.6,26.1,26.6,28.0,28.5,28.9],["河南","商丘",23.8,24.6,25.1,25.4,25.7,26.4,26.6,26.8],["河南","濮阳",25.6,26.2,26.4,26.6,26.7,27.0,27.1,27.2],["河南","固始",24.7,25.8,26.2,26.5,26.7,27.3,27.4,27.5],["湖北","郧西",21.9,23.1,23.8,24.3,24.7,26.0,26.4,26.8],["湖北","竹山",24.7,25.3,25.6,25.7,25.8,26.0,26.0,26.1],["湖北","房县",19.5,21.2,22.4,23.3,24.0,26.6,27.4,28.3],["湖北","老河口",22.3,23.5,24.2,24.7,25.1,26.2,26.5,26.8],["湖北","襄阳",24.8,25.9,26.5,27.0,27.4,28.6,28.9,29.3],["湖北","枣阳",24.6,26.1,27.0,27.7,28.3,30.2,30.8,31.4],["湖北","巴东",23.0,23.8,24.3,24.7,24.9,25.7,25.9,26.2],["湖北","长阳",20.7,22.3,23.4,24.2,24.8,27.0,27.6,28.3],["湖北","溪丘湾",21.8,23.0,23.7,24.2,24.6,25.8,26.1,26.5],["湖北","南漳",22.8,23.8,24.4,24.8,25.2,26.1,26.4,26.7],["湖北","钟祥",23.8,24.6,25.0,25.3,25.6,26.3,26.5,26.7],["湖北","随州",22.0,23.5,24.5,25.1,25.7,27.4,27.9,28.5],["湖北","孝昌",25.1,26.7,27.7,28.5,29.2,31.6,32.3,33.2],["湖北","麻城",24.5,25.4,25.9,26.3,26.6,27.6,27.9,28.2],["湖北","利川",21.4,22.5,23.2,23.6,23.9,25.0,25.2,25.5],["湖北","屯堡",20.5,21.8,22.7,23.3,23.7,25.3,25.8,26.3],["湖北","恩施",20.0,21.6,22.5,23.2,23.7,25.2,25.6,26.1],["湖北","五峰",21.6,22.8,23.5,23.9,24.3,25.5,25.8,26.2],["湖北","宜昌",23.3,24.2,24.7,25.1,25.4,26.3,26.6,26.9],["湖北","荆州",23.0,24.0,24.5,24.9,25.2,26.0,26.2,26.5],["湖北","汉川",21.8,23.0,23.7,24.2,24.7,26.1,26.5,27.1],["湖北","天门",24.3,24.9,25.2,25.5,25.6,26.1,26.2,26.4],["湖北","江夏",24.5,25.2,25.6,25.9,26.1,26.8,26.9,27.1],["湖北","武汉",25.9,26.6,27.0,27.2,27.3,27.7,27.8,27.9],["湖北","来凤",21.4,23.1,24.1,24.8,25.3,27.1,27.6,28.2],["湖北","华容",24.3,24.8,25.1,25.3,25.4,25.7,25.8,25.9],["湖北","云溪",23.7,24.9,25.5,25.9,26.1,26.9,27.1,27.3],["湖北","嘉鱼",27.0,28.1,28.8,29.3,29.7,31.0,31.4,31.9],["湖北","咸宁",19.9,21.2,22.1,22.8,23.4,25.5,26.2,27.0],["湖北","英山",22.2,23.3,23.9,24.4,24.7,25.9,26.2,26.6],["湖北","黄石",24.8,25.7,26.3,26.7,27.0,28.1,28.4,28.7],["湖南","桑植",22.2,23.4,24.2,24.7,25.2,26.6,27.0,27.5],["湖南","石门",21.9,22.9,23.5,23.9,24.3,25.4,25.7,26.1],["湖南","南县",22.8,24.3,25.3,26.0,26.6,28.5,29.0,29.7],["湖南","岳阳",25.9,27.1,27.7,28.0,28.2,28.8,28.9,29.0],["湖南","花垣",20.6,21.8,22.5,22.9,23.3,24.4,24.6,25.0],["湖南","吉首",23.8,24.1,24.2,24.2,24.2,24.3,24.3,24.3],["湖南","沅陵",22.0,22.8,23.3,23.6,23.9,24.6,24.8,25.0],["湖南","常德",25.4,26.4,27.1,27.5,27.8,28.9,29.2,29.6],["湖南","安化",21.4,22.5,23.1,23.5,23.9,24.8,25.1,25.4],["湖南","沅江",26.2,27.0,27.5,27.9,28.1,29.0,29.2,29.5],["湖南","益阳",24.1,24.5,24.7,24.8,24.9,25.2,25.3,25.4],["湖南","长沙",23.8,25.1,25.9,26.4,26.9,28.2,28.6,29.0],["湖南","平江",22.3,23.3,23.8,24.2,24.4,25.1,25.3,25.5],["湖南","宁乡",22.1,23.0,23.6,24.0,24.4,25.4,25.8,26.1],["湖南","芷江",21.0,22.4,23.3,23.9,24.3,25.8,26.2,26.7],["湖南","怀化",22.7,23.3,23.6,23.8,24.0,24.3,24.3,24.4],["湖南","洞口",21.8,23.3,24.2,24.9,25.4,27.1,27.6,28.2],["湖南","新邵",24.2,26.2,27.2,27.9,28.4,30.0,30.4,30.8],["湖南","邵阳市",23.3,24.3,24.9,25.2,25.5,26.4,26.6,26.9],["湖南","双峰",22.5,23.5,24.1,24.5,24.9,26.1,26.5,26.9],["湖南","南岳",39.8,41.4,42.3,42.8,43.2,44.4,44.6,45.0],["湖南","攸县",22.4,23.4,23.9,24.4,24.7,25.7,26.0,26.3],["湖南","株洲",25.7,26.4,26.7,27.0,27.1,27.6,27.8,27.9],["湖南","莲花",23.3,23.7,24.0,24.1,24.2,24.4,24.4,24.4],["湖南","靖州",20.2,21.3,22.0,22.5,22.9,24.5,24.9,25.5],["湖南","通道",20.6,21.4,21.9,22.2,22.5,23.5,23.8,24.1],["湖南","武冈",21.3,22.4,23.2,23.7,24.2,25.7,26.1,26.6],["湖南","城步",21.3,22.5,23.1,23.6,24.0,25.2,25.5,25.9],["湖南","邵阳县",22.4,23.8,24.7,25.4,25.9,27.7,28.2,28.9],["湖南","零陵",27.7,28.9,29.5,29.9,30.2,31.0,31.1,31.3],["湖南","衡阳",24.6,25.3,25.7,26.0,26.2,26.9,27.0,27.2],["湖南","常宁",23.7,24.8,25.4,25.9,26.3,27.5,27.8,28.2],["湖南","资兴",21.2,22.0,22.5,22.8,23.0,23.9,24.1,24.4],["湖南","道县",22.4,23.1,23.4,23.5,23.6,23.9,24.0,24.0],["湖南","郴州",20.5,21.4,22.0,22.4,22.7,23.9,24.2,24.6],["湖南","蓝山",20.8,22.1,23.0,23.7,24.3,26.4,27.0,27.8],["广东","南雄",21.9,22.6,22.9,23.2,23.4,23.9,24.0,24.1],["广东","连县",19.2,20.5,21.3,21.9,22.4,24.2,24.8,25.4],["广东","韶关",21.5,22.4,23.0,23.4,23.6,24.5,24.7,25.0],["广东","佛冈",23.7,24.6,25.2,25.5,25.8,26.7,26.9,27.2],["广东","英德",22.3,23.2,23.7,24.0,24.3,25.0,25.2,25.5],["广东","连平",23.4,24.0,24.3,24.5,24.7,25.1,25.3,25.4],["广东","新丰",22.7,23.6,24.1,24.5,24.8,25.5,25.7,26.0],["广东","龙川",22.7,23.8,24.4,24.9,25.3,26.5,26.9,27.3],["广东","大埔",25.3,27.0,28.0,28.7,29.3,31.1,31.6,32.2],["广东","丰顺",25.9,26.9,27.5,27.9,28.2,29.0,29.2,29.5],["广东","梅县",24.4,25.6,26.2,26.7,27.0,28.0,28.3,28.6],["广东","广宁",23.5,24.4,24.9,25.3,25.6,26.6,26.8,27.2],["广东","高要",24.6,27.0,28.5,29.7,30.6,33.6,34.5,35.5],["广东","花都",24.0,25.0,25.5,25.8,26.1,26.8,27.0,27.2],["广东","广州",27.9,29.5,30.2,30.8,31.1,32.2,32.4,32.7],["广东","中山",26.5,28.4,29.5,30.3,30.9,32.8,33.3,33.9],["广东","河源",23.6,24.8,25.5,26.1,26.5,28.1,28.5,29.1],["广东","增城",25.9,26.7,27.2,27.4,27.7,28.3,28.5,28.7],["广东","惠州",28.9,30.4,31.4,32.1,32.6,34.5,35.0,35.6],["广东","五华",24.6,26.1,27.1,27.7,28.2,29.8,30.3,30.8],["广东","紫金",28.3,29.1,29.4,29.6,29.8,30.1,30.2,30.3],["广东","陆河",29.3,31.6,33.0,33.9,34.6,36.8,37.4,38.1],["广东","揭阳",26.2,27.9,29.0,29.9,30.6,33.1,33.9,34.9],["广东","汕头",35.0,38.0,39.7,41.0,41.9,45.1,46.0,47.0],["广东","惠来",35.9,38.2,39.4,40.1,40.6,42.0,42.3,42.6],["广东","南澳",33.6,36.2,37.9,39.2,40.2,43.7,44.7,46.0],["广东","信宜",28.2,29.2,29.8,30.2,30.5,31.3,31.5,31.8],["广东","罗定",28.2,29.0,29.4,29.7,29.9,30.4,30.6,30.7],["广东","台山",29.7,31.8,33.1,34.1,35.0,38.0,38.9,39.9],["广东","斗门",30.8,32.6,33.7,34.5,35.1,37.1,37.7,38.4],["广东","金湾",39.1,40.8,41.6,42.0,42.3,42.9,43.1,43.2],["广东","深圳",29.8,32.1,33.5,34.4,35.2,37.5,38.1,38.8],["广东","汕尾",40.0,44.3,47.2,49.4,51.2,57.4,59.3,61.6],["广东","湛江",37.7,40.0,41.2,42.0,42.6,44.4,44.8,45.3],["广东","阳江",39.9,43.2,45.0,46.3,47.2,50.1,50.9,51.8],["广东","电白",35.9,39.0,40.7,42.0,42.9,45.9,46.7,47.6],["广东","上川岛",45.5,47.6,48.7,49.3,49.7,50.8,51.0,51.3],["广东","徐闻",37.3,40.4,41.9,42.9,43.6,45.6,46.1,46.6],["广西","桂林",21.6,22.4,22.8,23.0,23.2,23.6,23.7,23.8],["广西","都安",22.3,23.7,24.6,25.2,25.8,27.6,28.1,28.7],["广西","柳州",21.2,22.1,22.5,22.8,23.0,23.7,23.9,24.1],["广西","蒙山",21.0,21.9,22.4,22.8,23.1,24.2,24.5,24.8],["广西","百色",20.3,21.7,22.5,23.0,23.4,24.7,25.1,25.5],["广西","靖西",20.4,21.8,22.6,23.2,23.8,25.5,26.1,26.7],["广西","平果",21.5,22.5,23.1,23.6,24.0,25.2,25.6,26.0],["广西","来宾",22.0,22.8,23.3,23.7,24.0,24.9,25.1,25.4],["广西","桂平",24.2,24.8,25.1,25.3,25.4,25.8,25.9,26.0],["广西","梧州",24.9,25.6,25.8,26.0,26.1,26.3,26.3,26.4],["广西","龙州",25.1,26.4,27.0,27.3,27.6,28.2,28.4,28.6],["广西","南宁",25.0,26.0,26.6,27.1,27.4,28.5,28.8,29.1],["广西","灵山",23.4,24.9,26.0,26.8,27.4,29.8,30.6,31.5],["广西","玉林",23.6,25.3,26.3,27.1,27.7,29.7,30.2,30.9],["广西","东兴",37.6,41.1,43.0,44.2,45.0,47.5,48.1,48.8],["广西","防城",30.9,33.8,35.6,36.9,37.9,41.1,42.1,43.1],["广西","北海",35.4,38.9,40.9,42.3,43.4,46.7,47.5,48.5],["广西","涠洲岛",43.5,46.9,49.0,50.5,51.8,55.8,57.0,58.3],["四川","石渠",28.2,29.2,29.7,30.0,30.3,31.1,31.3,31.5],["四川","若尔盖",25.2,25.9,26.2,26.5,26.7,27.3,27.5,27.7],["四川","德格",26.5,27.9,28.8,29.5,30.0,31.7,32.1,32.7],["四川","甘孜",32.1,33.3,33.9,34.2,34.5,35.1,35.3,35.4],["四川","色达",29.0,30.6,31.5,32.3,32.9,35.0,35.6,36.3],["四川","道孚",25.1,25.9,26.3,26.7,26.9,27.7,27.9,28.1],["四川","马尔康",22.7,24.2,25.2,26.0,26.6,28.8,29.4,30.2],["四川","红原",29.6,30.5,30.9,31.1,31.3,31.7,31.7,31.8],["四川","小金",23.9,25.2,26.1,26.7,27.2,29.0,29.5,30.2],["四川","松潘",20.7,21.9,22.8,23.5,24.1,26.3,27.0,27.8],["四川","成都",21.7,22.8,23.4,23.9,24.3,25.6,25.9,26.4],["四川","都江堰",20.2,21.7,22.6,23.3,23.9,25.8,26.3,27.0],["四川","绵阳",21.8,22.8,23.4,23.8,24.2,25.3,25.6,25.9],["四川","巴塘",22.1,23.7,24.8,25.6,26.2,28.6,29.2,30.1],["四川","新龙",27.9,29.1,29.9,30.4,30.9,32.5,33.0,33.5],["四川","理塘",26.1,26.8,27.1,27.4,27.5,28.1,28.2,28.4],["四川","雅安",21.7,22.9,23.6,24.1,24.5,25.8,26.2,26.7],["四川","稻城",26.6,27.0,27.1,27.2,27.3,27.6,27.6,27.7],["四川","康定",25.3,26.0,26.3,26.5,26.6,27.0,27.1,27.2],["四川","乐山",21.7,23.1,23.8,24.3,24.6,25.5,25.7,26.0],["四川","九龙",24.4,25.2,25.7,26.0,26.2,27.0,27.2,27.4],["四川","越西",25.5,25.9,26.1,26.2,26.3,26.4,26.4,26.5],["四川","昭觉",24.7,25.3,25.6,25.8,26.0,26.4,26.5,26.6],["四川","雷波",23.6,24.9,25.8,26.4,26.9,28.6,29.1,29.6],["四川","宜宾",24.0,24.5,24.7,24.8,24.9,25.1,25.1,25.1],["四川","盐源",26.1,26.6,26.9,27.1,27.2,27.7,27.8,27.9],["四川","西昌",24.2,25.0,25.4,25.7,26.0,26.6,26.8,27.0],["四川","攀枝花",22.6,23.9,24.7,25.2,25.7,27.2,27.6,28.1],["四川","会理",24.0,25.0,25.5,25.8,26.1,26.9,27.1,27.4],["四川","广元",24.1,24.7,24.9,25.0,25.1,25.3,25.3,25.4],["四川","宁强",20.3,21.8,22.7,23.4,23.8,25.3,25.7,26.2],["四川","万源",22.3,23.2,23.7,24.1,24.4,25.4,25.7,26.0],["四川","阆中",21.8,22.8,23.3,23.7,24.0,24.9,25.2,25.5],["四川","巴中",21.0,22.4,23.2,23.8,24.2,25.5,25.8,26.2],["四川","达县",28.0,29.7,30.7,31.4,31.9,33.7,34.2,34.8],["四川","遂宁",21.4,22.9,23.8,24.4,24.9,26.3,26.7,27.1],["四川","南充",22.8,23.6,24.0,24.2,24.4,24.7,24.8,24.8],["四川","叙永",22.0,22.8,23.3,23.6,23.8,24.6,24.8,25.0],["贵州","威宁",25.1,25.4,25.5,25.6,25.6,25.7,25.7,25.8],["贵州","盘县",22.1,23.7,24.8,25.6,26.3,28.8,29.6,30.5],["贵州","桐梓",21.6,22.4,22.8,23.2,23.4,24.2,24.4,24.7],["贵州","习水",19.4,21.3,22.6,23.5,24.3,26.9,27.6,28.6],["贵州","毕节",20.1,21.8,22.9,23.7,24.3,26.3,26.9,27.5],["贵州","思南",20.8,21.7,22.2,22.6,22.9,23.7,23.9,24.1],["贵州","铜仁",20.7,21.7,22.2,22.6,22.9,23.8,24.1,24.4],["贵州","安顺",21.9,22.8,23.3,23.7,23.9,24.6,24.8,25.0],["贵州","贵阳",22.1,23.7,24.7,25.4,26.0,28.0,28.5,29.2],["贵州","凯里",21.0,21.8,22.2,22.5,22.7,23.4,23.5,23.7],["贵州","都匀",20.3,21.4,22.0,22.4,22.6,23.4,23.6,23.8],["贵州","三穗",19.2,20.3,21.0,21.5,22.0,23.3,23.7,24.2],["贵州","兴义",24.0,25.0,25.6,25.9,26.2,27.1,27.3,27.6],["贵州","罗甸",22.1,22.6,22.9,23.1,23.3,23.7,23.8,24.0],["云南","德钦",23.2,24.3,25.1,25.7,26.1,27.8,28.2,28.8],["云南","贡山",21.3,23.2,24.4,25.3,26.1,28.9,29.7,30.7],["云南","中甸",26.7,27.0,27.1,27.2,27.3,27.4,27.5,27.5],["云南","维西",22.4,23.7,24.6,25.2,25.7,27.4,27.8,28.4],["云南","昭通",24.8,26.8,27.9,28.7,29.3,31.3,31.9,32.5],["云南","怒江",24.4,25.1,25.6,26.0,26.2,27.1,27.4,27.7],["云南","丽江",24.0,24.9,25.5,25.9,26.2,27.3,27.7,28.0],["云南","华坪",28.7,29.8,30.4,30.8,31.0,31.8,31.9,32.1],["云南","会泽",26.1,27.7,28.8,29.7,30.3,32.7,33.4,34.3],["云南","宣威",22.0,23.0,23.6,24.0,24.3,25.2,25.4,25.7],["云南","腾冲",22.8,23.8,24.4,24.8,25.1,26.0,26.2,26.5],["云南","保山",24.9,25.5,25.8,26.0,26.1,26.4,26.5,26.6],["云南","大理",35.5,37.1,38.1,38.8,39.3,41.1,41.6,42.1],["云南","元谋",26.5,27.8,28.4,28.8,29.1,29.9,30.0,30.2],["云南","楚雄",24.9,25.7,26.0,26.3,26.4,26.9,27.1,27.2],["云南","昆明",28.7,29.7,30.3,30.6,30.8,31.4,31.5,31.7],["云南","沾益",23.2,24.1,24.6,24.9,25.2,26.1,26.4,26.6],["云南","瑞丽",21.0,22.1,22.7,23.1,23.5,24.4,24.7,24.9],["云南","景东",20.9,22.3,23.2,23.9,24.4,26.3,26.8,27.4],["云南","玉溪",24.0,25.4,26.2,26.7,27.0,28.1,28.4,28.7],["云南","泸西",24.9,25.4,25.6,25.7,25.7,25.9,25.9,26.0],["云南","耿马",20.2,22.5,24.1,25.3,26.4,30.4,31.7,33.2],["云南","临沧",19.7,21.1,22.0,22.6,23.2,25.1,25.7,26.4],["云南","澜沧",19.0,20.0,20.7,21.1,21.5,22.9,23.2,23.7],["云南","景洪",20.7,21.5,21.9,22.1,22.3,22.8,22.9,23.0],["云南","思茅",19.1,20.2,21.0,21.6,22.0,23.7,24.2,24.8],["云南","元江",23.4,24.1,24.5,24.8,25.1,25.8,26.0,26.3],["云南","勐腊",19.6,21.0,21.9,22.5,23.0,24.6,25.0,25.6],["云南","江城",19.3,20.9,21.9,22.6,23.2,24.9,25.4,26.0],["云南","蒙自",22.7,23.5,24.1,24.5,24.8,25.8,26.1,26.4],["云南","屏边",23.4,24.1,24.5,24.8,25.0,25.7,25.8,26.0],["云南","广南",24.7,25.4,25.8,25.9,26.1,26.4,26.5,26.6],["西藏","班戈",34.0,36.0,37.3,38.2,39.0,41.5,42.3,43.2],["西藏","安多",37.0,39.3,40.9,42.1,43.1,46.8,47.9,49.2],["西藏","那曲",33.2,34.4,35.1,35.6,36.0,37.3,37.6,38.0],["西藏","日喀则",29.5,31.4,32.5,33.4,34.0,36.2,36.9,37.6],["西藏","拉萨",29.9,31.1,31.7,32.1,32.5,33.5,33.8,34.1],["西藏","泽当",25.2,26.8,28.0,28.9,29.7,32.4,33.3,34.3],["西藏","江孜",33.7,34.4,34.8,35.0,35.2,35.6,35.7,35.8],["西藏","隆子",27.2,28.0,28.4,28.6,28.8,29.3,29.5,29.6],["西藏","索县",30.4,32.2,33.4,34.4,35.1,37.8,38.5,39.5],["西藏","昌都",28.7,29.3,29.5,29.7,29.8,30.1,30.2,30.3],["西藏","林芝",28.2,29.4,29.9,30.3,30.6,31.5,31.7,32.0],["海南","海口",33.9,35.8,36.7,37.2,37.5,38.4,38.6,38.8],["海南","东方",39.7,41.6,42.6,43.3,43.8,45.1,45.4,45.8],["海南","儋县",27.3,28.5,29.2,29.6,29.9,30.9,31.1,31.4],["海南","琼中",27.7,29.5,30.6,31.3,31.9,33.7,34.2,34.8],["海南","琼海",37.4,38.3,38.6,38.8,38.9,39.1,39.1,39.2],["海南","三亚",45.9,49.9,52.1,53.6,54.8,58.4,59.4,60.5],["海南","陵水",44.0,46.0,47.1,47.8,48.3,49.8,50.2,50.6],["海南","西沙",55.7,59.1,60.6,61.5,62.1,63.7,64.0,64.4],["台湾","台北",25.9,29.3,31.3,32.7,33.8,37.3,38.2,39.3],["台湾","新竹",27.3,31.0,33.1,34.6,35.7,39.4,40.3,41.5],["台湾","宜兰",42.5,48.2,51.5,53.8,55.6,61.3,62.7,64.5],["台湾","台中",26.7,30.3,32.3,33.8,34.9,38.5,39.4,40.5],["台湾","花莲",25.9,29.3,31.3,32.7,33.8,37.3,38.2,39.3],["台湾","嘉义",27.3,31.0,33.1,34.6,35.7,39.4,40.3,41.5],["台湾","马公",35.0,39.6,42.3,44.2,45.7,50.4,51.6,53.1],["台湾","台东",28.7,32.5,34.8,36.3,37.6,41.4,42.4,43.6],["台湾","冈山",27.3,31.0,33.1,34.6,35.7,39.4,40.3,41.5],["台湾","恒春",30.7,34.8,37.2,38.9,40.2,44.3,45.3,46.6],["台湾","阿里山",20.0,22.6,24.2,25.3,26.1,28.8,29.5,30.3],["台湾","台南",28.0,31.7,33.9,35.5,36.7,40.4,41.3,42.5],["香港","香港",27.4,31.0,33.2,34.7,35.8,39.5,40.4,41.6],["香港","横澜岛",33.2,37.6,40.2,42.0,43.5,47.9,49.0,50.4],["澳门","澳门",26.6,30.2,32.2,33.7,34.8,38.4,39.3,40.4]];
+
+/* ===================== 表 5.2.1 等效静阵风系数 Gv（地表类别 x 水平加载长度） ===================== */
+const GV_LENGTHS = [20,60,100,200,300,400,500,650,800,1000,1200,1500,2000];
+const GV_TABLE = {
+  A: [1.29,1.28,1.26,1.24,1.23,1.22,1.21,1.2,1.19,1.18,1.17,1.16,1.15],
+  B: [1.35,1.33,1.31,1.29,1.27,1.26,1.25,1.24,1.23,1.22,1.21,1.20,1.18],
+  C: [1.49,1.48,1.45,1.41,1.39,1.37,1.36,1.34,1.33,1.31,1.30,1.29,1.26],
+  D: [1.56,1.54,1.51,1.47,1.44,1.42,1.41,1.39,1.37,1.35,1.34,1.32,1.30]
+};
+
+/* ===================== 表 4.2.4 基本风速地表类别转换系数 kc ===================== */
+const KC_TABLE = {A:1.174, B:1.0, C:0.785, D:0.564};
+
+/* ===================== 表 4.2.1 地表粗糙度系数 alpha0 ===================== */
+const ALPHA0_TABLE = {A:0.12, B:0.16, C:0.22, D:0.30};
+
+/* ===================== 表 5.4.2-1 桥墩/桥塔/构件 矩形阻力系数 CD (t/w 行, h/w 列 1,2,4,6,10,20,40) ===================== */
+const HW_COLS = [1,2,4,6,10,20,40];
+const RECT_CD_TABLE = [
+  // [t/w_upper_bound_label, values...]  using representative t/w values per row
+  {tw:0.25, vals:[1.3,1.4,1.5,1.6,1.7,1.9,2.1]},
+  {tw:0.42, vals:[1.3,1.4,1.5,1.6,1.8,2.0,2.2]}, // 1/3~1/2 representative ~0.42
+  {tw:0.667, vals:[1.3,1.4,1.5,1.6,1.8,2.0,2.2]}, // 2/3
+  {tw:1.0, vals:[1.2,1.3,1.4,1.5,1.6,1.8,2.0]},
+  {tw:1.5, vals:[1.0,1.1,1.2,1.3,1.4,1.5,1.7]},
+  {tw:2.0, vals:[0.8,0.9,1.0,1.1,1.2,1.3,1.4]},
+  {tw:3.0, vals:[0.8,0.8,0.8,0.9,0.9,1.0,1.2]},
+  {tw:4.0, vals:[0.8,0.8,0.8,0.8,0.8,0.9,1.1]}
+];
+const OCTAGON_CD = [1.0,1.1,1.1,1.2,1.2,1.3,1.4];
+const DODECA_CD = [0.7,0.8,0.9,0.9,1.0,1.1,1.3];
+const CIRCLE_LOW_CD = [0.5,0.5,0.5,0.5,0.5,0.6,0.6];   // dUd >= 6
+const CIRCLE_HIGH_CD = [0.7,0.7,0.8,0.8,0.9,1.0,1.2];  // dUd < 6
+
+/* ===================== 表 5.3.2-1 桁架横向力系数 (实面积比行 x 构件类型列) ===================== */
+const TRUSS_CH_TABLE = {
+  0.1:{rect:1.9, cyl_low:1.2, cyl_high:0.7},
+  0.2:{rect:1.8, cyl_low:1.2, cyl_high:0.8},
+  0.3:{rect:1.7, cyl_low:1.2, cyl_high:0.8},
+  0.4:{rect:1.7, cyl_low:1.1, cyl_high:0.8},
+  0.5:{rect:1.6, cyl_low:1.1, cyl_high:0.8}
+};
+/* 表 5.3.2-2 桁架遮挡系数 eta (间距比 x 实面积比) */
+const TRUSS_ETA_TABLE = {
+  1:{0.1:1.00,0.2:0.90,0.3:0.80,0.4:0.60,0.5:0.45},
+  2:{0.1:1.00,0.2:0.90,0.3:0.80,0.4:0.65,0.5:0.50},
+  3:{0.1:1.00,0.2:0.95,0.3:0.80,0.4:0.70,0.5:0.55},
+  4:{0.1:1.00,0.2:0.95,0.3:0.80,0.4:0.70,0.5:0.60},
+  5:{0.1:1.00,0.2:0.95,0.3:0.85,0.4:0.75,0.5:0.65},
+  6:{0.1:1.00,0.2:0.95,0.3:0.90,0.4:0.80,0.5:0.70}
+};
+
+/* ===================== 工具函数 ===================== */
+function interp1D(x, xs, ys){
+  if(x<=xs[0]) return ys[0];
+  if(x>=xs[xs.length-1]) return ys[ys.length-1];
+  for(let i=0;i<xs.length-1;i++){
+    if(x>=xs[i] && x<=xs[i+1]){
+      const t=(x-xs[i])/(xs[i+1]-xs[i]);
+      return ys[i]+t*(ys[i+1]-ys[i]);
+    }
+  }
+  return ys[ys.length-1];
+}
+
+function interpHW(hw, vals){
+  return interp1D(hw, HW_COLS, vals);
+}
+
+function lookupRectCD(tw, hw){
+  const rows = RECT_CD_TABLE;
+  if(tw<=rows[0].tw) return interpHW(hw, rows[0].vals);
+  if(tw>=rows[rows.length-1].tw) return interpHW(hw, rows[rows.length-1].vals);
+  for(let i=0;i<rows.length-1;i++){
+    if(tw>=rows[i].tw && tw<=rows[i+1].tw){
+      const v1 = interpHW(hw, rows[i].vals);
+      const v2 = interpHW(hw, rows[i+1].vals);
+      const t = (tw-rows[i].tw)/(rows[i+1].tw-rows[i].tw);
+      return v1 + t*(v2-v1);
+    }
+  }
+  return interpHW(hw, rows[rows.length-1].vals);
+}
+
+function lookupShapeCD(shape, hw){
+  switch(shape){
+    case 'octagon': return interpHW(hw, OCTAGON_CD);
+    case 'dodeca': return interpHW(hw, DODECA_CD);
+    case 'circle_low': return interpHW(hw, CIRCLE_LOW_CD);
+    case 'circle_high': return interpHW(hw, CIRCLE_HIGH_CD);
+    default: return null;
+  }
+}
+
+function getGv(terrain, L){
+  return interp1D(L, GV_LENGTHS, GV_TABLE[terrain]);
+}
+
+function getKh(terrain, Z){
+  const alpha0 = ALPHA0_TABLE[terrain];
+  const kcMap = {A:1.174, B:1.0, C:0.785, D:0.564};
+  let kh = kcMap[terrain] * Math.pow(Z/10, alpha0);
+  if(kh < 1.0) kh = 1.0;
+  if(kh > 1.77) kh = 1.77;
+  return kh;
+}
+
+function fmt(x, d=3){
+  if(x===null || x===undefined || isNaN(x)) return '--';
+  return Number(x).toFixed(d);
+}
+
+/* ===================== 省份/台站下拉初始化 ===================== */
+const provinceSel = document.getElementById('provinceSelect');
+const stationSel = document.getElementById('stationSelect');
+const provinces = [...new Set(WIND_DATA.map(d=>d[0]))];
+provinces.forEach(p=>{
+  const opt = document.createElement('option');
+  opt.value = p; opt.textContent = p;
+  provinceSel.appendChild(opt);
+});
+const PERIOD_INDEX = {10:2, 20:3, 30:4, 40:5, 50:6, 100:7, 120:8, 150:9};
+const periodSel = document.getElementById('periodSelect');
+function populateStations(){
+  const prevValue = stationSel.value;
+  stationSel.innerHTML='';
+  const p = provinceSel.value;
+  const idx = PERIOD_INDEX[periodSel.value];
+  const stations = WIND_DATA.filter(d=>d[0]===p);
+  stations.forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s[1]; opt.textContent = s[1] + '（' + periodSel.value + '年重现期=' + s[idx] + 'm/s）';
+    stationSel.appendChild(opt);
+  });
+  if(prevValue && stations.some(s=>s[1]===prevValue)){ stationSel.value = prevValue; }
+  updateAll();
+}
+provinceSel.value = '上海';
+provinceSel.addEventListener('change', populateStations);
+stationSel.addEventListener('change', updateAll);
+periodSel.addEventListener('change', populateStations);
+
+/* ===================== 风速来源切换 ===================== */
+document.querySelectorAll('input[name="windSrc"]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    const v = document.querySelector('input[name="windSrc"]:checked').value;
+    document.getElementById('autoWindBlock').style.display = (v==='auto')?'block':'none';
+    document.getElementById('manualWindBlock').style.display = (v==='manual')?'block':'none';
+    updateAll();
+  });
+});
+document.getElementById('manualU10').addEventListener('input', updateAll);
+
+function getU10(){
+  const v = document.querySelector('input[name="windSrc"]:checked').value;
+  if(v==='manual'){
+    return parseFloat(document.getElementById('manualU10').value)||0;
+  } else {
+    const p = provinceSel.value, s = stationSel.value;
+    const row = WIND_DATA.find(d=>d[0]===p && d[1]===s);
+    const idx = PERIOD_INDEX[periodSel.value];
+    return row ? row[idx] : 0;
+  }
+}
+
+function getRisk(u10){
+  if(u10>32.6) return 'R1';
+  if(u10>24.5) return 'R2';
+  return 'R3';
+}
+const KF_BY_RISK = {R1:1.05, R2:1.02, R3:1.00};
+
+/* ===================== kt 自定义显示 ===================== */
+document.getElementById('ktSelect').addEventListener('change', function(){
+  document.getElementById('ktCustom').style.display = (this.value==='custom')?'block':'none';
+  updateAll();
+});
+document.getElementById('ktCustom').addEventListener('input', updateAll);
+document.getElementById('kfSelect').addEventListener('change', updateAll);
+document.getElementById('terrainSelect').addEventListener('change', updateAll);
+document.getElementById('rhoInput').addEventListener('input', updateAll);
+
+/* ===================== 施工阶段（4.2.9条） ===================== */
+const KSF_TABLE = { le3:{R1:0.88,R2:0.84,R3:0.78}, gt3:{R1:0.92,R2:0.88,R3:0.84} };
+document.getElementById('constructionCheck').addEventListener('change', function(){
+  document.getElementById('constructionInputs').style.display = this.checked?'block':'none';
+  updateAll();
+});
+document.getElementById('constructionYears').addEventListener('change', updateAll);
+
+function getKt(){
+  const v = document.getElementById('ktSelect').value;
+  if(v==='custom') return parseFloat(document.getElementById('ktCustom').value)||1.0;
+  return parseFloat(v);
+}
+
+/* ===================== Tab 切换 ===================== */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    updateAll();
+  });
+});
+
+/* ===================== 主梁面板交互 ===================== */
+document.getElementById('g_type').addEventListener('change', function(){
+  document.getElementById('g_box_inputs').style.display = (this.value==='box')?'block':'none';
+  document.getElementById('g_truss_inputs').style.display = (this.value==='truss')?'block':'none';
+  document.getElementById('g_closedbox_inputs').style.display = (this.value==='closedbox')?'block':'none';
+  document.getElementById('g_manual_inputs').style.display = (this.value==='manual')?'block':'none';
+  updateAll();
+});
+document.getElementById('g_slopeCheck').addEventListener('change', function(){
+  document.getElementById('g_slopeInput').style.display = this.checked?'block':'none';
+  updateAll();
+});
+document.getElementById('g_trussMulti').addEventListener('change', function(){
+  document.getElementById('g_trussEtaInputs').style.display = this.checked?'block':'none';
+  updateAll();
+});
+['g_Z','g_L','g_B','g_D','g_beta','g_trussShape','g_solidRatio','g_spacingRatio','g_closedState','g_CHmanual'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', updateAll), el.addEventListener('change', updateAll);
+});
+
+/* ===================== 主梁基准高度Z计算助手（表4.2.2 / 式4.2.3） ===================== */
+function updateGirderZHelper(){
+  const mode = document.getElementById('g_zMode').value;
+  document.getElementById('g_zSusp').style.display = (mode==='susp')?'block':'none';
+  document.getElementById('g_zValley').style.display = (mode==='valley')?'block':'none';
+  document.getElementById('g_zOther').style.display = (mode==='other')?'block':'none';
+  const resultEl = document.getElementById('g_zAutoResult');
+  let z = null, formulaText = '';
+  if(mode==='susp'){
+    z = parseFloat(document.getElementById('g_zSuspVal').value)||0;
+    formulaText = 'Z = 主梁主跨桥面距水面或地面的平均高度 = '+fmt(z,2)+' m';
+  } else if(mode==='valley'){
+    const zh = parseFloat(document.getElementById('g_zValleyZh').value)||0;
+    z = (2/3)*zh;
+    formulaText = 'Z = 2/3 × Z_h = 2/3 × '+fmt(zh,2)+' = '+fmt(z,2)+' m';
+  } else if(mode==='other'){
+    const h0 = parseFloat(document.getElementById('g_zOtherH0').value)||0;
+    const hdesign = parseFloat(document.getElementById('g_zOtherHdesign').value)||0;
+    const hmax = parseFloat(document.getElementById('g_zOtherHmax').value)||0;
+    const havg = parseFloat(document.getElementById('g_zOtherHavg').value)||0;
+    const cond1 = h0 + (hmax-havg)*0.8;
+    z = Math.max(cond1, hdesign);
+    formulaText = 'Z = max( '+fmt(h0,2)+' + ('+fmt(hmax,2)+' − '+fmt(havg,2)+') × 0.8 = '+fmt(cond1,2)+' ， 桥梁设计高度 = '+fmt(hdesign,2)+' ) = '+fmt(z,2)+' m';
+  }
+  if(z!==null){
+    resultEl.style.display = 'block';
+    resultEl.textContent = formulaText;
+    document.getElementById('g_Z').value = fmt(z,2);
+  } else {
+    resultEl.style.display = 'none';
+  }
+  updateAll();
+}
+document.getElementById('g_zMode').addEventListener('change', updateGirderZHelper);
+['g_zSuspVal','g_zValleyZh','g_zOtherH0','g_zOtherHdesign','g_zOtherHmax','g_zOtherHavg'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateGirderZHelper);
+});
+
+/* ===================== 桥墩面板交互 ===================== */
+document.getElementById('p_manualCD').addEventListener('change', function(){
+  document.getElementById('p_CDmanual').style.display = this.checked?'block':'none';
+  updateAll();
+});
+['p_Z','p_L','p_w','p_t','p_h','p_shape','p_CDmanual'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateAll);
+  document.getElementById(id).addEventListener('change', updateAll);
+});
+
+/* ===================== 桥墩/桥塔基准高度Z计算助手（表4.2.2） ===================== */
+function updatePierZHelper(){
+  const mode = document.getElementById('p_zMode').value;
+  document.getElementById('p_zAutoInput').style.display = (mode==='manual')?'none':'block';
+  const resultEl = document.getElementById('p_zAutoResult');
+  if(mode==='manual'){ return; }
+  const h = parseFloat(document.getElementById('p_zTotalH').value)||0;
+  const ratio = (mode==='pct65') ? 0.65 : 0.5;
+  const z = ratio*h;
+  resultEl.textContent = 'Z = '+(mode==='pct65'?'65%':'50%（中点）')+' × h = '+fmt(ratio,2)+' × '+fmt(h,2)+' = '+fmt(z,2)+' m';
+  document.getElementById('p_Z').value = fmt(z,2);
+  updateAll();
+}
+document.getElementById('p_zMode').addEventListener('change', updatePierZHelper);
+document.getElementById('p_zTotalH').addEventListener('input', updatePierZHelper);
+
+/* ===================== 拱肋面板交互 ===================== */
+document.getElementById('a_manualCD').addEventListener('change', function(){
+  document.getElementById('a_CDmanual').style.display = this.checked?'block':'none';
+  updateAll();
+});
+['a_Z','a_L','a_w','a_t','a_h','a_shape','a_CDmanual'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateAll);
+  document.getElementById(id).addEventListener('change', updateAll);
+});
+
+/* ===================== 缆索面板交互 ===================== */
+function updateCableExtraVisibility(){
+  const type = document.getElementById('c_type').value;
+  const isStay = (type==='stay_w1' || type==='stay_w2');
+  document.getElementById('c_stayExtra').style.display = isStay ? 'block' : 'none';
+  if(!isStay){ document.getElementById('c_longCheck').checked = false; }
+  document.getElementById('c_longInputs').style.display = document.getElementById('c_longCheck').checked ? 'block' : 'none';
+}
+document.getElementById('c_type').addEventListener('change', function(){
+  document.getElementById('c_manual_inputs').style.display = (this.value==='manual')?'block':'none';
+  updateCableExtraVisibility();
+  updateAll();
+});
+document.getElementById('c_longCheck').addEventListener('change', function(){
+  document.getElementById('c_longInputs').style.display = this.checked ? 'block' : 'none';
+  updateAll();
+});
+document.getElementById('c_alpha').addEventListener('input', updateAll);
+updateCableExtraVisibility();
+['c_Z','c_L','c_d','c_CDmanual'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateAll);
+});
+
+/* ===================== 其他构件面板交互 ===================== */
+document.getElementById('m_manualCD').addEventListener('change', function(){
+  document.getElementById('m_CDmanual').style.display = this.checked?'block':'none';
+  updateAll();
+});
+['m_Z','m_L','m_w','m_t','m_h','m_shape','m_CDmanual'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateAll);
+  document.getElementById(id).addEventListener('change', updateAll);
+});
+
+/* ===================== 核心计算 ===================== */
+function updateAll(){
+  const u10 = getU10();
+  document.getElementById('u10Display').textContent = fmt(u10,1) + ' m/s';
+  const risk = getRisk(u10);
+  const badge = document.getElementById('riskBadge');
+  badge.innerHTML = '<span class="badge '+risk+'">'+risk+'</span>';
+
+  const terrain = document.getElementById('terrainSelect').value;
+  const kc = KC_TABLE[terrain];
+  const Us10 = kc * u10;
+  const kt = getKt();
+  const kfSel = document.getElementById('kfSelect').value;
+  const kf = (kfSel==='auto') ? KF_BY_RISK[risk] : parseFloat(kfSel);
+  const rho = parseFloat(document.getElementById('rhoInput').value)||1.25;
+
+  const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+  let Z, L, CD_or_CH, An, extraNote='', label='';
+  const steps = [];
+  const windSrcVal = document.querySelector('input[name="windSrc"]:checked').value;
+  let u10Label;
+  if(windSrcVal==='manual'){ u10Label = '基本风速 U₁₀（4.1.1条，用户输入）'; }
+  else if(periodSel.value==='100'){ u10Label = '基本风速 U₁₀（4.1.1条，100年重现期）'; }
+  else { u10Label = '风速 U₁₀（'+periodSel.value+'年重现期，非规范4.1.1条默认的100年基本风速）'; }
+  steps.push([u10Label, fmt(u10,1)+' m/s']);
+  steps.push(['地表类别', terrain]);
+  steps.push(['地表类别转换系数 k_c（表4.2.4）', fmt(kc,3)]);
+  steps.push(['桥梁设计基本风速 U_s10 = k_c·U₁₀（式4.2.4）', fmt(Us10,2)+' m/s']);
+  steps.push(['抗风风险区域（表3.2.1）', risk]);
+  steps.push(['抗风风险系数 k_f（表4.2.6-1）', fmt(kf,3)]);
+  steps.push(['地形条件系数 k_t（4.2.6条）', fmt(kt,3)]);
+
+  if(activeTab==='girder'){
+    Z = parseFloat(document.getElementById('g_Z').value)||1;
+    L = parseFloat(document.getElementById('g_L').value)||1;
+    const D = parseFloat(document.getElementById('g_D').value)||1;
+    const type = document.getElementById('g_type').value;
+    let CH;
+    if(type==='box'){
+      const B = parseFloat(document.getElementById('g_B').value)||1;
+      const BD = B/D;
+      CH = (BD<8) ? (2.1-0.1*BD) : 1.3;
+      steps.push(['B/D', fmt(BD,2)]);
+      if(document.getElementById('g_slopeCheck').checked){
+        const betaD = parseFloat(document.getElementById('g_beta').value)||0;
+        const eta_c = (betaD<60) ? (1-0.005*betaD) : 0.7;
+        CH = CH*eta_c;
+        steps.push(['腹板倾角折减系数 η_c（式5.3.2-2）', fmt(eta_c,3)]);
+      }
+      steps.push(['横向力系数 C_H（式5.3.2-1）', fmt(CH,3)]);
+    } else if(type==='truss'){
+      const shape = document.getElementById('g_trussShape').value;
+      const sr = parseFloat(document.getElementById('g_solidRatio').value);
+      CH = TRUSS_CH_TABLE[sr][shape];
+      steps.push(['单片桁架横向力系数（表5.3.2-1）', fmt(CH,3)]);
+      if(document.getElementById('g_trussMulti').checked){
+        const spacing = document.getElementById('g_spacingRatio').value;
+        const eta = TRUSS_ETA_TABLE[spacing][sr];
+        CH = CH*eta;
+        steps.push(['遮挡系数 η（表5.3.2-2）', fmt(eta,3)]);
+      }
+      steps.push(['最终横向力系数 C_H', fmt(CH,3)]);
+    } else if(type==='closedbox'){
+      CH = parseFloat(document.getElementById('g_closedState').value);
+      steps.push(['闭口流线型箱梁横向力系数 C_H（表5-6经验值）', fmt(CH,3)]);
+    } else {
+      CH = parseFloat(document.getElementById('g_CHmanual').value)||0;
+      steps.push(['用户输入 C_H', fmt(CH,3)]);
+    }
+    CD_or_CH = CH;
+    An = D;
+    steps.push(['主梁特征高度 D', fmt(D,3)+' m']);
+    label = '主梁横桥向';
+  } else if(activeTab==='pier'){
+    Z = parseFloat(document.getElementById('p_Z').value)||1;
+    L = parseFloat(document.getElementById('p_L').value)||1;
+    const w = parseFloat(document.getElementById('p_w').value)||1;
+    const t = parseFloat(document.getElementById('p_t').value)||1;
+    const h = parseFloat(document.getElementById('p_h').value)||1;
+    const hw = h/w;
+    const tw = t/w;
+    const shape = document.getElementById('p_shape').value;
+    let CD;
+    if(document.getElementById('p_manualCD').checked){
+      CD = parseFloat(document.getElementById('p_CDmanual').value)||0;
+      steps.push(['用户输入 C_D', fmt(CD,3)]);
+    } else if(shape==='rect'){
+      CD = lookupRectCD(tw, hw);
+      steps.push(['t/w', fmt(tw,3)]);
+      steps.push(['h/w', fmt(hw,2)]);
+      steps.push(['阻力系数 C_D（表5.4.2-1插值）', fmt(CD,3)]);
+    } else {
+      CD = lookupShapeCD(shape, hw);
+      steps.push(['h/w', fmt(hw,2)]);
+      steps.push(['阻力系数 C_D（表5.4.2-1插值）', fmt(CD,3)]);
+    }
+    CD_or_CH = CD;
+    An = w;
+    label = '桥墩/桥塔';
+  } else if(activeTab==='arch'){
+    Z = parseFloat(document.getElementById('a_Z').value)||1;
+    L = parseFloat(document.getElementById('a_L').value)||1;
+    const w = parseFloat(document.getElementById('a_w').value)||1;
+    const t = parseFloat(document.getElementById('a_t').value)||1;
+    const h = parseFloat(document.getElementById('a_h').value)||1;
+    const hw = h/w;
+    const tw = t/w;
+    const shape = document.getElementById('a_shape').value;
+    let CD;
+    if(document.getElementById('a_manualCD').checked){
+      CD = parseFloat(document.getElementById('a_CDmanual').value)||0;
+      steps.push(['用户输入 C_D', fmt(CD,3)]);
+    } else if(shape==='rect'){
+      CD = lookupRectCD(tw, hw);
+      steps.push(['t/w', fmt(tw,3)]);
+      steps.push(['h/w', fmt(hw,2)]);
+      steps.push(['阻力系数 C_D（表5.4.2-1插值，通用构件表）', fmt(CD,3)]);
+    } else {
+      CD = lookupShapeCD(shape, hw);
+      steps.push(['h/w', fmt(hw,2)]);
+      steps.push(['阻力系数 C_D（表5.4.2-1插值）', fmt(CD,3)]);
+    }
+    CD_or_CH = CD;
+    An = w;
+    label = '拱肋';
+    extraNote = '规范未对拱肋单列体型系数表，本计算按4.2.2条规定的基准高度（拱顶高度）与通用构件阻力系数表（5.4.2-1）估算，重要拱桥宜通过风洞试验确定。';
+  } else if(activeTab==='cable'){
+    Z = parseFloat(document.getElementById('c_Z').value)||1;
+    L = parseFloat(document.getElementById('c_L').value)||1;
+    const d = parseFloat(document.getElementById('c_d').value)||0.1;
+    const type = document.getElementById('c_type').value;
+    let CD;
+    const presetMap = {stay_w1:1.0, stay_w2:0.8, hanger:1.0, cable_single:0.7, cable_combined:1.0};
+    if(type==='manual'){
+      CD = parseFloat(document.getElementById('c_CDmanual').value)||0;
+    } else {
+      CD = presetMap[type];
+    }
+    steps.push(['外径 d', fmt(d,3)+' m']);
+    steps.push(['阻力系数 C_D（5.4.4/5.4.5条）', fmt(CD,3)]);
+    CD_or_CH = CD;
+    An = d;
+    label = '斜拉索/吊杆/主缆';
+  } else if(activeTab==='member'){
+    Z = parseFloat(document.getElementById('m_Z').value)||1;
+    L = parseFloat(document.getElementById('m_L').value)||1;
+    const w = parseFloat(document.getElementById('m_w').value)||1;
+    const t = parseFloat(document.getElementById('m_t').value)||1;
+    const h = parseFloat(document.getElementById('m_h').value)||1;
+    const hw = h/w;
+    const tw = t/w;
+    const shape = document.getElementById('m_shape').value;
+    let CD;
+    if(document.getElementById('m_manualCD').checked){
+      CD = parseFloat(document.getElementById('m_CDmanual').value)||0;
+      steps.push(['用户输入 C_D', fmt(CD,3)]);
+    } else if(shape==='rect'){
+      CD = lookupRectCD(tw, hw);
+      steps.push(['t/w', fmt(tw,3)]);
+      steps.push(['h/w', fmt(hw,2)]);
+      steps.push(['阻力系数 C_D（表5.4.2-1插值）', fmt(CD,3)]);
+    } else {
+      CD = lookupShapeCD(shape, hw);
+      steps.push(['h/w', fmt(hw,2)]);
+      steps.push(['阻力系数 C_D（表5.4.2-1插值）', fmt(CD,3)]);
+    }
+    CD_or_CH = CD;
+    An = w;
+    label = '其他构件';
+  }
+
+  const kh = getKh(terrain, Z);
+  const Ud = kf * kt * kh * Us10;
+  steps.push(['基准高度 Z', fmt(Z,1)+' m']);
+  steps.push(['地表类别转换及风速高度修正系数 k_h（式4.2.6-3~6）', fmt(kh,3)]);
+  steps.push(['设计基准风速 U_d = k_f·k_t·k_h·U_s10（式4.2.6-2）', fmt(Ud,2)+' m/s']);
+
+  const isConstruction = document.getElementById('constructionCheck').checked;
+  let designSpeed = Ud, ksf = null;
+  if(isConstruction){
+    const yearOpt = document.getElementById('constructionYears').value;
+    ksf = KSF_TABLE[yearOpt][risk];
+    designSpeed = ksf * Ud;
+    steps.push(['施工期抗风风险系数 k_sf（表4.2.9，施工年限'+(yearOpt==='le3'?'≤3年':'>3年')+'、'+risk+'）', fmt(ksf,3)]);
+    steps.push(['施工阶段设计风速 U_sd = k_sf·U_d（式4.2.9）', fmt(designSpeed,2)+' m/s']);
+  }
+
+  const Gv = getGv(terrain, L);
+  const Ug = Gv * designSpeed;
+  const Fg = 0.5 * rho * Ug * Ug * CD_or_CH * An;
+
+  steps.push(['水平加载长度 L', fmt(L,1)+' m']);
+  steps.push(['等效静阵风系数 G_v（表5.2.1插值）', fmt(Gv,3)]);
+  steps.push(['等效静阵风风速 U_g = G_v·'+(isConstruction?'U_sd':'U_d')+'（式5.2.1）', fmt(Ug,2)+' m/s']);
+  steps.push(['空气密度 ρ', fmt(rho,3)+' kg/m³']);
+  steps.push(['体型系数 / 顺风向投影面积 A_n', fmt(CD_or_CH,3)+' / '+fmt(An,3)+' m²/m']);
+
+  const totalForce = (Fg/1000) * L; // kN，按加载长度 L 折算的合力
+
+  document.getElementById('resultFg').innerHTML =
+    fmt(Fg/1000,4) + ' kN/m <span>(' + fmt(Fg,1) + ' N/m)</span>';
+  document.getElementById('resultForce').textContent =
+    fmt(totalForce,2) + ' kN' + '（L=' + fmt(L,1) + ' m）';
+
+  steps.push(['合力 F = F_g × L（按加载长度 L='+fmt(L,1)+'m折算）', fmt(totalForce,2)+' kN']);
+
+  /* 斜拉索顺桥向风荷载（式5.4.6，仅斜拉索且勾选时计算） */
+  let cableLong = null;
+  if(activeTab==='cable' && document.getElementById('c_longCheck').checked){
+    const alphaDeg = parseFloat(document.getElementById('c_alpha').value)||0;
+    const alphaRad = alphaDeg * Math.PI/180;
+    const FgLong = 0.5 * rho * Ug * Ug * CD_or_CH * An * Math.pow(Math.sin(alphaRad),2);
+    const forceLong = (FgLong/1000) * L;
+    cableLong = {alpha: alphaDeg, FgLong, forceLong};
+    steps.push(['斜拉索倾斜角 α_c', fmt(alphaDeg,1)+'°']);
+    steps.push(['顺桥向风荷载 F_g(顺) = ½ρU_g²C_D·D_c·sin²α_c（式5.4.6）', fmt(FgLong/1000,4)+' kN/m']);
+    steps.push(['顺桥向合力 F(顺) = F_g(顺)×L', fmt(forceLong,2)+' kN']);
+  }
+  const longBox = document.getElementById('resultLongBox');
+  if(cableLong){
+    longBox.style.display = 'block';
+    document.getElementById('resultFgLong').textContent = fmt(cableLong.FgLong/1000,4)+' kN/m';
+    document.getElementById('resultForceLong').textContent = fmt(cableLong.forceLong,2)+' kN';
+  } else {
+    longBox.style.display = 'none';
+  }
+
+  const tbl = document.getElementById('stepsTable');
+  tbl.innerHTML = '<tr><th>计算项</th><th>数值</th></tr>' +
+    steps.map(s=>'<tr><td>'+typeset(s[0])+'</td><td class="val">'+typeset(s[1])+'</td></tr>').join('');
+
+  window.lastCalc = {
+    u10, terrain, kc, Us10, risk, kf, kt, isConstruction, ksf, Ud, designSpeed,
+    Z, kh, L, Gv, Ug, rho, CD_or_CH, An, Fg, totalForce, cableLong, label, activeTab, steps: steps.slice(),
+    provinceName: (document.querySelector('input[name="windSrc"]:checked').value==='auto') ? provinceSel.value : null,
+    stationName: (document.querySelector('input[name="windSrc"]:checked').value==='auto') ? stationSel.value : null,
+    periodYears: (document.querySelector('input[name="windSrc"]:checked').value==='auto') ? periodSel.value : null,
+    windSrc: document.querySelector('input[name="windSrc"]:checked').value
+  };
+
+  const noteEl = document.getElementById('extraNote');
+  if(extraNote){
+    noteEl.style.display='block';
+    noteEl.textContent = extraNote;
+  } else {
+    noteEl.style.display='none';
+  }
+}
+
+/* ===================== 计算 / 重置 按钮 ===================== */
+document.getElementById('btnCalc').addEventListener('click', updateAll);
+document.getElementById('btnReset').addEventListener('click', function(){
+  if(confirm('确定要重置全部输入为默认值吗？')){
+    location.reload();
+  }
+});
+
+/* ===================== 计算书生成 ===================== */
+/* ===================== OMML（Word公式编辑器）公式构建工具 =====================
+   生成的 <m:oMath> 片段嵌入导出的 .doc（HTML for Word）中时，Word会将其识别为
+   原生公式对象（等同于用"插入公式"手工输入的效果），可在Word中双击继续编辑。 */
+function mEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function mr(t){ return '<m:r><m:t xml:space="preserve">'+mEsc(t)+'</m:t></m:r>'; }
+function msub(base, subtxt){ return '<m:sSub><m:e>'+mr(base)+'</m:e><m:sub>'+mr(subtxt)+'</m:sub></m:sSub>'; }
+function msup(baseOmml, suptxt){ return '<m:sSup><m:e>'+baseOmml+'</m:e><m:sup>'+mr(suptxt)+'</m:sup></m:sSup>'; }
+function mfrac(num, den){ return '<m:f><m:num>'+mr(num)+'</m:num><m:den>'+mr(den)+'</m:den></m:f>'; }
+function mathPara(omml){ return '<p style="text-align:center;margin:10px 0;"><m:oMath>'+omml+'</m:oMath></p>'; }
+
+/* ===================== 网页端"规范样式"公式排版（真实分式、上下标） =====================
+   浏览器无法渲染 OMML，这里用 HTML/CSS 还原规范中常见的分式、上下标排版效果。 */
+function hVar(t){ return '<span class="fvar">'+t+'</span>'; }
+function hSub(base, subtxt){ return hVar(base)+'<sub>'+subtxt+'</sub>'; }
+function hSup(baseHtml, suptxt){ return baseHtml+'<sup>'+suptxt+'</sup>'; }
+function hFrac(num, den){ return '<span class="frac"><span class="num">'+num+'</span><span class="den">'+den+'</span></span>'; }
+
+/* 自动把 "k_h"、"U_s10"、"C_D"、"α_c"、"F_g(顺)" 这类下划线记法转换为斜体变量+真正的<sub>下标，
+   以及把 "^2" / 独立的 "2" 幂次记号转换为<sup>上标，用于统一"计算过程数据一览"表和代入行的展示样式。 */
+function typeset(text){
+  if(text==null) return text;
+  let s = String(text);
+  // 上标：X^2 或 X² 形式（数字/字母紧跟其后）
+  s = s.replace(/([A-Za-zΑ-Ωα-ω0-9\)])\^([A-Za-z0-9]+)/g, '$1<sup>$2</sup>');
+  s = s.replace(/²/g, '<sup>2</sup>');
+  // 下标：X_yyy 或 X_yyy(...) 形式
+  s = s.replace(/([A-Za-zΑ-Ωα-ω])_([A-Za-z0-9]+(?:\([^)]*\))?)/g, function(m, base, sub){
+    return '<i>'+base+'</i><sub>'+sub+'</sub>';
+  });
+  return s;
+}
+
+/* 每个计算步骤的符号公式：HTML排版版（网页预览用）与OMML版（Word导出用） */
+function stepFormula(c, key){
+  const isC = c.isConstruction;
+  const defs = {
+    Us10: {
+      html: hSub('U','s10')+' = '+hSub('k','c')+' · '+hSub('U','10')+'　（式4.2.4）',
+      omml: msub('U','s10')+mr(' = ')+msub('k','c')+mr(' · ')+msub('U','10')+mr(' （式4.2.4）')
+    },
+    Ud: {
+      html: hSub('U','d')+' = '+hSub('k','f')+' · '+hSub('k','t')+' · '+hSub('k','h')+' · '+hSub('U','s10')+'　（式4.2.6-2）',
+      omml: msub('U','d')+mr(' = ')+msub('k','f')+mr(' · ')+msub('k','t')+mr(' · ')+msub('k','h')+mr(' · ')+msub('U','s10')+mr(' （式4.2.6-2）')
+    },
+    Usd: {
+      html: hSub('U','sd')+' = '+hSub('k','sf')+' · '+hSub('U','d')+'　（式4.2.9）',
+      omml: msub('U','sd')+mr(' = ')+msub('k','sf')+mr(' · ')+msub('U','d')+mr(' （式4.2.9）')
+    },
+    Ug: {
+      html: hSub('U','g')+' = '+hSub('G','v')+' · '+(isC?hSub('U','sd'):hSub('U','d'))+'　（式5.2.1）',
+      omml: msub('U','g')+mr(' = ')+msub('G','v')+mr(' · ')+(isC?msub('U','sd'):msub('U','d'))+mr(' （式5.2.1）')
+    },
+    FgGirder: {
+      html: hSub('F','g')+' = '+hFrac('1','2')+' · '+hVar('ρ')+' · '+hSup(hSub('U','g'),'2')+' · '+hSub('C','H')+' · '+hVar('D')+'　（式5.3.1）',
+      omml: msub('F','g')+mr(' = ')+mfrac('1','2')+mr('·ρ·')+msup(msub('U','g'),'2')+mr('·')+msub('C','H')+mr('·D （式5.3.1）')
+    },
+    FgOther: {
+      html: hSub('F','g')+' = '+hFrac('1','2')+' · '+hVar('ρ')+' · '+hSup(hSub('U','g'),'2')+' · '+hSub('C','D')+' · '+hSub('A','n')+'　（式5.4.1）',
+      omml: msub('F','g')+mr(' = ')+mfrac('1','2')+mr('·ρ·')+msup(msub('U','g'),'2')+mr('·')+msub('C','D')+mr('·')+msub('A','n')+mr(' （式5.4.1）')
+    },
+    FgCableLong: {
+      html: hSub('F','g')+' = '+hFrac('1','2')+' · '+hVar('ρ')+' · '+hSup(hSub('U','g'),'2')+' · '+hSub('C','D')+' · '+hSub('D','c')+' · '+hSup(hVar('sin'),'2')+'&nbsp;'+hSub('α','c')+'　（式5.4.6）',
+      omml: msub('F','g')+mr(' = ')+mfrac('1','2')+mr('·ρ·')+msup(msub('U','g'),'2')+mr('·')+msub('C','D')+mr('·')+msub('D','c')+mr('·')+msup(mr('sin'),'2')+mr('·')+msub('α','c')+mr(' （式5.4.6）')
+    },
+    Force: {
+      html: 'F = '+hSub('F','g')+' × L',
+      omml: mr('F = ')+msub('F','g')+mr(' × L')
+    }
+  };
+  return defs[key];
+}
+function fx(c, key, forWord){
+  const f = stepFormula(c, key);
+  return forWord ? mathPara(f.omml)
+    : '<div class="formula-box">'+f.html+'</div>';
+}
+
+function buildReportHTML(forWord){
+  const c = window.lastCalc;
+  if(!c) return '<p>请先点击"计算"按钮。</p>';
+  const today = new Date();
+  const dateStr = today.getFullYear()+'年'+(today.getMonth()+1)+'月'+today.getDate()+'日';
+
+  let windSrcText = (c.windSrc==='auto')
+    ? '按《公路桥梁抗风设计规范》(JTG/T 3360-01—2018) 附录A.3查得 '+c.provinceName+' '+c.stationName+' 站'+c.periodYears+'年重现期风速'
+    : '按用户提供的基本风速数据';
+
+  let stepsRows = c.steps.map(s=>'<tr><td style="border:1px solid #cbd5e1;padding:6px 10px;">'+typeset(s[0])+'</td><td style="border:1px solid #cbd5e1;padding:6px 10px;font-family:Consolas,monospace;">'+typeset(s[1])+'</td></tr>').join('');
+
+  let html = ''+
+  '<div style="font-family:SimSun,\'Microsoft YaHei\',serif; color:#111; font-size:14px; line-height:1.9;">'+
+  '<h1 style="text-align:center;font-size:20px;margin-bottom:4px;">'+c.label+'风荷载计算书</h1>'+
+  '<p style="text-align:center;color:#666;font-size:12px;margin-top:0;">编制依据：《公路桥梁抗风设计规范》(JTG/T 3360-01—2018)　　编制日期：'+dateStr+'</p>'+
+  '<hr style="border:none;border-top:1px solid #999;margin:14px 0;">'+
+
+  (function(){
+    const cn = ['一','二','三','四','五','六','七','八','九','十'];
+    let i = 0;
+    const S = ()=>cn[i++];
+    let body = '';
+
+    body += '<h3>'+S()+'、基本资料</h3>'+
+    '<p>'+windSrcText+'，U₁₀ = '+fmt(c.u10,1)+' m/s。桥位地表类别取为 '+c.terrain+' 类。'+
+    '按表3.2.1判定，桥梁抗风风险区域为 <b>'+c.risk+'</b>，抗风风险系数 k_f = '+fmt(c.kf,3)+'；地形条件系数 k_t = '+fmt(c.kt,3)+'。'+
+    (c.isConstruction ? ('本次按施工阶段计算，施工年限对应 k_sf = '+fmt(c.ksf,3)+'（表4.2.9）。') : '本次按成桥使用阶段计算。')+
+    '</p>';
+
+    body += '<h3>'+S()+'、桥梁设计基本风速 U<sub>s10</sub></h3>'+
+    fx(c,'Us10',forWord)+
+    '<p>其中地表类别转换系数 k_c（表4.2.4，'+c.terrain+'类）= '+fmt(c.kc,3)+'，代入：</p>'+
+    '<div class="subst-box">U_s10 = '+fmt(c.kc,3)+' × '+fmt(c.u10,1)+' = '+fmt(c.Us10,2)+' m/s</div>';
+
+    body += '<h3>'+S()+'、设计基准风速 U<sub>d</sub>（构件基准高度 Z = '+fmt(c.Z,1)+' m）</h3>'+
+    fx(c,'Ud',forWord)+
+    '<p>地表类别转换及风速高度修正系数 k_h（式4.2.6-3~6，Z = '+fmt(c.Z,1)+' m）= '+fmt(c.kh,3)+'。代入：</p>'+
+    '<div class="subst-box">U_d = '+fmt(c.kf,3)+' × '+fmt(c.kt,3)+' × '+fmt(c.kh,3)+' × '+fmt(c.Us10,2)+' = '+fmt(c.Ud,2)+' m/s</div>';
+
+    if(c.isConstruction){
+      body += '<h3>'+S()+'、施工阶段设计风速 U<sub>sd</sub></h3>'+
+      fx(c,'Usd',forWord)+
+      '<div class="subst-box">U_sd = '+fmt(c.ksf,3)+' × '+fmt(c.Ud,2)+' = '+fmt(c.designSpeed,2)+' m/s</div>';
+    }
+
+    body += '<h3>'+S()+'、等效静阵风风速 U<sub>g</sub>（水平加载长度 L = '+fmt(c.L,1)+' m）</h3>'+
+    fx(c,'Ug',forWord)+
+    '<p>等效静阵风系数 G_v（表5.2.1，'+c.terrain+'类地表，加载长度 '+fmt(c.L,1)+' m 插值）= '+fmt(c.Gv,3)+'。代入：</p>'+
+    '<div class="subst-box">U_g = '+fmt(c.Gv,3)+' × '+fmt(c.designSpeed,2)+' = '+fmt(c.Ug,2)+' m/s</div>';
+
+    body += '<h3>'+S()+'、'+c.label+'风荷载 F<sub>g</sub></h3>'+
+    (c.activeTab==='girder'
+      ? fx(c,'FgGirder',forWord)+'<p>空气密度 ρ = '+fmt(c.rho,3)+' kg/m³；横向力系数 C_H = '+fmt(c.CD_or_CH,3)+'；主梁特征高度 D = '+fmt(c.An,3)+' m。代入：</p>'
+      : fx(c,'FgOther',forWord)+'<p>空气密度 ρ = '+fmt(c.rho,3)+' kg/m³；阻力系数 C_D = '+fmt(c.CD_or_CH,3)+'；顺风向投影面积/外径 A_n = '+fmt(c.An,3)+' m²/m。代入：</p>')+
+    '<div class="subst-box">F_g = ½ × '+fmt(c.rho,3)+' × '+fmt(c.Ug,2)+'² × '+fmt(c.CD_or_CH,3)+' × '+fmt(c.An,3)+'</div>'+
+    '<div style="background:#ecfdf5;border:1px solid #6ee7b7;padding:12px 16px;margin:10px 0;font-weight:700;font-size:16px;">F_g = '+fmt(c.Fg/1000,4)+' kN/m （= '+fmt(c.Fg,1)+' N/m）</div>'+
+    fx(c,'Force',forWord)+
+    '<p>按加载长度 L = '+fmt(c.L,1)+' m 折算的合力：F = F_g × L = '+fmt(c.Fg/1000,4)+' × '+fmt(c.L,1)+' = <b>'+fmt(c.totalForce,2)+' kN</b></p>';
+
+    if(c.cableLong){
+      body += '<h3>'+S()+'、斜拉索顺桥向风荷载 F<sub>g(顺)</sub>（式5.4.6）</h3>'+
+      '<p>斜拉索倾斜角 α_c = '+fmt(c.cableLong.alpha,1)+'°，其余参数与上文横桥向计算一致（C_D、D_c沿用同一取值）。</p>'+
+      fx(c,'FgCableLong',forWord)+
+      '<div class="subst-box">F_g(顺) = ½ × '+fmt(c.rho,3)+' × '+fmt(c.Ug,2)+'² × '+fmt(c.CD_or_CH,3)+' × '+fmt(c.An,3)+' × sin²'+fmt(c.cableLong.alpha,1)+'°</div>'+
+      '<div style="background:#ecfdf5;border:1px solid #6ee7b7;padding:12px 16px;margin:10px 0;font-weight:700;font-size:16px;">F_g(顺) = '+fmt(c.cableLong.FgLong/1000,4)+' kN/m</div>'+
+      '<p>按加载长度 L = '+fmt(c.L,1)+' m 折算的顺桥向合力：F(顺) = F_g(顺) × L = <b>'+fmt(c.cableLong.forceLong,2)+' kN</b></p>';
+    }
+
+    body += '<h3>'+S()+'、计算过程数据一览</h3>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;">'+
+    '<tr style="background:#f1f5f9;"><th style="border:1px solid #cbd5e1;padding:6px 10px;text-align:left;">计算项</th><th style="border:1px solid #cbd5e1;padding:6px 10px;text-align:left;">数值</th></tr>'+
+    stepsRows+
+    '</table>';
+    return body;
+  })()+
+
+  '<p style="margin-top:20px;color:#666;font-size:12px;">注：本计算书由风荷载计算工具自动生成，仅供工程初步估算参考。正式设计应以《公路桥梁抗风设计规范》(JTG/T 3360-01—2018)原文及专项风洞试验结果为准。</p>'+
+  '</div>';
+  return typeset(html);
+}
+
+document.getElementById('btnPreviewReport').addEventListener('click', ()=>{
+  document.getElementById('reportContent').innerHTML = buildReportHTML(false);
+  document.getElementById('reportModal').style.display = 'block';
+});
+document.getElementById('btnCloseReport').addEventListener('click', ()=>{
+  document.getElementById('reportModal').style.display = 'none';
+});
+document.getElementById('btnShowZRef').addEventListener('click', ()=>{
+  const panel = document.getElementById('zRefPanel');
+  panel.style.display = (panel.style.display==='none') ? 'block' : 'none';
+});
+
+function exportReportAsDoc(){
+  const bodyHtml = buildReportHTML(true);
+  const fullHtml = '<html xmlns:o="urn:schemas-microsoft-com:office:office" '+
+    'xmlns:w="urn:schemas-microsoft-com:office:word" '+
+    'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" '+
+    'xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>风荷载计算书</title>'+
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->'+
+    '<style>'+
+    '.subst-box{background:#f8fafc;border:1px dashed #cbd5e1;padding:10px 16px;margin:8px 0;text-align:center;font-family:"Times New Roman",SimSun,serif;font-size:15px;color:#334155;}'+
+    'i{font-style:italic;}'+
+    '</style>'+
+    '</head><body>'+bodyHtml+'</body></html>';
+  const blob = new Blob(['﻿', fullHtml], {type:'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const label = (window.lastCalc && window.lastCalc.label) ? window.lastCalc.label : '风荷载';
+  a.href = url;
+  a.download = label+'风荷载计算书.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.getElementById('btnExportDoc').addEventListener('click', exportReportAsDoc);
+document.getElementById('btnExportDoc2').addEventListener('click', exportReportAsDoc);
+
+/* 所有函数与常量均已声明完毕，此时再触发首次数据填充与计算，避免 TDZ 报错 */
+populateStations();
+</script>
+</body>
+</html>
