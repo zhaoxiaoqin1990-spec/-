@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>土木工程专业英语学习系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#d97757;--primary-dark:#b85a3e;--primary-light:#f5e6de;
+  --bg:#faf9f7;--card:#fff;--text:#1f1e1c;--text-soft:#5a5754;--text-muted:#8b8680;
+  --border:#e8e4dd;--shadow:0 4px 24px rgba(31,30,28,.06);
+  --green:#2e7d5b;--blue:#3b6fa0;--purple:#7c5cbf;--red:#c0392b;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+
+/* Top Bar */
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(185,90,62,.3)}
+.topbar-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;padding:0 16px}
+.topbar .logo{font-size:18px;font-weight:700;padding:14px 0;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.topbar .logo span{font-size:22px}
+.topbar .tabs{display:flex;flex:1;margin-left:24px;overflow-x:auto}
+.topbar .tab{padding:14px 20px;cursor:pointer;font-size:15px;font-weight:600;border-bottom:3px solid transparent;transition:.2s;white-space:nowrap;user-select:none}
+.topbar .tab:hover{background:rgba(255,255,255,.12)}
+.topbar .tab.active{border-bottom-color:#fff;background:rgba(255,255,255,.18)}
+.topbar .home-link{margin-left:auto;padding:8px 16px;color:#fff;text-decoration:none;font-size:13px;opacity:.85;white-space:nowrap}
+.topbar .home-link:hover{opacity:1}
+
+/* Main */
+.main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+.page{display:none}.page.active{display:block}
+
+/* Progress Header */
+.progress-header{background:var(--card);border-radius:16px;padding:20px 24px;margin-bottom:24px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.progress-header .phase-info{flex:1;min-width:200px}
+.progress-header .phase-info h3{font-size:1rem;color:var(--text);margin-bottom:4px}
+.progress-header .phase-info p{font-size:.85rem;color:var(--text-muted)}
+.progress-bar-wrap{flex:2;min-width:200px}
+.progress-bar-label{display:flex;justify-content:space-between;font-size:.82rem;color:var(--text-muted);margin-bottom:6px}
+.progress-bar{height:10px;background:#eee;border-radius:5px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--green));border-radius:5px;transition:width .5s}
+.progress-stats{display:flex;gap:16px}
+.stat-box{text-align:center;padding:8px 16px;background:var(--primary-light);border-radius:10px;min-width:70px}
+.stat-box .num{font-size:1.3rem;font-weight:700;color:var(--primary-dark);display:block}
+.stat-box .lbl{font-size:.72rem;color:var(--text-muted)}
+
+/* Week Selector */
+.week-selector{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.week-btn{padding:8px 16px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text-soft);transition:.2s}
+.week-btn:hover{border-color:var(--primary);color:var(--primary)}
+.week-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.week-btn .done-dot{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-left:4px;vertical-align:middle}
+
+/* Phase Tab */
+.phase-tabs{display:flex;gap:8px;margin-bottom:16px}
+.phase-tab{padding:10px 20px;border:2px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;font-size:.9rem;font-weight:600;transition:.2s}
+.phase-tab:hover{border-color:var(--primary)}
+.phase-tab.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.phase-tab.p1{}.phase-tab.p2{}.phase-tab.p3{}
+
+/* Cards */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.word-card{background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);transition:.25s;position:relative}
+.word-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(31,30,28,.1)}
+.word-card.learned{border-left:4px solid var(--green)}
+.word-card .word-en{font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.word-card .word-phonetic{font-size:.82rem;color:var(--text-muted);margin-bottom:6px}
+.word-card .word-cn{font-size:.92rem;color:var(--text-soft);margin-bottom:10px}
+.word-card .word-example{font-size:.84rem;color:var(--text-muted);background:#f8f6f3;padding:10px 12px;border-radius:8px;line-height:1.6;margin-bottom:12px}
+.word-card .word-example .ex-cn{color:var(--text-muted);font-size:.8rem;margin-top:4px}
+.btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:.82rem;font-weight:600;color:var(--text-soft);transition:.2s}
+.btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.btn.play-btn{color:var(--blue)}
+.btn.play-btn:hover{border-color:var(--blue);background:#e3eef7}
+.btn.rec-btn{color:var(--red)}
+.btn.rec-btn:hover{border-color:var(--red);background:#fde8e8}
+.btn.rec-btn.recording{background:var(--red);color:#fff;border-color:var(--red);animation:pulse 1s infinite}
+.btn.learn-btn{color:var(--green)}
+.btn.learn-btn:hover{border-color:var(--green);background:#e6f4ed}
+.btn.learn-btn.done{background:var(--green);color:#fff;border-color:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* Score Badge */
+.score-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:.78rem;font-weight:700;margin-left:auto}
+.score-badge.high{background:#e6f4ed;color:var(--green)}
+.score-badge.mid{background:#fff3e0;color:#e65100}
+.score-badge.low{background:#fde8e8;color:var(--red)}
+
+/* Sentence Cards */
+.sentence-card{background:var(--card);border-radius:14px;padding:22px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:16px;transition:.25s}
+.sentence-card:hover{box-shadow:0 8px 30px rgba(31,30,28,.1)}
+.sentence-card.learned{border-left:4px solid var(--green)}
+.sentence-card .scene-tag{display:inline-block;padding:2px 10px;border-radius:8px;font-size:.75rem;font-weight:600;margin-bottom:8px}
+.scene-tag.meeting{background:#e3eef7;color:var(--blue)}
+.scene-tag.site{background:#e6f4ed;color:var(--green)}
+.scene-tag.report{background:var(--primary-light);color:var(--primary-dark)}
+.scene-tag.discuss{background:#efe8f8;color:var(--purple)}
+.sentence-card .sent-en{font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.6}
+.sentence-card .sent-cn{font-size:.88rem;color:var(--text-soft);margin-bottom:12px}
+
+/* Recording Panel */
+.rec-panel{background:#f8f6f3;border-radius:10px;padding:14px;margin-top:12px;display:none}
+.rec-panel.show{display:block}
+.rec-panel .rec-status{font-size:.85rem;color:var(--text-muted);margin-bottom:8px;min-height:20px}
+.rec-panel .rec-result{margin-top:8px}
+.rec-panel .rec-text{font-size:.88rem;color:var(--text-soft);padding:8px 12px;background:#fff;border-radius:8px;border:1px solid var(--border);min-height:40px;margin-bottom:8px}
+.rec-panel .score-display{text-align:center;padding:12px}
+.rec-panel .score-big{font-size:2.2rem;font-weight:700}
+.rec-panel .score-big.high{color:var(--green)}
+.rec-panel .score-big.mid{color:#e65100}
+.rec-panel .score-big.low{color:var(--red)}
+.rec-panel .score-label{font-size:.82rem;color:var(--text-muted)}
+.rec-panel .score-detail{font-size:.8rem;color:var(--text-muted);margin-top:4px}
+.rec-panel audio{width:100%;height:36px;margin-top:8px}
+
+/* Progress Page */
+.progress-page-header{text-align:center;padding:32px 20px;background:var(--card);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:24px}
+.progress-page-header h2{font-size:1.5rem;margin-bottom:8px}
+.progress-page-header p{color:var(--text-muted);font-size:.9rem}
+.progress-ring-wrap{display:flex;justify-content:center;gap:40px;margin:24px 0;flex-wrap:wrap}
+.ring-item{text-align:center}
+.ring-item .ring-label{font-size:.85rem;color:var(--text-soft);margin-top:8px;font-weight:600}
+.ring-item .ring-sub{font-size:.78rem;color:var(--text-muted)}
+
+.phase-progress{background:var(--card);border-radius:14px;padding:22px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:16px}
+.phase-progress h3{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.phase-progress .week-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:.88rem}
+.phase-progress .week-row:last-child{border-bottom:none}
+.phase-progress .week-name{width:100px;font-weight:600;color:var(--text-soft)}
+.phase-progress .week-bar{flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden}
+.phase-progress .week-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.phase-progress .week-pct{width:50px;text-align:right;font-size:.82rem;color:var(--text-muted);font-weight:600}
+
+.reset-section{text-align:center;margin-top:32px;padding:24px;background:var(--card);border-radius:14px;border:1px solid var(--border)}
+.reset-section p{font-size:.88rem;color:var(--text-muted);margin-bottom:16px}
+.reset-btn{padding:12px 32px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s}
+.reset-btn:hover{background:#a93226;transform:scale(1.02)}
+
+/* History */
+.history-list{max-height:300px;overflow-y:auto}
+.history-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border);font-size:.85rem}
+.history-item:last-child{border-bottom:none}
+.history-item .h-date{color:var(--text-muted);width:90px;flex-shrink:0}
+.history-item .h-text{flex:1;color:var(--text-soft)}
+
+/* Toast */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:12px 24px;border-radius:10px;font-size:.9rem;font-weight:500;opacity:0;transition:.3s;z-index:999;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:16px;padding:32px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:1.2rem;margin-bottom:12px}
+.modal p{font-size:.9rem;color:var(--text-soft);margin-bottom:24px}
+.modal-btns{display:flex;gap:12px;justify-content:center}
+.modal-btns .btn-cancel{padding:10px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:.9rem}
+.modal-btns .btn-confirm{padding:10px 24px;border:none;border-radius:8px;background:var(--red);color:#fff;cursor:pointer;font-size:.9rem;font-weight:600}
+
+/* Responsive */
+@media(max-width:768px){
+  .topbar-inner{flex-wrap:wrap}
+  .topbar .tabs{margin-left:0;order:3;width:100%}
+  .topbar .tab{padding:10px 14px;font-size:13px}
+  .topbar .home-link{order:2}
+  .cards-grid{grid-template-columns:1fr}
+  .progress-header{flex-direction:column;gap:12px}
+  .progress-stats{width:100%;justify-content:center}
+  .progress-ring-wrap{gap:20px}
+  .phase-progress .week-row{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo"><span>&#127959;</span> 土木工程英语</div>
+    <div class="tabs">
+      <div class="tab active" data-page="vocab">&#128214; 词汇学习</div>
+      <div class="tab" data-page="sentence">&#128172; 句型练习</div>
+      <div class="tab" data-page="progress">&#128200; 学习进度</div>
+    </div>
+    <a href="index.html" class="home-link">&#8592; 返回首页</a>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ==================== VOCAB PAGE ==================== -->
+<div class="page active" id="page-vocab">
+  <div class="progress-header">
+    <div class="phase-info"><h3>&#128218; 词汇学习</h3><p id="vocab-phase-desc">筑基期 · 基础结构术语</p></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-label"><span>总体词汇进度</span><span id="vocab-pct-text">0%</span></div>
+      <div class="progress-bar"><div class="progress-bar-fill" id="vocab-pct-bar" style="width:0"></div></div>
+    </div>
+    <div class="progress-stats">
+      <div class="stat-box"><span class="num" id="vocab-learned-count">0</span><span class="lbl">已学会</span></div>
+      <div class="stat-box"><span class="num" id="vocab-total-count">0</span><span class="lbl">总词汇</span></div>
+    </div>
+  </div>
+
+  <div class="phase-tabs" id="vocab-phase-tabs"></div>
+  <div class="week-selector" id="vocab-week-selector"></div>
+  <div class="cards-grid" id="vocab-cards"></div>
+</div>
+
+<!-- ==================== SENTENCE PAGE ==================== -->
+<div class="page" id="page-sentence">
+  <div class="progress-header">
+    <div class="phase-info"><h3>&#128172; 句型练习</h3><p id="sent-phase-desc">工程场景核心句型</p></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-label"><span>总体句型进度</span><span id="sent-pct-text">0%</span></div>
+      <div class="progress-bar"><div class="progress-bar-fill" id="sent-pct-bar" style="width:0"></div></div>
+    </div>
+    <div class="progress-stats">
+      <div class="stat-box"><span class="num" id="sent-learned-count">0</span><span class="lbl">已掌握</span></div>
+      <div class="stat-box"><span class="num" id="sent-total-count">0</span><span class="lbl">总句型</span></div>
+    </div>
+  </div>
+
+  <div class="phase-tabs" id="sent-phase-tabs"></div>
+  <div class="week-selector" id="sent-week-selector"></div>
+  <div id="sent-cards"></div>
+</div>
+
+<!-- ==================== PROGRESS PAGE ==================== -->
+<div class="page" id="page-progress">
+  <div class="progress-page-header">
+    <h2>&#127919; 学习进度总览</h2>
+    <p>24周系统规划 · 追踪每一步成长</p>
+    <div class="progress-ring-wrap" id="progress-rings"></div>
+  </div>
+  <div id="phase-progress-list"></div>
+  <div class="phase-progress" style="margin-top:24px">
+    <h3>&#128336; 最近练习记录</h3>
+    <div class="history-list" id="history-list"><p style="color:var(--text-muted);font-size:.88rem;padding:8px 0">暂无练习记录</p></div>
+  </div>
+  <div class="reset-section">
+    <p>&#9888;&#65039; 重置将清除所有学习进度和练习记录，此操作不可撤销</p>
+    <button class="reset-btn" id="reset-btn">&#128260; 重置所有进度</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>&#9888;&#65039; 确认重置</h3>
+    <p>这将清除所有学习进度、录音打分记录。确定要重置吗？</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="modal-cancel">取消</button>
+      <button class="btn-confirm" id="modal-confirm">确认重置</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===========================
+// DATA: Vocabulary organized by phase/week
+// ===========================
+const VOCAB_DATA = [
+  // Phase 1: 筑基期 (Weeks 1-4)
+  { phase: 1, phaseLabel: '筑基期', week: 1, weekLabel: '第1周 · 基础结构', words: [
+    { en: 'foundation', phonetic: '/faʊnˈdeɪʃən/', cn: '基础；地基', example: 'The foundation must be strong enough to support the entire structure.', exCn: '地基必须足够坚固以支撑整个结构。' },
+    { en: 'beam', phonetic: '/biːm/', cn: '梁', example: 'The steel beam spans 12 meters across the opening.', exCn: '这根钢梁横跨了12米的开口。' },
+    { en: 'column', phonetic: '/ˈkɒləm/', cn: '柱', example: 'Each column carries a load of approximately 500 kN.', exCn: '每根柱子承受约500千牛的荷载。' },
+    { en: 'reinforcement', phonetic: '/ˌriːɪnˈfɔːsmənt/', cn: '配筋；加固', example: 'Additional reinforcement is needed in the seismic zone.', exCn: '在抗震区域需要额外的配筋。' },
+    { en: 'concrete', phonetic: '/ˈkɒŋkriːt/', cn: '混凝土', example: 'We use C30 concrete for the main structure.', exCn: '主体结构我们使用C30混凝土。' },
+    { en: 'slab', phonetic: '/slæb/', cn: '板（楼板）', example: 'The floor slab thickness is 120 millimeters.', exCn: '楼板厚度为120毫米。' },
+    { en: 'pile', phonetic: '/paɪl/', cn: '桩', example: 'We need to drive 48 piles for the bridge foundation.', exCn: '桥梁基础需要打入48根桩。' },
+    { en: 'excavation', phonetic: '/ˌekskəˈveɪʃən/', cn: '开挖；挖掘', example: 'The excavation depth reaches 15 meters below ground level.', exCn: '开挖深度达到地面以下15米。' },
+    { en: 'formwork', phonetic: '/ˈfɔːmwɜːk/', cn: '模板', example: 'Remove the formwork after the concrete has cured for 7 days.', exCn: '混凝土养护7天后拆除模板。' },
+    { en: 'rebar', phonetic: '/ˈriːbɑːr/', cn: '钢筋', example: 'The rebar spacing should be 150mm center to center.', exCn: '钢筋间距应为中心距150毫米。' },
+    { en: 'footing', phonetic: '/ˈfʊtɪŋ/', cn: '基脚；承台', example: 'The spread footing distributes the load over a larger area.', exCn: '扩展基脚将荷载分散到更大的面积上。' },
+    { en: 'steel structure', phonetic: '/stiːl ˈstrʌktʃər/', cn: '钢结构', example: 'The factory uses a steel structure frame system.', exCn: '这个工厂使用钢结构框架体系。' },
+  ]},
+  { phase: 1, phaseLabel: '筑基期', week: 2, weekLabel: '第2周 · 桥梁工程', words: [
+    { en: 'pier', phonetic: '/pɪər/', cn: '桥墩', example: 'The bridge has six reinforced concrete piers.', exCn: '这座桥有六个钢筋混凝土桥墩。' },
+    { en: 'abutment', phonetic: '/əˈbʌtmənt/', cn: '桥台', example: 'The abutment transfers the bridge load to the embankment.', exCn: '桥台将桥梁荷载传递到路堤。' },
+    { en: 'deck', phonetic: '/dek/', cn: '桥面板', example: 'The bridge deck is made of prestressed concrete.', exCn: '桥面板由预应力混凝土制成。' },
+    { en: 'span', phonetic: '/spæn/', cn: '跨度；跨径', example: 'The main span of the suspension bridge is 1,200 meters.', exCn: '悬索桥的主跨为1200米。' },
+    { en: 'girder', phonetic: '/ˈɡɜːdər/', cn: '主梁；大梁', example: 'The box girder was lifted into position by crane.', exCn: '箱梁由起重机吊装就位。' },
+    { en: 'bearing', phonetic: '/ˈbeərɪŋ/', cn: '支座', example: 'Rubber bearings allow for thermal expansion of the deck.', exCn: '橡胶支座允许桥面板的热胀冷缩。' },
+    { en: 'cable', phonetic: '/ˈkeɪbl/', cn: '缆索；拉索', example: 'The stay cables support the bridge deck from the towers.', exCn: '斜拉索从塔上支撑桥面板。' },
+    { en: 'arch', phonetic: '/ɑːtʃ/', cn: '拱', example: 'The stone arch bridge has stood for over 200 years.', exCn: '这座石拱桥已经屹立了200多年。' },
+    { en: 'truss', phonetic: '/trʌs/', cn: '桁架', example: 'The steel truss bridge is designed for heavy rail traffic.', exCn: '钢桁架桥设计用于承载铁路重载交通。' },
+    { en: 'suspension bridge', phonetic: '/səˈspenʃən brɪdʒ/', cn: '悬索桥', example: 'The suspension bridge connects the two sides of the strait.', exCn: '悬索桥连接海峡两岸。' },
+    { en: 'expansion joint', phonetic: '/ɪkˈspænʃən dʒɔɪnt/', cn: '伸缩缝', example: 'Expansion joints are installed every 30 meters along the bridge.', exCn: '沿桥每30米设置伸缩缝。' },
+    { en: 'prestressed', phonetic: '/priːˈstrest/', cn: '预应力的', example: 'Prestressed concrete beams can span longer distances.', exCn: '预应力混凝土梁可以跨越更远的距离。' },
+  ]},
+  { phase: 1, phaseLabel: '筑基期', week: 3, weekLabel: '第3周 · 岩土工程', words: [
+    { en: 'soil', phonetic: '/sɔɪl/', cn: '土壤；土', example: 'The soil investigation reveals a layer of soft clay.', exCn: '土质调查显示有一层软黏土。' },
+    { en: 'clay', phonetic: '/kleɪ/', cn: '黏土', example: 'Clay soil has very low permeability.', exCn: '黏土的渗透性非常低。' },
+    { en: 'groundwater', phonetic: '/ˈɡraʊndwɔːtər/', cn: '地下水', example: 'The groundwater level is 3 meters below the surface.', exCn: '地下水位在地面以下3米。' },
+    { en: 'settlement', phonetic: '/ˈsetlmənt/', cn: '沉降', example: 'The maximum allowable settlement is 25 millimeters.', exCn: '最大允许沉降量为25毫米。' },
+    { en: 'bearing capacity', phonetic: '/ˈbeərɪŋ kəˈpæsəti/', cn: '承载力', example: 'The bearing capacity of this soil is 200 kPa.', exCn: '该土层的承载力为200千帕。' },
+    { en: 'retaining wall', phonetic: '/rɪˈteɪnɪŋ wɔːl/', cn: '挡土墙', example: 'A gravity retaining wall prevents the slope from sliding.', exCn: '重力式挡土墙防止边坡滑动。' },
+    { en: 'slope', phonetic: '/sləʊp/', cn: '边坡', example: 'The slope gradient should not exceed 1:1.5.', exCn: '边坡坡度不应超过1:1.5。' },
+    { en: 'geotechnical investigation', phonetic: '/ˌdʒiːəʊˈteknɪkəl/', cn: '岩土工程勘察', example: 'A geotechnical investigation is required before design.', exCn: '设计前需要进行岩土工程勘察。' },
+    { en: 'shear strength', phonetic: '/ʃɪər streŋθ/', cn: '抗剪强度', example: 'The shear strength of the soil determines the slope stability.', exCn: '土的抗剪强度决定了边坡的稳定性。' },
+    { en: 'embankment', phonetic: '/ɪmˈbæŋkmənt/', cn: '路堤；堤坝', example: 'The highway embankment is 8 meters high.', exCn: '公路路堤高8米。' },
+    { en: 'compaction', phonetic: '/kəmˈpækʃən/', cn: '压实', example: 'Soil compaction must reach 95% of maximum density.', exCn: '土壤压实度必须达到最大密度的95%。' },
+    { en: 'permeability', phonetic: '/ˌpɜːmiəˈbɪləti/', cn: '渗透性', example: 'Sandy soil has high permeability compared to clay.', exCn: '与黏土相比，砂土渗透性较高。' },
+  ]},
+  { phase: 1, phaseLabel: '筑基期', week: 4, weekLabel: '第4周 · 施工工艺', words: [
+    { en: 'survey', phonetic: '/ˈsɜːveɪ/', cn: '测量；勘测', example: 'The topographic survey was completed last week.', exCn: '地形测量上周已完成。' },
+    { en: 'inspection', phonetic: '/ɪnˈspekʃən/', cn: '检测；验收', example: 'Quality inspection must be done before pouring concrete.', exCn: '浇筑混凝土前必须进行质量检测。' },
+    { en: 'curing', phonetic: '/ˈkjʊərɪŋ/', cn: '养护', example: 'Concrete curing takes at least 28 days for full strength.', exCn: '混凝土养护至少需要28天才能达到完全强度。' },
+    { en: 'waterproofing', phonetic: '/ˈwɔːtəpruːfɪŋ/', cn: '防水', example: 'Apply waterproofing membrane to the basement walls.', exCn: '在地下室墙面涂覆防水膜。' },
+    { en: 'drainage', phonetic: '/ˈdreɪnɪdʒ/', cn: '排水', example: 'The drainage system must handle a 50-year storm event.', exCn: '排水系统必须能应对50年一遇的暴雨。' },
+    { en: 'backfill', phonetic: '/ˈbækfɪl/', cn: '回填', example: 'Backfill the trench in layers of 300mm thickness.', exCn: '按300毫米厚分层回填沟槽。' },
+    { en: 'scaffolding', phonetic: '/ˈskæfəldɪŋ/', cn: '脚手架', example: 'Erect scaffolding around the building for facade work.', exCn: '在建筑周围搭建脚手架用于外立面施工。' },
+    { en: 'demolition', phonetic: '/ˌdeməˈlɪʃən/', cn: '拆除', example: 'Controlled demolition of the old bridge starts Monday.', exCn: '旧桥的控制性拆除周一开始。' },
+    { en: 'load-bearing', phonetic: '/ləʊd ˈbeərɪŋ/', cn: '承重的', example: 'Never remove a load-bearing wall without engineering approval.', exCn: '未经工程审批，切勿拆除承重墙。' },
+    { en: 'BIM', phonetic: '/bɪm/', cn: '建筑信息模型', example: 'We use BIM for clash detection during the design phase.', exCn: '我们在设计阶段使用BIM进行碰撞检测。' },
+    { en: 'site investigation', phonetic: '/saɪt ɪnˌvestɪˈɡeɪʃən/', cn: '现场勘察', example: 'The site investigation report identifies potential risks.', exCn: '现场勘察报告识别了潜在风险。' },
+    { en: 'tender', phonetic: '/ˈtendər/', cn: '投标；招标', example: 'Three companies submitted tenders for the project.', exCn: '三家公司提交了项目投标文件。' },
+  ]},
+  // Phase 2: 进阶期 (Weeks 5-12, grouped into 4 units)
+  { phase: 2, phaseLabel: '进阶期', week: 5, weekLabel: '第5-6周 · 材料性能', words: [
+    { en: 'compressive strength', phonetic: '/kəmˈpresɪv streŋθ/', cn: '抗压强度', example: 'The compressive strength of C40 concrete is 40 MPa.', exCn: 'C40混凝土的抗压强度为40兆帕。' },
+    { en: 'tensile strength', phonetic: '/ˈtensaɪl streŋθ/', cn: '抗拉强度', example: 'Steel has high tensile strength compared to concrete.', exCn: '与混凝土相比，钢材具有高抗拉强度。' },
+    { en: 'elastic modulus', phonetic: '/ɪˈlæstɪk ˈmɒdjuləs/', cn: '弹性模量', example: 'The elastic modulus of steel is approximately 200 GPa.', exCn: '钢材的弹性模量约为200吉帕。' },
+    { en: 'durability', phonetic: '/ˌdjʊərəˈbɪləti/', cn: '耐久性', example: 'Marine environment requires high durability concrete.', exCn: '海洋环境需要高耐久性的混凝土。' },
+    { en: 'corrosion', phonetic: '/kəˈrəʊʒən/', cn: '腐蚀', example: 'Corrosion of rebar is the main cause of bridge deterioration.', exCn: '钢筋腐蚀是桥梁劣化的主要原因。' },
+    { en: 'aggregate', phonetic: '/ˈæɡrɪɡət/', cn: '骨料', example: 'Coarse aggregate size should not exceed 25mm.', exCn: '粗骨料粒径不应超过25毫米。' },
+    { en: 'admixture', phonetic: '/ædˈmɪkstʃər/', cn: '外加剂', example: 'Adding a water-reducing admixture improves workability.', exCn: '添加减水剂可改善工作性。' },
+    { en: 'yield strength', phonetic: '/jiːld streŋθ/', cn: '屈服强度', example: 'HRB400 rebar has a yield strength of 400 MPa.', exCn: 'HRB400钢筋的屈服强度为400兆帕。' },
+    { en: 'fatigue', phonetic: '/fəˈtiːɡ/', cn: '疲劳', example: 'Bridge components must be checked for fatigue under cyclic loading.', exCn: '桥梁构件必须检查循环荷载下的疲劳。' },
+    { en: 'specification', phonetic: '/ˌspesɪfɪˈkeɪʃən/', cn: '规范；技术要求', example: 'All materials must comply with the project specifications.', exCn: '所有材料必须符合项目技术要求。' },
+  ]},
+  { phase: 2, phaseLabel: '进阶期', week: 6, weekLabel: '第7-8周 · 施工方案', words: [
+    { en: 'construction method', phonetic: '/kənˈstrʌkʃən ˈmeθəd/', cn: '施工方法', example: 'The cantilever construction method is used for the bridge.', exCn: '这座桥采用悬臂施工法。' },
+    { en: 'temporary works', phonetic: '/ˈtempərəri wɜːks/', cn: '临时工程', example: 'Temporary works include cofferdams and access roads.', exCn: '临时工程包括围堰和施工便道。' },
+    { en: 'crane', phonetic: '/kreɪn/', cn: '起重机；吊车', example: 'A 200-ton crawler crane is required for girder erection.', exCn: '安装主梁需要一台200吨履带式起重机。' },
+    { en: 'cofferdam', phonetic: '/ˈkɒfərdæm/', cn: '围堰', example: 'Build a cofferdam to keep the construction area dry.', exCn: '建造围堰以保持施工区域干燥。' },
+    { en: 'cast-in-place', phonetic: '/kɑːst ɪn pleɪs/', cn: '现浇的', example: 'The piers are constructed using cast-in-place concrete.', exCn: '桥墩采用现浇混凝土施工。' },
+    { en: 'precast', phonetic: '/ˌpriːˈkɑːst/', cn: '预制的', example: 'Precast segments are assembled on site.', exCn: '预制节段在现场拼装。' },
+    { en: 'dewatering', phonetic: '/diːˈwɔːtərɪŋ/', cn: '降水；排水', example: 'Dewatering is necessary before deep excavation.', exCn: '深基坑开挖前需要进行降水。' },
+    { en: 'quality control', phonetic: '/ˈkwɒləti kənˈtrəʊl/', cn: '质量控制', example: 'Quality control tests are performed on every batch of concrete.', exCn: '每批混凝土都要进行质量控制测试。' },
+    { en: 'work schedule', phonetic: '/wɜːk ˈʃedjuːl/', cn: '施工进度计划', example: 'The work schedule shows a 6-month construction period.', exCn: '施工进度计划显示工期为6个月。' },
+    { en: 'subcontractor', phonetic: '/ˈsʌbkɒntræktər/', cn: '分包商', example: 'The steel work is handled by a subcontractor.', exCn: '钢结构工程由分包商承担。' },
+  ]},
+  { phase: 2, phaseLabel: '进阶期', week: 7, weekLabel: '第9-10周 · 安全质量', words: [
+    { en: 'safety regulation', phonetic: '/ˈseɪfti reɡjuˈleɪʃən/', cn: '安全规范', example: 'All workers must follow safety regulations on site.', exCn: '所有工人必须遵守现场安全规范。' },
+    { en: 'personal protective equipment', phonetic: '/PPE/', cn: '个人防护装备', example: 'PPE including hard hat, safety vest, and boots is mandatory.', exCn: '必须佩戴安全帽、反光背心和安全靴等个人防护装备。' },
+    { en: 'hazard', phonetic: '/ˈhæzəd/', cn: '危险；隐患', example: 'A risk assessment identifies potential hazards on site.', exCn: '风险评估可识别现场潜在隐患。' },
+    { en: 'fall protection', phonetic: '/fɔːl prəˈtekʃən/', cn: '防坠落保护', example: 'Fall protection systems are required for work above 2 meters.', exCn: '2米以上高处作业需要防坠落保护系统。' },
+    { en: 'load test', phonetic: '/ləʊd test/', cn: '荷载试验', example: 'A static load test confirms the bridge meets design requirements.', exCn: '静载试验确认桥梁满足设计要求。' },
+    { en: 'crack', phonetic: '/kræk/', cn: '裂缝', example: 'Hairline cracks were observed on the concrete surface.', exCn: '混凝土表面观察到细微裂缝。' },
+    { en: 'deflection', phonetic: '/dɪˈflekʃən/', cn: '挠度', example: 'The maximum deflection should not exceed L/400.', exCn: '最大挠度不应超过跨度的1/400。' },
+    { en: 'non-destructive testing', phonetic: '/NDT/', cn: '无损检测', example: 'Ultrasonic NDT is used to check weld quality.', exCn: '使用超声波无损检测来检查焊缝质量。' },
+    { en: 'compliance', phonetic: '/kəmˈplaɪəns/', cn: '合规；符合性', example: 'The construction is in full compliance with national standards.', exCn: '该施工完全符合国家标准。' },
+    { en: 'incident report', phonetic: '/ˈɪnsɪdənt rɪˈpɔːt/', cn: '事故报告', example: 'An incident report must be filed within 24 hours.', exCn: '必须在24小时内提交事故报告。' },
+  ]},
+  { phase: 2, phaseLabel: '进阶期', week: 8, weekLabel: '第11-12周 · 项目管理', words: [
+    { en: 'milestone', phonetic: '/ˈmaɪlstəʊn/', cn: '里程碑', example: 'Completing the foundation is the first major milestone.', exCn: '完成基础工程是第一个重要里程碑。' },
+    { en: 'budget', phonetic: '/ˈbʌdʒɪt/', cn: '预算', example: 'The project is currently 5% under budget.', exCn: '项目目前低于预算5%。' },
+    { en: 'stakeholder', phonetic: '/ˈsteɪkhəʊldər/', cn: '利益相关方', example: 'Regular meetings keep all stakeholders informed.', exCn: '定期会议让所有利益相关方了解进展。' },
+    { en: 'variation order', phonetic: '/veəriˈeɪʃən ˈɔːdər/', cn: '变更指令', example: 'A variation order was issued to modify the pile design.', exCn: '发出了变更指令以修改桩基设计。' },
+    { en: 'progress report', phonetic: '/ˈprəʊɡres rɪˈpɔːt/', cn: '进度报告', example: 'Submit the monthly progress report by the 5th.', exCn: '每月5日前提交月度进度报告。' },
+    { en: 'delay', phonetic: '/dɪˈleɪ/', cn: '延误；延期', example: 'Heavy rain caused a two-week delay in construction.', exCn: '暴雨导致施工延误了两周。' },
+    { en: 'contractor', phonetic: '/ˈkɒntræktər/', cn: '承包商', example: 'The main contractor is responsible for overall site management.', exCn: '总承包商负责整体现场管理。' },
+    { en: 'as-built drawing', phonetic: '/æz bɪlt ˈdrɔːɪŋ/', cn: '竣工图', example: 'As-built drawings must reflect all field changes.', exCn: '竣工图必须反映所有现场变更。' },
+    { en: 'commissioning', phonetic: '/kəˈmɪʃənɪŋ/', cn: '调试；竣工验收', example: 'Bridge commissioning includes a final load test.', exCn: '桥梁竣工验收包括最终荷载试验。' },
+    { en: 'handover', phonetic: '/ˈhændəʊvər/', cn: '移交', example: 'Project handover to the client is scheduled for December.', exCn: '项目移交给业主定于12月。' },
+  ]},
+  // Phase 3: 应用期 (Weeks 13-24, grouped into 3 units)
+  { phase: 3, phaseLabel: '应用期', week: 9, weekLabel: '第13-16周 · 会议汇报', words: [
+    { en: 'proposal', phonetic: '/prəˈpəʊzəl/', cn: '方案；提案', example: 'I\'d like to present our design proposal for the overpass.', exCn: '我想汇报我们关于立交桥的设计方案。' },
+    { en: 'feasibility study', phonetic: '/ˌfiːzəˈbɪləti ˈstʌdi/', cn: '可行性研究', example: 'The feasibility study shows the project is economically viable.', exCn: '可行性研究表明该项目在经济上是可行的。' },
+    { en: 'alternative', phonetic: '/ɔːlˈtɜːnətɪv/', cn: '替代方案', example: 'We need to evaluate three alternatives for the crossing.', exCn: '我们需要评估三个跨越方案。' },
+    { en: 'cost-effective', phonetic: '/kɒst ɪˈfektɪv/', cn: '经济有效的', example: 'This solution is the most cost-effective for the client.', exCn: '这个方案对业主来说是最经济有效的。' },
+    { en: 'environmental impact', phonetic: '/ɪnˌvaɪrənˈmentl ˈɪmpækt/', cn: '环境影响', example: 'An environmental impact assessment is mandatory.', exCn: '环境影响评估是强制性的。' },
+    { en: 'constraint', phonetic: '/kənˈstreɪnt/', cn: '制约条件', example: 'The main constraint is the limited right of way.', exCn: '主要制约因素是有限的路权。' },
+    { en: 'recommendation', phonetic: '/ˌrekəmenˈdeɪʃən/', cn: '建议', example: 'My recommendation is to adopt the cable-stayed bridge option.', exCn: '我建议采用斜拉桥方案。' },
+    { en: 'preliminary design', phonetic: '/prɪˈlɪmɪnəri dɪˈzaɪn/', cn: '初步设计', example: 'The preliminary design will be completed by next month.', exCn: '初步设计将于下月完成。' },
+  ]},
+  { phase: 3, phaseLabel: '应用期', week: 10, weekLabel: '第17-20周 · 技术讨论', words: [
+    { en: 'seismic design', phonetic: '/ˈsaɪzmɪk dɪˈzaɪn/', cn: '抗震设计', example: 'Seismic design follows the latest national code.', exCn: '抗震设计遵循最新国家规范。' },
+    { en: 'finite element analysis', phonetic: '/ˈfaɪnaɪt ˈelɪmənt/', cn: '有限元分析', example: 'FEA shows the stress concentration at the connection.', exCn: '有限元分析显示连接处的应力集中。' },
+    { en: 'design life', phonetic: '/dɪˈzaɪn laɪf/', cn: '设计使用年限', example: 'The bridge has a design life of 100 years.', exCn: '该桥的设计使用年限为100年。' },
+    { en: 'wind load', phonetic: '/wɪnd ləʊd/', cn: '风荷载', example: 'Wind load is the critical factor for tall bridge towers.', exCn: '风荷载是高桥塔的关键因素。' },
+    { en: 'structural integrity', phonetic: '/ˈstrʌktʃərəl ɪnˈteɡrəti/', cn: '结构完整性', example: 'Regular maintenance ensures long-term structural integrity.', exCn: '定期维护确保长期结构完整性。' },
+    { en: 'rehabilitation', phonetic: '/ˌriːəˌbɪlɪˈteɪʃən/', cn: '修复；加固改造', example: 'The old bridge needs rehabilitation rather than replacement.', exCn: '这座旧桥需要修复而非更换。' },
+    { en: 'monitoring system', phonetic: '/ˈmɒnɪtərɪŋ ˈsɪstəm/', cn: '监测系统', example: 'A health monitoring system tracks the bridge performance.', exCn: '健康监测系统追踪桥梁性能。' },
+    { en: 'risk assessment', phonetic: '/rɪsk əˈsesmənt/', cn: '风险评估', example: 'Conduct a thorough risk assessment before construction.', exCn: '施工前进行全面的风险评估。' },
+  ]},
+  { phase: 3, phaseLabel: '应用期', week: 11, weekLabel: '第21-24周 · 国际协作', words: [
+    { en: 'joint venture', phonetic: '/dʒɔɪnt ˈventʃər/', cn: '合资企业', example: 'We formed a joint venture with the international firm.', exCn: '我们与该国际公司组成了合资企业。' },
+    { en: 'terms of reference', phonetic: '/tɜːmz əv ˈrefrəns/', cn: '工作大纲', example: 'The terms of reference define the scope of our consultancy.', exCn: '工作大纲界定了我们的咨询范围。' },
+    { en: 'dispute resolution', phonetic: '/dɪˈspjuːt rezəˈluːʃən/', cn: '争议解决', example: 'The contract includes a dispute resolution clause.', exCn: '合同包含争议解决条款。' },
+    { en: 'procurement', phonetic: '/prəˈkjʊəmənt/', cn: '采购', example: 'Equipment procurement follows international bidding procedures.', exCn: '设备采购遵循国际招标程序。' },
+    { en: 'due diligence', phonetic: '/djuː ˈdɪlɪdʒəns/', cn: '尽职调查', example: 'Due diligence was conducted on the project site.', exCn: '对项目现场进行了尽职调查。' },
+    { en: 'value engineering', phonetic: '/ˈvæljuː endʒɪˈnɪərɪŋ/', cn: '价值工程', example: 'Value engineering saved 15% on the overall project cost.', exCn: '价值工程节省了15%的项目总费用。' },
+    { en: 'cross-border project', phonetic: '/krɒs ˈbɔːdər/', cn: '跨境项目', example: 'Managing a cross-border project requires cultural awareness.', exCn: '管理跨境项目需要文化意识。' },
+    { en: 'technical specification', phonetic: '/ˈteknɪkəl/', cn: '技术规格书', example: 'Review the technical specification before placing orders.', exCn: '下单前请审查技术规格书。' },
+  ]},
+];
+
+// ===========================
+// DATA: Sentences organized by phase/week
+// ===========================
+const SENTENCE_DATA = [
+  { phase: 1, phaseLabel: '筑基期', week: 1, weekLabel: '核心句型 · 自我介绍与项目描述', sentences: [
+    { en: "I'm a civil engineer working on a bridge project in the mountainous area.", cn: '我是一名土木工程师，正在山区参与一个桥梁项目。', scene: 'meeting' },
+    { en: "The foundation needs reinforcement due to the soft soil condition.", cn: '由于软土地质条件，地基需要加固。', scene: 'site' },
+    { en: "We are currently in the design phase of the project.", cn: '我们目前处于项目设计阶段。', scene: 'meeting' },
+    { en: "The total length of this bridge is 580 meters with a main span of 260 meters.", cn: '这座桥总长580米，主跨260米。', scene: 'report' },
+    { en: "Could you explain the load-bearing capacity of this structure?", cn: '您能解释一下这个结构的承载力吗？', scene: 'discuss' },
+    { en: "The construction period is expected to be 24 months.", cn: '预计施工工期为24个月。', scene: 'report' },
+    { en: "We need to conduct a geotechnical investigation before starting construction.", cn: '开工前我们需要进行岩土工程勘察。', scene: 'site' },
+    { en: "I'm responsible for the structural design of the substructure.", cn: '我负责下部结构的结构设计。', scene: 'meeting' },
+    { en: "The project budget is approximately 200 million yuan.", cn: '项目预算约为2亿元人民币。', scene: 'report' },
+    { en: "Safety is our top priority on every construction site.", cn: '安全是我们在每个施工现场的首要任务。', scene: 'site' },
+  ]},
+  { phase: 2, phaseLabel: '进阶期', week: 2, weekLabel: '进阶句型 · 材料与施工', sentences: [
+    { en: "Which material is more cost-effective for this slope protection?", cn: '哪种材料对这个护坡更经济有效？', scene: 'discuss' },
+    { en: "I recommend using prestressed concrete for the main girder to achieve a longer span.", cn: '我建议主梁使用预应力混凝土以实现更长的跨度。', scene: 'discuss' },
+    { en: "The concrete strength test results show that all samples meet the design requirements.", cn: '混凝土强度试验结果表明所有试件均满足设计要求。', scene: 'report' },
+    { en: "We need to adjust the construction sequence due to the unexpected soil condition.", cn: '由于意外的土质条件，我们需要调整施工顺序。', scene: 'site' },
+    { en: "Could you provide the shop drawings for the steel structure connections?", cn: '能否提供钢结构连接节点的施工详图？', scene: 'discuss' },
+    { en: "The settlement monitoring data indicates the structure is performing within acceptable limits.", cn: '沉降监测数据表明结构性能在可接受范围内。', scene: 'report' },
+  ]},
+  { phase: 2, phaseLabel: '进阶期', week: 3, weekLabel: '进阶句型 · 安全与质量', sentences: [
+    { en: "We have identified a potential safety hazard near the excavation zone.", cn: '我们在开挖区域附近发现了一个潜在安全隐患。', scene: 'site' },
+    { en: "All workers must wear personal protective equipment before entering the construction site.", cn: '所有工人进入施工现场前必须佩戴个人防护装备。', scene: 'site' },
+    { en: "The non-destructive testing report confirms the weld quality is acceptable.", cn: '无损检测报告确认焊缝质量合格。', scene: 'report' },
+    { en: "We need to implement corrective measures to address the cracking issue.", cn: '我们需要采取纠正措施来解决开裂问题。', scene: 'discuss' },
+    { en: "The quality audit revealed several non-conformance items that require immediate attention.", cn: '质量审核发现了几项不合格项，需要立即处理。', scene: 'report' },
+    { en: "Please ensure that all lifting operations follow the approved method statement.", cn: '请确保所有吊装作业遵循经批准的施工方案。', scene: 'site' },
+  ]},
+  { phase: 3, phaseLabel: '应用期', week: 4, weekLabel: '应用句型 · 会议表达', sentences: [
+    { en: "I'd like to present our proposal for the interchange design. Let me walk you through the key points.", cn: '我想汇报我们的互通立交设计方案。让我为大家介绍要点。', scene: 'meeting' },
+    { en: "Based on our analysis, the cable-stayed bridge option provides the best balance between cost and performance.", cn: '根据我们的分析，斜拉桥方案在成本和性能之间达到了最佳平衡。', scene: 'meeting' },
+    { en: "I respectfully disagree with that approach. The geological conditions don't support a shallow foundation.", cn: '恕我不同意那个方案。地质条件不支持浅基础。', scene: 'discuss' },
+    { en: "Could you clarify the design criteria for the seismic loading? I want to make sure we're aligned.", cn: '能否澄清一下地震荷载的设计标准？我想确保我们的理解一致。', scene: 'discuss' },
+    { en: "The current progress is ahead of schedule. We've completed 65% of the structural work.", cn: '目前进度超前。我们已完成65%的结构工程。', scene: 'report' },
+    { en: "We need to coordinate with the utility companies to relocate the underground pipelines before excavation.", cn: '开挖前我们需要与市政管线公司协调地下管线迁改。', scene: 'meeting' },
+  ]},
+  { phase: 3, phaseLabel: '应用期', week: 5, weekLabel: '应用句型 · 技术讨论与协作', sentences: [
+    { en: "The finite element analysis indicates stress concentration at the beam-column joint. We should add haunches.", cn: '有限元分析显示梁柱节点处存在应力集中。我们应增加加腋。', scene: 'discuss' },
+    { en: "In my experience with similar projects in China, this construction method has proven to be very effective.", cn: '根据我在中国类似项目中的经验，这种施工方法被证明非常有效。', scene: 'meeting' },
+    { en: "Let me summarize the action items from today's meeting. First, we need to revise the drainage design.", cn: '让我总结一下今天会议的待办事项。首先，我们需要修改排水设计。', scene: 'meeting' },
+    { en: "The value engineering exercise identified potential savings of 12% without compromising structural safety.", cn: '价值工程分析发现在不影响结构安全的前提下可节省12%的费用。', scene: 'report' },
+    { en: "We should schedule a site visit next week to verify the as-built conditions match our design assumptions.", cn: '我们应该安排下周现场踏勘，核实竣工情况是否与设计假定一致。', scene: 'site' },
+    { en: "Thank you for your feedback. We will incorporate your suggestions into the revised design.", cn: '感谢您的反馈。我们将把您的建议纳入修改后的设计中。', scene: 'meeting' },
+  ]},
+];
+
+// ===========================
+// APP STATE
+// ===========================
+const STORAGE_KEY = 'civil-eng-english-v2';
+let state = loadState();
+
+function defaultState() {
+  return { learnedVocab: {}, learnedSent: {}, scores: {}, history: [] };
+}
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return s && s.learnedVocab ? s : defaultState();
+  } catch { return defaultState(); }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ===========================
+// NAVIGATION
+// ===========================
+let currentVocabPhase = 1, currentVocabWeek = 1;
+let currentSentPhase = 1, currentSentWeek = 1;
+
+document.querySelectorAll('.topbar .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.topbar .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + tab.dataset.page).classList.add('active');
+    if (tab.dataset.page === 'progress') renderProgressPage();
+  });
+});
+
+// ===========================
+// TTS (Text-to-Speech)
+// ===========================
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.85;
+    u.pitch = 1;
+    // Try to find an English voice
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Female'))
+                 || voices.find(v => v.lang.startsWith('en-US'))
+                 || voices.find(v => v.lang.startsWith('en'));
+    if (enVoice) u.voice = enVoice;
+    window.speechSynthesis.speak(u);
+  } else {
+    showToast('浏览器不支持语音合成');
+  }
+}
+
+// Pre-load voices
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// ===========================
+// RECORDING & SCORING
+// ===========================
+let mediaRecorder = null;
+let audioChunks = [];
+let currentRecTarget = null;
+
+async function startRecording(targetId, targetText) {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(blob);
+      handleRecordingComplete(targetId, targetText, url);
+    };
+    mediaRecorder.start();
+    currentRecTarget = targetId;
+    return true;
+  } catch (err) {
+    showToast('无法访问麦克风，请允许麦克风权限');
+    return false;
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+}
+
+function handleRecordingComplete(targetId, targetText, audioUrl) {
+  const panel = document.getElementById('rec-panel-' + targetId);
+  if (!panel) return;
+
+  // Show audio playback
+  const audioEl = panel.querySelector('.rec-audio');
+  if (audioEl) {
+    audioEl.src = audioUrl;
+    audioEl.style.display = 'block';
+  }
+
+  // Use Speech Recognition for scoring
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    // We'll re-play the recorded audio through recognition
+    // Since direct audio-to-recognition isn't standard, we do real-time recognition
+    // The score is calculated from what was recognized during recording
+    // So we use a simpler approach: ask user to speak and recognize simultaneously
+
+    panel.querySelector('.rec-status').textContent = '正在分析您的发音...';
+
+    // Since we already recorded, use a heuristic scoring approach
+    // We'll score based on the recording duration vs expected duration
+    const expectedWords = targetText.toLowerCase().replace(/[^a-z\s'-]/g, '').split(/\s+/).filter(Boolean);
+
+    // Create a new recognition instance to analyze
+    const recog2 = new SpeechRecognition();
+    recog2.lang = 'en-US';
+    recog2.continuous = false;
+
+    // Play back the audio and try to recognize
+    // Actually, browsers can't feed recorded audio to speech recognition
+    // So we'll score based on the initial real-time recognition we captured
+    const recognized = panel.dataset.recognizedText || '';
+    showScore(panel, targetText, recognized, targetId);
+  } else {
+    // Fallback: simple duration-based heuristic
+    panel.querySelector('.rec-status').textContent = '浏览器不支持语音识别，使用基础评估';
+    showScore(panel, targetText, '', targetId);
+  }
+}
+
+// Real-time recognition during recording
+async function startRecordingWithRecognition(targetId, targetText, btn) {
+  const panel = document.getElementById('rec-panel-' + targetId);
+  if (!panel) return;
+
+  if (btn.classList.contains('recording')) {
+    // Stop
+    btn.classList.remove('recording');
+    btn.innerHTML = '&#127908; 录音';
+    stopRecording();
+    if (window._currentRecognition) {
+      try { window._currentRecognition.stop(); } catch {}
+    }
+    return;
+  }
+
+  panel.classList.add('show');
+  panel.querySelector('.rec-status').textContent = '准备中...';
+  panel.querySelector('.rec-result').style.display = 'none';
+  const audioEl = panel.querySelector('.rec-audio');
+  if (audioEl) audioEl.style.display = 'none';
+
+  const started = await startRecording(targetId, targetText);
+  if (!started) return;
+
+  btn.classList.add('recording');
+  btn.innerHTML = '&#9209; 停止';
+  panel.querySelector('.rec-status').textContent = '&#128308; 正在录音...请朗读上方英文';
+  panel.dataset.recognizedText = '';
+
+  // Start speech recognition simultaneously
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    let finalTranscript = '';
+    recognition.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          finalTranscript += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      panel.dataset.recognizedText = finalTranscript || interim;
+      panel.querySelector('.rec-status').innerHTML = '&#128308; 识别中: <em>' + (finalTranscript || interim) + '</em>';
+    };
+
+    recognition.onerror = () => {};
+    recognition.onend = () => {};
+
+    try {
+      recognition.start();
+      window._currentRecognition = recognition;
+    } catch {}
+
+    // Auto-stop after 15 seconds
+    setTimeout(() => {
+      if (btn.classList.contains('recording')) {
+        btn.classList.remove('recording');
+        btn.innerHTML = '&#127908; 录音';
+        stopRecording();
+        try { recognition.stop(); } catch {}
+      }
+    }, 15000);
+  }
+}
+
+function showScore(panel, targetText, recognizedText, targetId) {
+  const targetWords = targetText.toLowerCase().replace(/[^a-z\s'-]/g, '').split(/\s+/).filter(Boolean);
+  const recogWords = recognizedText.toLowerCase().replace(/[^a-z\s'-]/g, '').split(/\s+/).filter(Boolean);
+
+  let score = 0;
+  if (recogWords.length > 0 && targetWords.length > 0) {
+    // Calculate word match score
+    let matched = 0;
+    const targetSet = new Set(targetWords);
+    recogWords.forEach(w => { if (targetSet.has(w)) matched++; });
+    const precision = recogWords.length > 0 ? matched / recogWords.length : 0;
+    const recall = targetWords.length > 0 ? matched / targetWords.length : 0;
+    // Also consider order similarity
+    let orderScore = 0;
+    let lastIdx = -1;
+    recogWords.forEach(w => {
+      const idx = targetWords.indexOf(w);
+      if (idx > lastIdx) { orderScore++; lastIdx = idx; }
+    });
+    const orderRatio = targetWords.length > 0 ? orderScore / targetWords.length : 0;
+
+    score = Math.round((precision * 0.3 + recall * 0.4 + orderRatio * 0.3) * 100);
+    score = Math.min(99, Math.max(5, score));
+  } else if (recognizedText.length === 0) {
+    // No recognition result - give a base score for attempting
+    score = 0;
+  }
+
+  const resultDiv = panel.querySelector('.rec-result');
+  resultDiv.style.display = 'block';
+
+  const cls = score >= 80 ? 'high' : score >= 50 ? 'mid' : 'low';
+  const feedback = score >= 80 ? '发音很棒！继续保持！' :
+                   score >= 50 ? '不错的尝试，注意重音和连读' :
+                   score > 0 ? '继续练习，多听标准发音后再试' : '未能识别语音，请靠近麦克风重试';
+
+  resultDiv.innerHTML = `
+    <div class="score-display">
+      <div class="score-big ${cls}">${score}<span style="font-size:1rem">分</span></div>
+      <div class="score-label">${feedback}</div>
+      ${recognizedText ? '<div class="score-detail">识别内容: ' + recognizedText + '</div>' : '<div class="score-detail">未检测到语音输入</div>'}
+    </div>
+  `;
+  panel.querySelector('.rec-status').textContent = '录音完成';
+
+  // Save score
+  if (score > 0) {
+    const prevScore = state.scores[targetId] || 0;
+    if (score > prevScore) state.scores[targetId] = score;
+    state.history.unshift({
+      date: new Date().toLocaleDateString('zh-CN'),
+      text: targetText.substring(0, 40) + (targetText.length > 40 ? '...' : ''),
+      score: score
+    });
+    if (state.history.length > 50) state.history = state.history.slice(0, 50);
+    saveState();
+  }
+}
+
+// ===========================
+// RENDER: Vocabulary
+// ===========================
+function getPhases(data) {
+  const phases = [];
+  const seen = new Set();
+  data.forEach(d => {
+    if (!seen.has(d.phase)) {
+      seen.add(d.phase);
+      phases.push({ phase: d.phase, label: d.phaseLabel });
+    }
+  });
+  return phases;
+}
+
+function getWeeks(data, phase) {
+  return data.filter(d => d.phase === phase);
+}
+
+function renderVocabPhaseTabs() {
+  const container = document.getElementById('vocab-phase-tabs');
+  const phases = getPhases(VOCAB_DATA);
+  container.innerHTML = phases.map(p =>
+    `<div class="phase-tab p${p.phase} ${p.phase === currentVocabPhase ? 'active' : ''}" data-phase="${p.phase}">${p.label}</div>`
+  ).join('');
+  container.querySelectorAll('.phase-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      currentVocabPhase = parseInt(tab.dataset.phase);
+      const weeks = getWeeks(VOCAB_DATA, currentVocabPhase);
+      currentVocabWeek = weeks[0].week;
+      renderVocabPhaseTabs();
+      renderVocabWeekSelector();
+      renderVocabCards();
+    });
+  });
+}
+
+function renderVocabWeekSelector() {
+  const container = document.getElementById('vocab-week-selector');
+  const weeks = getWeeks(VOCAB_DATA, currentVocabPhase);
+  container.innerHTML = weeks.map(w => {
+    const total = w.words.length;
+    const learned = w.words.filter(word => state.learnedVocab[`v_${w.week}_${word.en}`]).length;
+    const allDone = learned === total;
+    return `<button class="week-btn ${w.week === currentVocabWeek ? 'active' : ''}" data-week="${w.week}">
+      ${w.weekLabel}${allDone ? '<span class="done-dot"></span>' : ''}
+    </button>`;
+  }).join('');
+  container.querySelectorAll('.week-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentVocabWeek = parseInt(btn.dataset.week);
+      renderVocabWeekSelector();
+      renderVocabCards();
+    });
+  });
+}
+
+function renderVocabCards() {
+  const container = document.getElementById('vocab-cards');
+  const weekData = VOCAB_DATA.find(d => d.week === currentVocabWeek);
+  if (!weekData) { container.innerHTML = ''; return; }
+
+  document.getElementById('vocab-phase-desc').textContent = weekData.phaseLabel + ' · ' + weekData.weekLabel;
+
+  container.innerHTML = weekData.words.map((w, i) => {
+    const id = `v_${weekData.week}_${w.en}`;
+    const isLearned = !!state.learnedVocab[id];
+    const bestScore = state.scores[id] || 0;
+    const scoreCls = bestScore >= 80 ? 'high' : bestScore >= 50 ? 'mid' : 'low';
+    return `
+    <div class="word-card ${isLearned ? 'learned' : ''}" id="card-${id}">
+      <div class="word-en">${w.en}</div>
+      <div class="word-phonetic">${w.phonetic}</div>
+      <div class="word-cn">${w.cn}</div>
+      <div class="word-example">
+        ${w.example}
+        <div class="ex-cn">${w.exCn}</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn play-btn" onclick="speak('${w.en.replace(/'/g, "\\'")}')">&#128264; 单词</button>
+        <button class="btn play-btn" onclick="speak(\`${w.example.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`)">&#128266; 例句</button>
+        <button class="btn rec-btn" onclick="startRecordingWithRecognition('${id}', '${w.en.replace(/'/g, "\\'")}', this)">&#127908; 录音</button>
+        <button class="btn learn-btn ${isLearned ? 'done' : ''}" onclick="toggleLearnVocab('${id}', this)">${isLearned ? '&#10003; 已学会' : '&#9744; 标记学会'}</button>
+        ${bestScore > 0 ? `<span class="score-badge ${scoreCls}">&#127942; ${bestScore}分</span>` : ''}
+      </div>
+      <div class="rec-panel" id="rec-panel-${id}">
+        <div class="rec-status"></div>
+        <audio class="rec-audio" controls style="display:none"></audio>
+        <div class="rec-result" style="display:none"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateVocabProgress();
+}
+
+function toggleLearnVocab(id, btn) {
+  if (state.learnedVocab[id]) {
+    delete state.learnedVocab[id];
+    btn.classList.remove('done');
+    btn.innerHTML = '&#9744; 标记学会';
+    btn.closest('.word-card').classList.remove('learned');
+  } else {
+    state.learnedVocab[id] = true;
+    btn.classList.add('done');
+    btn.innerHTML = '&#10003; 已学会';
+    btn.closest('.word-card').classList.add('learned');
+    showToast('太棒了！又掌握了一个词汇！');
+  }
+  saveState();
+  updateVocabProgress();
+  renderVocabWeekSelector();
+}
+
+function updateVocabProgress() {
+  let total = 0, learned = 0;
+  VOCAB_DATA.forEach(w => {
+    w.words.forEach(word => {
+      total++;
+      if (state.learnedVocab[`v_${w.week}_${word.en}`]) learned++;
+    });
+  });
+  const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+  document.getElementById('vocab-pct-text').textContent = pct + '%';
+  document.getElementById('vocab-pct-bar').style.width = pct + '%';
+  document.getElementById('vocab-learned-count').textContent = learned;
+  document.getElementById('vocab-total-count').textContent = total;
+}
+
+// ===========================
+// RENDER: Sentences
+// ===========================
+function renderSentPhaseTabs() {
+  const container = document.getElementById('sent-phase-tabs');
+  const phases = getPhases(SENTENCE_DATA);
+  container.innerHTML = phases.map(p =>
+    `<div class="phase-tab p${p.phase} ${p.phase === currentSentPhase ? 'active' : ''}" data-phase="${p.phase}">${p.label}</div>`
+  ).join('');
+  container.querySelectorAll('.phase-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      currentSentPhase = parseInt(tab.dataset.phase);
+      const weeks = getWeeks(SENTENCE_DATA, currentSentPhase);
+      currentSentWeek = weeks[0].week;
+      renderSentPhaseTabs();
+      renderSentWeekSelector();
+      renderSentCards();
+    });
+  });
+}
+
+function renderSentWeekSelector() {
+  const container = document.getElementById('sent-week-selector');
+  const weeks = getWeeks(SENTENCE_DATA, currentSentPhase);
+  container.innerHTML = weeks.map(w => {
+    const total = w.sentences.length;
+    const learned = w.sentences.filter((s, i) => state.learnedSent[`s_${w.week}_${i}`]).length;
+    const allDone = learned === total;
+    return `<button class="week-btn ${w.week === currentSentWeek ? 'active' : ''}" data-week="${w.week}">
+      ${w.weekLabel}${allDone ? '<span class="done-dot"></span>' : ''}
+    </button>`;
+  }).join('');
+  container.querySelectorAll('.week-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSentWeek = parseInt(btn.dataset.week);
+      renderSentWeekSelector();
+      renderSentCards();
+    });
+  });
+}
+
+function renderSentCards() {
+  const container = document.getElementById('sent-cards');
+  const weekData = SENTENCE_DATA.find(d => d.week === currentSentWeek);
+  if (!weekData) { container.innerHTML = ''; return; }
+
+  document.getElementById('sent-phase-desc').textContent = weekData.phaseLabel + ' · ' + weekData.weekLabel;
+
+  const sceneLabels = { meeting: '会议', site: '现场', report: '汇报', discuss: '讨论' };
+
+  container.innerHTML = weekData.sentences.map((s, i) => {
+    const id = `s_${weekData.week}_${i}`;
+    const isLearned = !!state.learnedSent[id];
+    const bestScore = state.scores[id] || 0;
+    const scoreCls = bestScore >= 80 ? 'high' : bestScore >= 50 ? 'mid' : 'low';
+    return `
+    <div class="sentence-card ${isLearned ? 'learned' : ''}">
+      <span class="scene-tag ${s.scene}">${sceneLabels[s.scene] || s.scene}</span>
+      <div class="sent-en">${s.en}</div>
+      <div class="sent-cn">${s.cn}</div>
+      <div class="btn-row">
+        <button class="btn play-btn" onclick="speak(\`${s.en.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">&#128266; 朗读</button>
+        <button class="btn play-btn" onclick="speak(\`${s.en.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`); this.textContent='&#128264; 慢速播放中...'; setTimeout(()=>this.innerHTML='&#128264; 慢速',2000)" style="display:none">&#128264; 慢速</button>
+        <button class="btn rec-btn" onclick="startRecordingWithRecognition('${id}', \`${s.en.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`, this)">&#127908; 录音对比</button>
+        <button class="btn learn-btn ${isLearned ? 'done' : ''}" onclick="toggleLearnSent('${id}', this)">${isLearned ? '&#10003; 已掌握' : '&#9744; 标记掌握'}</button>
+        ${bestScore > 0 ? `<span class="score-badge ${scoreCls}">&#127942; ${bestScore}分</span>` : ''}
+      </div>
+      <div class="rec-panel" id="rec-panel-${id}">
+        <div class="rec-status"></div>
+        <audio class="rec-audio" controls style="display:none"></audio>
+        <div class="rec-result" style="display:none"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateSentProgress();
+}
+
+function toggleLearnSent(id, btn) {
+  if (state.learnedSent[id]) {
+    delete state.learnedSent[id];
+    btn.classList.remove('done');
+    btn.innerHTML = '&#9744; 标记掌握';
+    btn.closest('.sentence-card').classList.remove('learned');
+  } else {
+    state.learnedSent[id] = true;
+    btn.classList.add('done');
+    btn.innerHTML = '&#10003; 已掌握';
+    btn.closest('.sentence-card').classList.add('learned');
+    showToast('很好！又掌握了一个句型！');
+  }
+  saveState();
+  updateSentProgress();
+  renderSentWeekSelector();
+}
+
+function updateSentProgress() {
+  let total = 0, learned = 0;
+  SENTENCE_DATA.forEach(w => {
+    w.sentences.forEach((s, i) => {
+      total++;
+      if (state.learnedSent[`s_${w.week}_${i}`]) learned++;
+    });
+  });
+  const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+  document.getElementById('sent-pct-text').textContent = pct + '%';
+  document.getElementById('sent-pct-bar').style.width = pct + '%';
+  document.getElementById('sent-learned-count').textContent = learned;
+  document.getElementById('sent-total-count').textContent = total;
+}
+
+// ===========================
+// RENDER: Progress Page
+// ===========================
+function renderProgressPage() {
+  // Overall stats
+  let totalVocab = 0, learnedVocab = 0;
+  VOCAB_DATA.forEach(w => { w.words.forEach(word => { totalVocab++; if (state.learnedVocab[`v_${w.week}_${word.en}`]) learnedVocab++; }); });
+
+  let totalSent = 0, learnedSent = 0;
+  SENTENCE_DATA.forEach(w => { w.sentences.forEach((s, i) => { totalSent++; if (state.learnedSent[`s_${w.week}_${i}`]) learnedSent++; }); });
+
+  const totalAll = totalVocab + totalSent;
+  const learnedAll = learnedVocab + learnedSent;
+  const pctAll = totalAll > 0 ? Math.round(learnedAll / totalAll * 100) : 0;
+  const pctV = totalVocab > 0 ? Math.round(learnedVocab / totalVocab * 100) : 0;
+  const pctS = totalSent > 0 ? Math.round(learnedSent / totalSent * 100) : 0;
+
+  // Average score
+  const scoreVals = Object.values(state.scores);
+  const avgScore = scoreVals.length > 0 ? Math.round(scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length) : 0;
+
+  document.getElementById('progress-rings').innerHTML = `
+    <div class="ring-item">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#eee" stroke-width="8"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="var(--primary)" stroke-width="8"
+          stroke-dasharray="${2 * Math.PI * 42}" stroke-dashoffset="${2 * Math.PI * 42 * (1 - pctAll / 100)}"
+          transform="rotate(-90 50 50)" stroke-linecap="round"/>
+        <text x="50" y="50" text-anchor="middle" dominant-baseline="central"
+          font-size="22" font-weight="700" fill="var(--primary-dark)">${pctAll}%</text>
+      </svg>
+      <div class="ring-label">总体进度</div>
+      <div class="ring-sub">${learnedAll} / ${totalAll}</div>
+    </div>
+    <div class="ring-item">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#eee" stroke-width="8"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="var(--blue)" stroke-width="8"
+          stroke-dasharray="${2 * Math.PI * 42}" stroke-dashoffset="${2 * Math.PI * 42 * (1 - pctV / 100)}"
+          transform="rotate(-90 50 50)" stroke-linecap="round"/>
+        <text x="50" y="50" text-anchor="middle" dominant-baseline="central"
+          font-size="22" font-weight="700" fill="var(--blue)">${pctV}%</text>
+      </svg>
+      <div class="ring-label">词汇进度</div>
+      <div class="ring-sub">${learnedVocab} / ${totalVocab} 词</div>
+    </div>
+    <div class="ring-item">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#eee" stroke-width="8"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="var(--green)" stroke-width="8"
+          stroke-dasharray="${2 * Math.PI * 42}" stroke-dashoffset="${2 * Math.PI * 42 * (1 - pctS / 100)}"
+          transform="rotate(-90 50 50)" stroke-linecap="round"/>
+        <text x="50" y="50" text-anchor="middle" dominant-baseline="central"
+          font-size="22" font-weight="700" fill="var(--green)">${pctS}%</text>
+      </svg>
+      <div class="ring-label">句型进度</div>
+      <div class="ring-sub">${learnedSent} / ${totalSent} 句</div>
+    </div>
+    <div class="ring-item">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#eee" stroke-width="8"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="var(--purple)" stroke-width="8"
+          stroke-dasharray="${2 * Math.PI * 42}" stroke-dashoffset="${2 * Math.PI * 42 * (1 - avgScore / 100)}"
+          transform="rotate(-90 50 50)" stroke-linecap="round"/>
+        <text x="50" y="50" text-anchor="middle" dominant-baseline="central"
+          font-size="22" font-weight="700" fill="var(--purple)">${avgScore}</text>
+      </svg>
+      <div class="ring-label">平均发音评分</div>
+      <div class="ring-sub">${scoreVals.length} 次练习</div>
+    </div>
+  `;
+
+  // Phase-level progress
+  const phaseList = document.getElementById('phase-progress-list');
+  const allData = [
+    { label: '筑基期', phase: 1, color: 'var(--primary)' },
+    { label: '进阶期', phase: 2, color: 'var(--green)' },
+    { label: '应用期', phase: 3, color: 'var(--blue)' },
+  ];
+
+  phaseList.innerHTML = allData.map(p => {
+    const vocabWeeks = VOCAB_DATA.filter(d => d.phase === p.phase);
+    const sentWeeks = SENTENCE_DATA.filter(d => d.phase === p.phase);
+    let rows = '';
+
+    vocabWeeks.forEach(w => {
+      const total = w.words.length;
+      const learned = w.words.filter(word => state.learnedVocab[`v_${w.week}_${word.en}`]).length;
+      const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+      rows += `<div class="week-row">
+        <span class="week-name">&#128214; ${w.weekLabel.split('·')[0].trim()}</span>
+        <div class="week-bar"><div class="week-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+        <span class="week-pct">${learned}/${total}</span>
+      </div>`;
+    });
+
+    sentWeeks.forEach(w => {
+      const total = w.sentences.length;
+      const learned = w.sentences.filter((s, i) => state.learnedSent[`s_${w.week}_${i}`]).length;
+      const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+      rows += `<div class="week-row">
+        <span class="week-name">&#128172; ${w.weekLabel.split('·')[0].trim()}</span>
+        <div class="week-bar"><div class="week-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+        <span class="week-pct">${learned}/${total}</span>
+      </div>`;
+    });
+
+    return `<div class="phase-progress">
+      <h3><span style="color:${p.color}">&#9679;</span> ${p.label}</h3>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  // History
+  const historyEl = document.getElementById('history-list');
+  if (state.history.length === 0) {
+    historyEl.innerHTML = '<p style="color:var(--text-muted);font-size:.88rem;padding:8px 0">暂无练习记录</p>';
+  } else {
+    historyEl.innerHTML = state.history.slice(0, 20).map(h => {
+      const cls = h.score >= 80 ? 'high' : h.score >= 50 ? 'mid' : 'low';
+      return `<div class="history-item">
+        <span class="h-date">${h.date}</span>
+        <span class="h-text">${h.text}</span>
+        <span class="score-badge ${cls}">&#127942; ${h.score}分</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ===========================
+// RESET
+// ===========================
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('modal').classList.add('show');
+});
+
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('show');
+});
+
+document.getElementById('modal-confirm').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('show');
+  state = defaultState();
+  saveState();
+  renderVocabCards();
+  renderVocabWeekSelector();
+  renderSentCards();
+  renderSentWeekSelector();
+  updateVocabProgress();
+  updateSentProgress();
+  renderProgressPage();
+  showToast('所有进度已重置');
+});
+
+// ===========================
+// TOAST
+// ===========================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===========================
+// INIT
+// ===========================
+renderVocabPhaseTabs();
+renderVocabWeekSelector();
+renderVocabCards();
+renderSentPhaseTabs();
+renderSentWeekSelector();
+renderSentCards();
+
+</script>
+</body>
+</html>

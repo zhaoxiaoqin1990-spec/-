@@ -1,0 +1,540 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>吊耳绘图工具</title>
+<style>
+  :root{--orange:#e8731c;--orange-d:#c95f12;--bg:#f5f2ee;--panel:#fff;--line:#222;--dim:#c95f12;--ink:#1a1a1a;--muted:#777;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--orange);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .sub{font-size:12px;opacity:.9;}
+  .wrap{display:flex;gap:14px;padding:14px;align-items:flex-start;}
+  .panel{background:var(--panel);border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.08);}
+  .controls{width:310px;flex:0 0 310px;padding:16px;max-height:88vh;overflow:auto;}
+  .controls h2{font-size:13px;margin:14px 0 8px;color:var(--orange-d);border-bottom:2px solid #eee;padding-bottom:5px;}
+  .controls h2:first-child{margin-top:0;}
+  .row{display:flex;align-items:center;justify-content:space-between;margin:6px 0;gap:8px;}
+  .row label{font-size:12.5px;color:#333;flex:1;line-height:1.3;}
+  .row .hint{font-size:10.5px;color:var(--muted);}
+  .row input[type=number]{width:82px;padding:5px 7px;border:1px solid #ccc;border-radius:6px;font-size:13px;text-align:right;}
+  .row input:focus{outline:none;border-color:var(--orange);}
+  .slider{display:flex;align-items:center;gap:8px;margin:6px 0;}
+  .slider input{flex:1;}
+  .slider .val{font-size:12px;color:#555;width:34px;text-align:right;}
+  .btns{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+  button{cursor:pointer;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:600;transition:.15s;}
+  .b-print{background:var(--orange);color:#fff;} .b-print:hover{background:var(--orange-d);}
+  .b-dxf{background:#2d7d46;color:#fff;} .b-dxf:hover{background:#246138;}
+  .b-solid{background:#3a6ea5;color:#fff;} .b-solid:hover{background:#2d5783;}
+  .b-sat{background:#6a4ea5;color:#fff;} .b-sat:hover{background:#543d83;}
+  .b-ghost{background:#f0ece6;color:#444;} .b-ghost:hover{background:#e6e0d8;}
+  .views{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0;}
+  .tabs{display:flex;gap:6px;padding:8px 8px 0;}
+  .tab{padding:8px 16px;border-radius:8px 8px 0 0;background:#ece7e0;color:#666;font-size:14px;cursor:pointer;border:none;font-weight:600;}
+  .tab.on{background:#fff;color:var(--orange-d);box-shadow:0 -1px 4px rgba(0,0,0,.05);}
+  .stage{padding:10px;min-height:540px;display:flex;align-items:center;justify-content:center;position:relative;}
+  .stage svg{max-width:100%;max-height:76vh;height:auto;}
+  .viewbox{display:none;width:100%;touch-action:none;} .viewbox.on{display:flex;justify-content:center;}
+  #vb-front svg,#vb-side svg{cursor:grab;}
+  #vb-iso{flex-direction:column;align-items:center;gap:8px;}
+  #vb-iso svg{cursor:grab;background:#22252b;border-radius:10px;}
+  #vb-iso svg:active{cursor:grabbing;}
+  .isohint{font-size:12px;color:var(--muted);}
+  footer{font-size:11px;color:var(--muted);text-align:center;padding:6px 0 14px;}
+  .note{font-size:11px;color:var(--muted);background:#faf6f0;border:1px dashed #e3d6c6;border-radius:8px;padding:8px;margin-top:10px;line-height:1.5;}
+  #printArea{display:none;}
+  @media print{
+    body{background:#fff;} header,.controls,.tabs,.views,footer{display:none!important;}
+    #printArea{display:block;}
+    .pv{page-break-inside:avoid;margin-bottom:24px;text-align:center;}
+    .pv h3{font-size:14px;color:#000;margin:0 0 8px;}
+    .ptitle{text-align:center;font-size:20px;font-weight:700;margin:0 0 4px;}
+    .psub{text-align:center;font-size:12px;color:#444;margin:0 0 18px;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <a href="../index.html" style="color:#fff;text-decoration:none;background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;flex-shrink:0;white-space:nowrap;">← 主页</a>
+  <h1>吊耳绘图工具</h1>
+  <span class="sub">参数化 · 三视图 · 可旋转立体图 · 矢量打印 / DXF 导出 · 离线可用</span>
+</header>
+
+<div class="wrap">
+  <div class="panel controls">
+    <div id="paramBox"></div>
+    <h2>显示</h2>
+    <div class="slider"><label style="font-size:12.5px;width:64px;">标注大小</label>
+      <input type="range" id="dimSlider" min="0.6" max="3.5" step="0.1" value="1.8">
+      <span class="val" id="dimVal">1.8</span></div>
+    <div class="row" style="margin-top:8px;">
+      <label style="font-size:12.5px;">三维图背景</label>
+      <div style="display:flex;gap:5px;align-items:center;">
+        <span class="bgdot" data-c="#22252b" title="深色" style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#22252b;cursor:pointer;border:2px solid #aaa;"></span>
+        <span class="bgdot" data-c="#000000" title="黑色" style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#000;cursor:pointer;border:2px solid transparent;"></span>
+        <span class="bgdot" data-c="#f0f0f0" title="浅灰" style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#f0f0f0;cursor:pointer;border:2px solid transparent;"></span>
+        <span class="bgdot" data-c="#ffffff" title="白色" style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#fff;cursor:pointer;border:2px solid transparent;outline:1px solid #ccc;"></span>
+        <input type="color" id="bgPicker" value="#22252b" title="自定义颜色" style="width:26px;height:26px;border:none;padding:1px;cursor:pointer;border-radius:6px;background:none;">
+      </div>
+    </div>
+    <div class="btns">
+      <button class="b-print" onclick="window.print()">🖨️ 打印 / 导出 PDF（矢量）</button>
+      <button class="b-dxf" onclick="exportDXF()">📐 导出 DXF 图纸（含真实标注）</button>
+      <button class="b-solid" onclick="exportSCR()">🧊 导出三维实体脚本 (.scr)</button>
+      <button class="b-ghost" onclick="resetParams()">↺ 恢复默认尺寸</button>
+    </div>
+    <div class="note">默认尺寸来自 diaoer.dwg。<b>DXF</b>=正/侧视图+真实标注(ISO-25 样式、arial 字体),可直接在 CAD 编辑。立体图可拖动旋转、滚轮缩放。
+      <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #e3d6c6;">
+        <b style="color:#c95f12;">📌 .scr 三维实体打开方法</b>(<b>切勿双击</b>,双击会被当成屏保):<br>
+        1️⃣ 打开 AutoCAD,新建或打开一个图形<br>
+        2️⃣ 命令行输入 <b>SCRIPT</b> 回车(或菜单 工具→运行脚本)<br>
+        3️⃣ 在弹出窗口选中 <b>吊耳三维实体.scr</b>,点打开<br>
+        4️⃣ 自动建出 3D 实体;输入 <b>SHADEMODE</b>→<b>实体着色</b> 可看实心效果
+      </div>
+    </div>
+  </div>
+
+  <div class="panel views">
+    <div class="tabs">
+      <button class="tab on" data-v="front" onclick="switchTab('front')">正视图</button>
+      <button class="tab" data-v="side" onclick="switchTab('side')">侧视图</button>
+      <button class="tab" data-v="iso" onclick="switchTab('iso')">三维图</button>
+    </div>
+    <div class="stage">
+      <div class="viewbox on" id="vb-front"></div>
+      <div class="viewbox" id="vb-side"></div>
+      <div class="viewbox" id="vb-iso"><div class="isohint">🖱️ 三维图：拖动=旋转 · 滚轮=缩放 · 双击复位　|　正/侧视图：拖动=平移 · 滚轮=缩放 · 双击复位</div></div>
+    </div>
+  </div>
+</div>
+<footer>吊耳绘图工具 · 单文件离线应用 · 为赵晓琴定制</footer>
+<div id="printArea"></div>
+
+<script>
+/* ===================== 参数 ===================== */
+const DEFAULTS={
+  // 吊耳板
+  W:800,h_hole:600,R_arc:200,R_hole:70,R_boss:190,t:60,t_boss:40,
+  // 加劲板
+  st_h:250,st_len:150,st_t:40,st_chH:80,st_chV:80,st_gap:300
+};
+// 侧视总深 = 主板厚 + 两侧加劲板伸出
+const DEPTH=()=>P.t+2*P.st_len;
+const GROUPS=[
+  ['主板',[['W','底边宽度 W','底部最宽'],['h_hole','孔中心高 h','孔心距底'],['R_arc','顶弧半径 R',''],
+            ['R_hole','吊孔半径 r','Ø='],['t','主板厚 t','']]],
+  ['贴板',[['R_boss','贴板半径 Rb','孔周环'],['t_boss','贴板单边厚','每面加厚']]],
+  ['加劲板',[['st_h','加劲板高','250'],['st_len','加劲板宽','深度向'],['st_t','加劲板厚',''],
+            ['st_chH','倒角·水平','沿宽'],['st_chV','倒角·竖直','沿高'],['st_gap','中心间距','两板']]]
+];
+let P={...DEFAULTS};
+let dimScale=1.8;
+const H=()=>P.h_hole+P.R_arc;
+
+/* ===================== 几何：吊耳正视轮廓 ===================== */
+function tangent(){
+  const Px=P.W/2,Py=0,Cx=0,Cy=P.h_hole,r=P.R_arc;
+  const dx=Px-Cx,dy=Py-Cy,d=Math.hypot(dx,dy);
+  const a=Math.atan2(dy,dx),th=Math.acos(Math.min(r,d)/d),ang=a+th;
+  return {x:Cx+r*Math.cos(ang),y:Cy+r*Math.sin(ang),ang};
+}
+function profile(N=48){
+  const T=tangent(),Cx=0,Cy=P.h_hole,r=P.R_arc,angR=T.ang,angL=Math.PI-angR,pts=[];
+  pts.push({x:-P.W/2,y:0}); pts.push({x:-T.x,y:T.y});
+  for(let i=0;i<=N;i++){const a=angL+(angR-angL)*(i/N);pts.push({x:Cx+r*Math.cos(a),y:Cy+r*Math.sin(a)});}
+  pts.push({x:P.W/2,y:0}); return pts;
+}
+
+/* ===================== SVG 工具 ===================== */
+const NS='http://www.w3.org/2000/svg';
+function E(tag,a){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function pathOf(pts,close){let d='M '+pts.map(p=>`${p.x.toFixed(2)} ${(-p.y).toFixed(2)}`).join(' L ');if(close)d+=' Z';return d;}
+function DS(){return {fs:14*dimScale,ar:4*dimScale,ext:6*dimScale,off:46*dimScale};}
+function dimH(g,x1,x2,y,text,off){const c='var(--dim)',{ar,ext,fs}=DS();const yl=y+off;
+  const L=(a,b,cc,d,w)=>g.appendChild(E('line',{x1:a,y1:-b,x2:cc,y2:-d,stroke:c,'stroke-width':w||1}));
+  L(x1,y,x1,yl+(off>0?ext:-ext));L(x2,y,x2,yl+(off>0?ext:-ext));L(x1,yl,x2,yl,1);
+  g.appendChild(E('path',{d:`M ${x1} ${-yl} l ${ar*1.6} ${-ar*0.6} l 0 ${ar*1.2} Z`,fill:c}));
+  g.appendChild(E('path',{d:`M ${x2} ${-yl} l ${-ar*1.6} ${-ar*0.6} l 0 ${ar*1.2} Z`,fill:c}));
+  const t=E('text',{x:(x1+x2)/2,y:-yl-ar*0.8,'text-anchor':'middle','font-size':fs,fill:c});t.textContent=text;g.appendChild(t);}
+function dimV(g,y1,y2,x,text,off){const c='var(--dim)',{ar,ext,fs}=DS();const xl=x+off;
+  const L=(a,b,cc,d,w)=>g.appendChild(E('line',{x1:a,y1:-b,x2:cc,y2:-d,stroke:c,'stroke-width':w||1}));
+  L(x,y1,xl+(off>0?ext:-ext),y1);L(x,y2,xl+(off>0?ext:-ext),y2);L(xl,y1,xl,y2,1);
+  g.appendChild(E('path',{d:`M ${xl} ${-y1} l ${-ar*0.6} ${ar*1.6} l ${ar*1.2} 0 Z`,fill:c}));
+  g.appendChild(E('path',{d:`M ${xl} ${-y2} l ${-ar*0.6} ${-ar*1.6} l ${ar*1.2} 0 Z`,fill:c}));
+  const my=-(y1+y2)/2,t=E('text',{x:xl+ar,y:my,'text-anchor':'middle','font-size':fs,fill:c,transform:`rotate(-90 ${xl+ar} ${my})`});t.textContent=text;g.appendChild(t);}
+function rad(g,cx,cy,r,ang,text){const c='var(--dim)',{fs}=DS();const x=cx+r*Math.cos(ang),y=cy+r*Math.sin(ang);
+  g.appendChild(E('line',{x1:cx,y1:-cy,x2:x,y2:-y,stroke:c,'stroke-width':1}));
+  const t=E('text',{x:x+(Math.cos(ang)>=0?5:-5),y:-y-4,'text-anchor':Math.cos(ang)>=0?'start':'end','font-size':fs,fill:c});t.textContent=text;g.appendChild(t);}
+
+/* ===================== 正视图 ===================== */
+function buildFront(){
+  const pr=profile(),half=P.st_gap/2,cx=0,cy=P.h_hole,r=P.R_hole;
+  const minX=-P.W/2-150*dimScale,maxX=P.W/2+150*dimScale,minY=-150*dimScale,maxY=H()+90*dimScale;
+  const svg=E('svg',{viewBox:`${minX} ${-maxY} ${maxX-minX} ${maxY-minY}`,width:Math.min(580,maxX-minX),preserveAspectRatio:'xMidYMid meet'});
+  const g=E('g',{});svg.appendChild(g);
+  // 吊耳外形+孔（先画，作底）
+  let d=pathOf(pr,true);
+  d+=` M ${(cx+r).toFixed(2)} ${(-cy).toFixed(2)} A ${r} ${r} 0 1 0 ${(cx-r).toFixed(2)} ${(-cy).toFixed(2)} A ${r} ${r} 0 1 0 ${(cx+r).toFixed(2)} ${(-cy).toFixed(2)} Z`;
+  g.appendChild(E('path',{d,fill:'#eef1f4',stroke:'var(--line)','stroke-width':2.2,'fill-rule':'evenodd'}));
+  g.appendChild(E('circle',{cx,cy:-cy,r:P.R_boss,fill:'none',stroke:'var(--line)','stroke-width':1.3,opacity:.65}));
+  g.appendChild(E('line',{x1:cx-P.R_boss-30,y1:-cy,x2:cx+P.R_boss+30,y2:-cy,stroke:'#c33','stroke-width':.7,'stroke-dasharray':'12 5 3 5'}));
+  g.appendChild(E('line',{x1:cx,y1:-cy+P.R_boss+30,x2:cx,y2:-cy-P.R_boss-30,stroke:'#c33','stroke-width':.7,'stroke-dasharray':'12 5 3 5'}));
+  // 加劲板（中心 ±gap/2，边视矩形）—— 画在吊耳之上才可见
+  [+1,-1].forEach(s=>{const c=s*half;
+    g.appendChild(E('rect',{x:c-P.st_t/2,y:-P.st_h,width:P.st_t,height:P.st_h,fill:'#c9d2db',stroke:'var(--line)','stroke-width':1.6}));
+    // 倒角投影线：在 y=加劲板高-竖直倒角 处的横线
+    g.appendChild(E('line',{x1:c-P.st_t/2,y1:-(P.st_h-P.st_chV),x2:c+P.st_t/2,y2:-(P.st_h-P.st_chV),stroke:'var(--line)','stroke-width':1}));
+    g.appendChild(E('line',{x1:c,y1:6,x2:c,y2:-P.st_h-12,stroke:'#c33','stroke-width':.6,'stroke-dasharray':'10 4 3 4'}));});
+  // 标注：底部 250-300-250 链 + 800
+  const seg=P.W/2-half, o1=-(70*dimScale), o2=o1-50*dimScale;
+  dimH(g,-P.W/2,-half,0,String(Math.round(seg)),o1);
+  dimH(g,-half,half,0,String(Math.round(P.st_gap)),o1);
+  dimH(g,half,P.W/2,0,String(Math.round(seg)),o1);
+  dimH(g,-P.W/2,P.W/2,0,String(P.W),o2);
+  dimV(g,0,H(),P.W/2,String(H()),95*dimScale);
+  rad(g,cx,cy,P.R_hole,-Math.PI/4,'R'+P.R_hole);
+  rad(g,cx,cy,P.R_boss,Math.PI*0.8,'R'+P.R_boss);
+  rad(g,cx,cy,P.R_arc,Math.PI*0.5+0.3,'R'+P.R_arc);
+  return svg;
+}
+
+/* ===================== 侧视图 ===================== */
+function buildSide(){
+  const hc=P.h_hole,full=P.t+2*P.t_boss,halfD=DEPTH()/2,chH=P.st_chH,cv=P.st_chV;
+  const minX=-halfD-150*dimScale,maxX=halfD+150*dimScale,minY=-150*dimScale,maxY=H()+90*dimScale;
+  const svg=E('svg',{viewBox:`${minX} ${-maxY} ${maxX-minX} ${maxY-minY}`,width:Math.min(420,maxX-minX),preserveAspectRatio:'xMidYMid meet'});
+  const g=E('g',{});svg.appendChild(g);
+  // 加劲板（真形：两侧，带倒角）
+  [+1,-1].forEach(s=>{
+    const z0=s>0?P.t/2:-(P.t/2+P.st_len), z1=s>0?(P.t/2+P.st_len):-P.t/2;
+    const pts=s>0
+      ?[{x:z0,y:0},{x:z1,y:0},{x:z1,y:P.st_h-cv},{x:z1-chH,y:P.st_h},{x:z0,y:P.st_h}]
+      :[{x:z1,y:0},{x:z0,y:0},{x:z0,y:P.st_h-cv},{x:z0+chH,y:P.st_h},{x:z1,y:P.st_h}];
+    g.appendChild(E('path',{d:pathOf(pts,true),fill:'#d7dde4',stroke:'var(--line)','stroke-width':1.6}));
+  });
+  // 吊耳板（侧面：宽 t，顶部为直线/平顶）
+  let d=`M ${-P.t/2} 0 L ${-P.t/2} ${-H()} L ${P.t/2} ${-H()} L ${P.t/2} 0 Z`;
+  g.appendChild(E('path',{d,fill:'#eef1f4',stroke:'var(--line)','stroke-width':2.2}));
+  // 凸台带
+  g.appendChild(E('rect',{x:-full/2,y:-(hc+P.R_boss),width:full,height:2*P.R_boss,fill:'#e6ebf1',stroke:'var(--line)','stroke-width':1.4,opacity:.92}));
+  // 孔中心线 + 孔虚线
+  g.appendChild(E('line',{x1:-full/2-20,y1:-hc,x2:full/2+20,y2:-hc,stroke:'#c33','stroke-width':.7,'stroke-dasharray':'12 5 3 5'}));
+  g.appendChild(E('line',{x1:-P.t/2,y1:-(hc+P.R_hole),x2:P.t/2,y2:-(hc+P.R_hole),stroke:'var(--line)','stroke-width':1,'stroke-dasharray':'7 4'}));
+  g.appendChild(E('line',{x1:-P.t/2,y1:-(hc-P.R_hole),x2:P.t/2,y2:-(hc-P.R_hole),stroke:'var(--line)','stroke-width':1,'stroke-dasharray':'7 4'}));
+  // 标注：底部深度链 150 - 60 - 150 + 总深 360
+  dimH(g,-halfD,-P.t/2,0,String(Math.round(P.st_len)),-66*dimScale);
+  dimH(g,-P.t/2,P.t/2,0,String(Math.round(P.t)),-66*dimScale);
+  dimH(g,P.t/2,halfD,0,String(Math.round(P.st_len)),-66*dimScale);
+  dimH(g,-halfD,halfD,0,String(Math.round(DEPTH())),-66*dimScale-50*dimScale);
+  dimH(g,-P.t/2,P.t/2,H(),String(P.t),26*dimScale);
+  dimV(g,0,H(),halfD,String(H()),95*dimScale);
+  dimV(g,0,P.st_h,P.t/2+P.st_len,String(P.st_h),60*dimScale);
+  // 倒角标注（水平 + 竖直，分别可编辑）
+  const cx0=P.t/2+P.st_len;
+  dimH(g,cx0-chH,cx0,P.st_h, String(chH), 18*dimScale);
+  dimV(g,P.st_h-cv,P.st_h,cx0, String(cv), 46*dimScale);
+  return svg;
+}
+
+/* ===================== 立体图（手写3D引擎） ===================== */
+let yaw=-0.78, pitch=0.54, zoom=1;
+function buildMesh(){
+  const F=[],t=P.t,tb=P.t_boss,hc=P.h_hole,pr=profile(48);
+  const half=P.st_gap/2,Nb=36;
+  const bo=ring(0,hc,P.R_boss,Nb),bi=ring(0,hc,P.R_hole,Nb);
+  const plateC=[0,P.h_hole*0.5,0];   // 主板质心(用于背面剔除定向)
+  const bossC=[0,hc,0];              // 贴板/孔壁圆柱中心（用于背面剔除）
+  // —— 主板：前/后端面(整轮廓 + even-odd 挖贴板圆，尖角完整无缝) + 外缘 ——
+  faceWithHole(F,pr,bo,t/2,[170,180,192],plateC);
+  faceWithHole(F,pr,bo,-t/2,[150,160,172],plateC);
+  rim(F,pr,t/2,-t/2,[160,170,182],plateC);
+  // —— 贴板(凸台)：给ctr → two=0，可背面剔除，消除背侧穿透线 ——
+  tube2(F,bo,t/2,t/2+tb,[165,174,186],bossC);
+  tube2(F,bo,-t/2,-(t/2+tb),[150,160,172],bossC);
+  annulus(F,bo,bi,t/2+tb,[185,194,205],[0,hc,t/2+tb/2]);
+  annulus(F,bo,bi,-(t/2+tb),[150,160,172],[0,hc,-(t/2+tb/2)]);
+  tube2(F,bi,t/2+tb,-(t/2+tb),[60,66,74],bossC,true);  // 孔壁：可剔除+背景色
+  // —— 4 块加劲板 ——
+  [+1,-1].forEach(sx=>{const x0=sx*half-P.st_t/2,x1=sx*half+P.st_t/2;
+    [+1,-1].forEach(sz=>{const z0=sz>0?t/2:-(t/2+P.st_len),z1=sz>0?(t/2+P.st_len):-t/2;
+      const chH=P.st_chH,cv=P.st_chV,prof=sz>0
+        ?[[z0,0],[z1,0],[z1,P.st_h-cv],[z1-chH,P.st_h],[z0,P.st_h]]
+        :[[z1,0],[z0,0],[z0,P.st_h-cv],[z0+chH,P.st_h],[z1,P.st_h]];
+      prismX(F,prof,x0,x1,[140,150,162],[(x0+x1)/2,P.st_h/2,(z0+z1)/2]);});});
+  return F;
+}
+// 射线(从孔心)与轮廓多边形交点（Cramer 解，已校验）
+function rayHit(poly,ox,oy,ang){const dx=Math.cos(ang),dy=Math.sin(ang);let best=null;
+  for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];
+    const ex=b.x-a.x,ey=b.y-a.y,det=dx*(-ey)-(-ex)*dy;if(Math.abs(det)<1e-9)continue;
+    const rx=a.x-ox,ry=a.y-oy;
+    const t=(rx*(-ey)-(-ex)*ry)/det, s=(dx*ry-dy*rx)/det;
+    if(s>=-1e-6&&s<=1+1e-6&&t>0){if(!best||t>best.t)best={x:ox+dx*t,y:oy+dy*t,t};}}
+  return best||{x:ox,y:oy,t:0};}
+// 端面环：内圈(凸台圆) 到 轮廓 的四边形带
+function capRing(F,pr,hc,inner,z,col,ctr){const N=inner.length,ph=[];
+  for(let i=0;i<N;i++){ph.push(rayHit(pr,0,hc,i/N*2*Math.PI));}
+  for(let i=0;i<N;i++){const j=(i+1)%N;
+    F.push({pts:[[inner[i][0],inner[i][1],z],[inner[j][0],inner[j][1],z],[ph[j].x,ph[j].y,z],[ph[i].x,ph[i].y,z]],col,ctr});}}
+// 由点环生成柱面（给 ctr 则可剔除，不给则双面）
+function tube2(F,r,z0,z1,col,ctr,isHole){const n=r.length;for(let i=0;i<n;i++){const j=(i+1)%n;
+  F.push({pts:[[r[i][0],r[i][1],z0],[r[j][0],r[j][1],z0],[r[j][0],r[j][1],z1],[r[i][0],r[i][1],z1]],col,ctr,two:ctr?0:1,isHole:!!isHole});}}
+// —— 网格生成器 ——
+function box(F,x0,x1,y0,y1,z0,z1,col){const v=[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]];
+  [[0,1,2,3],[4,5,6,7],[0,1,5,4],[2,3,7,6],[1,2,6,5],[0,3,7,4]].forEach(q=>F.push({pts:q.map(i=>v[i]),col}));}
+function ring(cx,cy,r,n){const a=[];for(let i=0;i<n;i++){const t=i/n*2*Math.PI;a.push([cx+r*Math.cos(t),cy+r*Math.sin(t)]);}return a;}
+function faceWithHole(F,pr,hole,z,col,ctr){ // 整轮廓多边形 + even-odd 挖孔（尖角完整无缝）
+  F.push({pts:pr.map(p=>[p.x,p.y,z]),hole:hole.map(h=>[h[0],h[1],z]),col,ctr});}
+function rim(F,pr,z0,z1,col,ctr){for(let i=0;i<pr.length-1;i++){const a=pr[i],b=pr[i+1];F.push({pts:[[a.x,a.y,z0],[b.x,b.y,z0],[b.x,b.y,z1],[a.x,a.y,z1]],col,ctr,two:1});}
+  const a=pr[pr.length-1],b=pr[0];F.push({pts:[[a.x,a.y,z0],[b.x,b.y,z0],[b.x,b.y,z1],[a.x,a.y,z1]],col,ctr,two:1});}
+function tube(F,cx,cy,r,z0,z1,col){const n=24;for(let i=0;i<n;i++){const t0=i/n*2*Math.PI,t1=(i+1)/n*2*Math.PI;
+  const a=[cx+r*Math.cos(t0),cy+r*Math.sin(t0)],b=[cx+r*Math.cos(t1),cy+r*Math.sin(t1)];
+  F.push({pts:[[a[0],a[1],z0],[b[0],b[1],z0],[b[0],b[1],z1],[a[0],a[1],z1]],col,two:1});}}
+function annulus(F,outer,inner,z,col,ctr){const n=outer.length;for(let i=0;i<n;i++){const j=(i+1)%n;
+  F.push({pts:[[outer[i][0],outer[i][1],z],[outer[j][0],outer[j][1],z],[inner[j][0],inner[j][1],z],[inner[i][0],inner[i][1],z]],col,ctr});}}
+function prismX(F,prof,x0,x1,col,ctr){const n=prof.length;
+  F.push({pts:prof.map(p=>[x0,p[1],p[0]]),col,ctr}); F.push({pts:prof.map(p=>[x1,p[1],p[0]]),col,ctr});
+  for(let i=0;i<n;i++){const j=(i+1)%n,a=prof[i],b=prof[j];
+    F.push({pts:[[x0,a[1],a[0]],[x1,a[1],a[0]],[x1,b[1],b[0]],[x0,b[1],b[0]]],col,ctr});}}
+// —— 旋转/投影/渲染 ——
+function rotpt(p,cen){let x=p[0]-cen[0],y=p[1]-cen[1],z=p[2]-cen[2];
+  const cy=Math.cos(yaw),sy=Math.sin(yaw);let x1=x*cy+z*sy,z1=-x*sy+z*cy;
+  const cx=Math.cos(pitch),sx=Math.sin(pitch);let y2=y*cx-z1*sx,z2=y*sx+z1*cx;return [x1,y2,z2];}
+function buildIso(){
+  const F=buildMesh(),cen=[0,H()*0.42,0];
+  // 纯法向映射着色：tone仅由面朝向决定，彻底无光照无阴影
+  // 同时把 faceWithHole 的孔轮廓也旋转存入 rhole，渲染时用 evenodd 真正挖孔
+  const FA=F.map(f=>{
+    const rp=f.pts.map(p=>rotpt(p,cen));
+    const rhole=f.hole?f.hole.map(p=>rotpt(p,cen)):null;
+    const c=[0,0,0];rp.forEach(p=>{c[0]+=p[0];c[1]+=p[1];c[2]+=p[2];});c[0]/=rp.length;c[1]/=rp.length;c[2]/=rp.length;
+    let n=norm(cross(sub(rp[1],rp[0]),sub(rp[2],rp[0])));
+    const rc=f.ctr?rotpt(f.ctr,cen):[0,0,0], out=[c[0]-rc[0],c[1]-rc[1],c[2]-rc[2]];
+    if(dot(n,out)<0){n=[-n[0],-n[1],-n[2]];}
+    const back=n[2]<-0.03 && !f.two;
+    let col;
+    if(f.isHole){
+      col=isoBg;
+    } else {
+      // tone：顶面(ny=1)→1.0，水平面(ny=0)→0.5+0.1*nz，底面(ny=-1)→0
+      // clamp到[0,1]后映射到175-215灰度：最暗面175仍清晰可见，永无死角
+      const tone=Math.max(0,Math.min(1, 0.5+0.4*n[1]+0.1*n[2]));
+      const g=Math.round(175+40*tone);
+      col=`rgb(${g},${g},${g})`;
+    }
+    return {pts:f.pts,rp,rhole,n,back,col,depth:c[2],two:f.two,hole:f.hole};});
+  // 边表（按模型空间顶点对）→ 相邻面；用于识别「真实特征棱」
+  // 同时注册 faceWithHole 的内孔环，确保孔圆与 tube2 底边匹配（否则会被误判为边界线）
+  const ek=p=>Math.round(p[0])+','+Math.round(p[1])+','+Math.round(p[2]);
+  const em=new Map();
+  FA.forEach((fa,fi)=>{[fa.pts,fa.hole||[]].forEach(Q=>{for(let i=0;i<Q.length;i++){const a=ek(Q[i]),b=ek(Q[(i+1)%Q.length]);
+    const k=a<b?a+'|'+b:b+'|'+a;let e=em.get(k);if(!e){e=[];em.set(k,e);}e.push(fi);}});});
+  const feat=k=>{const e=em.get(k);if(!e||e.length<2)return true;        // 边界
+    const A=FA[e[0]],B=FA[e[1]];if(A.back&&B.back)return false;          // 双背面→隐藏
+    if(A.back!==B.back)return !A.two&&!B.two;                            // 轮廓线：仅实体面，排除rim/双面
+    return dot(A.n,B.n)<0.9;};                                           // 尖锐棱(>~26°)；共面/圆柱小面→不画
+  let vis=FA.filter(t=>!t.back);
+  vis.sort((a,b)=>a.depth-b.depth);
+  let all=[];vis.forEach(t=>t.rp.forEach(p=>all.push(p)));
+  const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]);
+  let minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const pad=40,cw=maxX-minX+pad*2,ch=maxY-minY+pad*2,size=560;
+  const svg=E('svg',{viewBox:`${minX-pad} ${-(maxY+pad)} ${cw} ${ch}`,width:size,height:size*ch/cw,preserveAspectRatio:'xMidYMid meet'});
+  // 第一遍：所有面填色（back-to-front）
+  vis.forEach(t=>{
+    let d=t.rp.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+(-p[1]).toFixed(1)).join(' ')+' Z';
+    if(t.rhole){d+=' '+t.rhole.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+(-p[1]).toFixed(1)).join(' ')+' Z';}
+    svg.appendChild(E('path',{d,fill:t.col,stroke:'none','fill-rule':t.rhole?'evenodd':'nonzero'}));});
+  // 第二遍：特征棱白线（在所有面之上，不被后绘面覆盖）
+  const drawn=new Set();
+  vis.forEach(t=>{
+    const Q=t.pts;for(let i=0;i<Q.length;i++){const a=ek(Q[i]),b=ek(Q[(i+1)%Q.length]);const k=a<b?a+'|'+b:b+'|'+a;
+      if(feat(k)&&!drawn.has(k)){drawn.add(k);const p0=t.rp[i],p1=t.rp[(i+1)%Q.length];
+        svg.appendChild(E('line',{x1:p0[0].toFixed(1),y1:(-p0[1]).toFixed(1),x2:p1[0].toFixed(1),y2:(-p1[1]).toFixed(1),stroke:'#ffffff','stroke-width':1.3,'stroke-linecap':'round'}));}}});
+  return svg;
+}
+function sub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function cross(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function norm(a){const l=Math.hypot(...a)||1;return[a[0]/l,a[1]/l,a[2]/l];}
+
+/* ===================== 渲染/交互 ===================== */
+const vstate={front:{s:1,tx:0,ty:0},side:{s:1,tx:0,ty:0}};
+function applyT(key){const svg=document.querySelector('#vb-'+key+' svg');if(!svg)return;const st=vstate[key];
+  svg.style.transformOrigin='center center';svg.style.transform=`translate(${st.tx}px,${st.ty}px) scale(${st.s})`;}
+function renderFlat(){const f=document.getElementById('vb-front');f.innerHTML='';f.appendChild(buildFront());applyT('front');
+  const s=document.getElementById('vb-side');s.innerHTML='';s.appendChild(buildSide());applyT('side');}
+let isoBg='#22252b';
+function setIsoBg(c){isoBg=c;renderIso();}  // 重渲染让孔壁色同步更新
+function renderIso(){const box=document.getElementById('vb-iso');box.querySelectorAll('svg').forEach(e=>e.remove());
+  const svg=buildIso();svg.style.transform=`scale(${zoom})`;svg.style.background=isoBg;box.appendChild(svg);}
+function renderAll(){renderFlat();renderIso();}
+// —— 一次性绑定交互（避免重复监听）——
+function initInteract(){
+  ['front','side'].forEach(key=>{const box=document.getElementById('vb-'+key);let drag=false,lx,ly;
+    box.addEventListener('pointerdown',e=>{const svg=box.querySelector('svg');if(!svg)return;drag=true;lx=e.clientX;ly=e.clientY;box.setPointerCapture(e.pointerId);});
+    box.addEventListener('pointermove',e=>{if(!drag)return;const st=vstate[key];st.tx+=e.clientX-lx;st.ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;applyT(key);});
+    box.addEventListener('pointerup',()=>drag=false);
+    box.addEventListener('wheel',e=>{e.preventDefault();const st=vstate[key];st.s=Math.max(0.3,Math.min(8,st.s*(e.deltaY<0?1.12:0.89)));applyT(key);},{passive:false});
+    box.addEventListener('dblclick',()=>{vstate[key]={s:1,tx:0,ty:0};applyT(key);});});
+  // 立体图：拖动=旋转，滚轮=缩放，双击=复位
+  const iso=document.getElementById('vb-iso');let idrag=false,ix,iy;
+  iso.addEventListener('pointerdown',e=>{const svg=iso.querySelector('svg');if(!svg)return;idrag=true;ix=e.clientX;iy=e.clientY;iso.setPointerCapture(e.pointerId);});
+  iso.addEventListener('pointermove',e=>{if(!idrag)return;yaw+=(e.clientX-ix)*0.01;pitch+=(e.clientY-iy)*0.01;pitch=Math.max(-1.4,Math.min(1.4,pitch));ix=e.clientX;iy=e.clientY;renderIso();});
+  iso.addEventListener('pointerup',()=>idrag=false);
+  iso.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(0.3,Math.min(6,zoom*(e.deltaY<0?1.1:0.9)));const svg=iso.querySelector('svg');if(svg)svg.style.transform=`scale(${zoom})`;},{passive:false});
+  iso.addEventListener('dblclick',()=>{yaw=-0.78;pitch=0.54;zoom=1;renderIso();});
+}
+let curTab='front';
+function switchTab(v){curTab=v;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  document.querySelectorAll('.viewbox').forEach(b=>b.classList.toggle('on',b.id==='vb-'+v));}
+
+/* ===================== 参数面板 ===================== */
+function buildPanel(){const box=document.getElementById('paramBox');box.innerHTML='';
+  GROUPS.forEach(([title,rows])=>{const h=document.createElement('h2');h.textContent=title;box.appendChild(h);
+    rows.forEach(([k,name,hint])=>{const row=document.createElement('div');row.className='row';
+      const hh=k==='R_hole'?'Ø='+(P.R_hole*2):hint;
+      row.innerHTML=`<label>${name}<br><span class="hint" id="h-${k}">${hh}</span></label>`;
+      const inp=document.createElement('input');inp.type='number';inp.value=P[k];inp.step='1';inp.id='in-'+k;
+      inp.addEventListener('input',()=>{const v=parseFloat(inp.value);if(!isNaN(v)&&v>0){P[k]=v;
+        if(k==='R_hole')document.getElementById('h-R_hole').textContent='Ø='+(v*2);renderAll();}});
+      row.appendChild(inp);box.appendChild(row);});});}
+function resetParams(){P={...DEFAULTS};buildPanel();renderAll();}
+document.getElementById('dimSlider').addEventListener('input',e=>{dimScale=parseFloat(e.target.value);
+  document.getElementById('dimVal').textContent=dimScale.toFixed(1);renderFlat();});
+
+/* ===================== 导出 SVG ===================== */
+function exportSVG(){let svg;if(curTab==='front')svg=buildFront();else if(curTab==='side')svg=buildSide();else svg=buildIso();
+  const data='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(svg);
+  dl(new Blob([data],{type:'image/svg+xml'}),'吊耳-'+curTab+'.svg');}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+
+/* ===================== 导出 DXF（参数对照原图 diaoer.dxf：arial / ISO-25 尺寸 / 白色，仅基础图元确保能打开）===================== */
+function exportDXF(){
+  const ents=[];
+  // 参数取自原图 ISO-25：dimscale=25，文字2.5、箭头2.5、超出1.25、偏移0.625、间隙0.625
+  const SC=25, ASZ=2.5*SC, TXTH=2.5*SC, EXE=1.25*SC, EXO=0.625*SC, GAP=0.625*SC;
+  const L=(x1,y1,x2,y2,ly='0')=>ents.push(`0\nLINE\n8\n${ly}\n10\n${x1}\n20\n${y1}\n30\n0\n11\n${x2}\n21\n${y2}\n31\n0`);
+  const C=(cx,cy,r)=>ents.push(`0\nCIRCLE\n8\n0\n10\n${cx}\n20\n${cy}\n30\n0\n40\n${r}`);
+  const A=(cx,cy,r,a0,a1)=>ents.push(`0\nARC\n8\n0\n10\n${cx}\n20\n${cy}\n30\n0\n40\n${r}\n50\n${a0}\n51\n${a1}`);
+  const PL=(pts)=>{let s=`0\nPOLYLINE\n8\n0\n66\n1\n70\n1`;pts.forEach(p=>s+=`\n0\nVERTEX\n8\n0\n10\n${p[0]}\n20\n${p[1]}\n30\n0`);s+=`\n0\nSEQEND\n8\n0`;ents.push(s);};
+  const TX=(x,y,h,txt,rot=0)=>ents.push(`0\nTEXT\n8\nDIM\n10\n${x}\n20\n${y}\n30\n0\n40\n${h}\n1\n${txt}\n50\n${rot}\n7\nStandard`);
+  const arrow=(tx,ty,dx,dy)=>{const l=Math.hypot(dx,dy)||1,ux=dx/l,uy=dy/l,px=-uy,py=ux,bx=tx-ux*ASZ,by=ty-uy*ASZ;
+    ents.push(`0\nSOLID\n8\nDIM\n10\n${tx}\n20\n${ty}\n30\n0\n11\n${bx+px*ASZ*0.15}\n21\n${by+py*ASZ*0.15}\n31\n0\n12\n${bx-px*ASZ*0.15}\n22\n${by-py*ASZ*0.15}\n32\n0\n13\n${bx-px*ASZ*0.15}\n23\n${by-py*ASZ*0.15}\n33\n0`);};
+  const dimH=(x1,x2,y,off,txt)=>{const yl=y+off,s=Math.sign(off);
+    L(x1,y+s*EXO,x1,yl+s*EXE,'DIM');L(x2,y+s*EXO,x2,yl+s*EXE,'DIM');L(x1,yl,x2,yl,'DIM');
+    arrow(x1,yl,x2-x1,0);arrow(x2,yl,x1-x2,0);
+    TX((x1+x2)/2-String(txt).length*TXTH*0.3,yl+GAP,TXTH,String(txt),0);};
+  const dimV=(y1,y2,x,off,txt)=>{const xl=x+off,s=Math.sign(off);
+    L(x+s*EXO,y1,xl+s*EXE,y1,'DIM');L(x+s*EXO,y2,xl+s*EXE,y2,'DIM');L(xl,y1,xl,y2,'DIM');
+    arrow(xl,y1,0,y2-y1);arrow(xl,y2,0,y1-y2);
+    TX(xl+GAP,(y1+y2)/2-String(txt).length*TXTH*0.3,TXTH,String(txt),90);};
+  const rad=(r,ang,label)=>{const x=r*Math.cos(ang),y=hc+r*Math.sin(ang),out=Math.cos(ang)>=0;
+    L(0,hc,x,y,'DIM');TX(x+(out?15:-15-label.length*TXTH*0.6),y+10,TXTH,label,0);};
+  const T=tangent(),angR=T.ang*180/Math.PI,angL=180-angR,hc=P.h_hole,half=P.st_gap/2,seg=P.W/2-half,t=P.t,full=P.t+2*P.t_boss,halfD=DEPTH()/2,chH=P.st_chH,cv=P.st_chV;
+  // ============ 正视图 ============
+  L(-P.W/2,0,P.W/2,0); L(-P.W/2,0,-T.x,T.y); L(P.W/2,0,T.x,T.y);
+  A(0,hc,P.R_arc,angR,angL); C(0,hc,P.R_hole); C(0,hc,P.R_boss);
+  [+1,-1].forEach(s=>{const x0=s*half-P.st_t/2;PL([[x0,0],[x0+P.st_t,0],[x0+P.st_t,P.st_h],[x0,P.st_h]]);
+    L(x0,P.st_h-cv,x0+P.st_t,P.st_h-cv);});  // 倒角投影线
+  dimH(-P.W/2,-half,0,-200,Math.round(seg)); dimH(-half,half,0,-200,Math.round(P.st_gap)); dimH(half,P.W/2,0,-200,Math.round(seg));
+  dimH(-P.W/2,P.W/2,0,-360,P.W); dimV(0,H(),P.W/2,260,H());
+  rad(P.R_arc,1.15,'R'+P.R_arc); rad(P.R_boss,2.45,'R'+P.R_boss); rad(P.R_hole,-0.6,'R'+P.R_hole);
+  // ============ 侧视图 ============
+  const OX=P.W+800;
+  L(OX-t/2,0,OX-t/2,H()); L(OX+t/2,0,OX+t/2,H()); L(OX-t/2,0,OX+t/2,0); L(OX-t/2,H(),OX+t/2,H());
+  PL([[OX-full/2,hc-P.R_boss],[OX+full/2,hc-P.R_boss],[OX+full/2,hc+P.R_boss],[OX-full/2,hc+P.R_boss]]);
+  [+1,-1].forEach(s=>{const z0=s>0?t/2:-(t/2+P.st_len),z1=s>0?(t/2+P.st_len):-t/2;
+    const p=s>0?[[z0,0],[z1,0],[z1,P.st_h-cv],[z1-chH,P.st_h],[z0,P.st_h]]:[[z1,0],[z0,0],[z0,P.st_h-cv],[z0+chH,P.st_h],[z1,P.st_h]];
+    PL(p.map(q=>[OX+q[0],q[1]]));});
+  dimH(OX-halfD,OX-t/2,0,-200,Math.round(P.st_len)); dimH(OX-t/2,OX+t/2,0,-340,t); dimH(OX+t/2,OX+halfD,0,-200,Math.round(P.st_len));
+  dimH(OX-halfD,OX+halfD,0,-480,Math.round(DEPTH())); dimV(0,H(),OX+halfD,260,H());
+  dimV(0,P.st_h,OX-t/2-P.st_len,-200,P.st_h);
+  dimH(OX+t/2+P.st_len-chH,OX+t/2+P.st_len,P.st_h,140,chH); dimV(P.st_h-cv,P.st_h,OX+t/2+P.st_len,220,cv);
+  // ============ 表/头（LAYER + STYLE(arial) + VPORT 初始视图，对照原图）============
+  // 内容范围 + 初始视图（让 CAD 一打开就看到内容）
+  const bx0=-P.W/2-200, bx1=OX+halfD+320, by0=-560, by1=H()+170;
+  const vcx=(bx0+bx1)/2, vcy=(by0+by1)/2, vh=Math.max(by1-by0,(bx1-bx0)/1.6)*1.1;
+  const layer='0\nTABLE\n2\nLAYER\n70\n2\n0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nCONTINUOUS\n0\nLAYER\n2\nDIM\n70\n0\n62\n7\n6\nCONTINUOUS\n0\nENDTAB';
+  const style='0\nTABLE\n2\nSTYLE\n70\n1\n0\nSTYLE\n2\nStandard\n70\n0\n40\n0.0\n41\n1.0\n50\n0.0\n71\n0\n42\n2.5\n3\narial.ttf\n4\n\n0\nENDTAB';
+  const vport=`0\nTABLE\n2\nVPORT\n70\n1\n0\nVPORT\n2\n*ACTIVE\n70\n0\n10\n0.0\n20\n0.0\n11\n1.0\n21\n1.0\n12\n${vcx.toFixed(2)}\n22\n${vcy.toFixed(2)}\n13\n0.0\n23\n0.0\n14\n10.0\n24\n10.0\n15\n10.0\n25\n10.0\n16\n0.0\n26\n0.0\n36\n1.0\n17\n0.0\n27\n0.0\n37\n0.0\n40\n${vh.toFixed(2)}\n41\n1.6\n42\n50.0\n43\n0.0\n44\n0.0\n50\n0.0\n51\n0.0\n71\n0\n72\n1000\n73\n1\n74\n3\n75\n0\n76\n0\n77\n0\n78\n0\n0\nENDTAB`;
+  const dxf=`0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n9\n$INSUNITS\n70\n4\n9\n$EXTMIN\n10\n${bx0.toFixed(2)}\n20\n${by0.toFixed(2)}\n30\n0.0\n9\n$EXTMAX\n10\n${bx1.toFixed(2)}\n20\n${by1.toFixed(2)}\n30\n0.0\n0\nENDSEC\n`+
+    `0\nSECTION\n2\nTABLES\n${vport}\n${layer}\n${style}\n0\nENDSEC\n`+
+    `0\nSECTION\n2\nENTITIES\n${ents.join('\n')}\n0\nENDSEC\n0\nEOF\n`;
+  dl(new Blob([dxf],{type:'application/dxf'}),'吊耳图纸.dxf');
+}
+
+/* ===================== 三维实体建模命令（草图→拉伸；供 .scr 和 SAT 共用）===================== */
+function scrCmds(){
+  // 命令加 _. 前缀、选项加 _，兼容中文版 AutoCAD；主板放 z[0,t]，各部件按主板两面定位
+  const T=tangent(),hc=P.h_hole,t=P.t,tb=P.t_boss,half=P.st_gap/2,Rb=P.R_boss,Rh=P.R_hole;
+  const sl=P.st_len, sh=P.st_h, stt=P.st_t;
+  const n=v=>(+v).toFixed(4);
+  const cmd=[];
+  cmd.push('OSMODE','0');        // 关闭对象捕捉
+  cmd.push('_.UCS','_W');        // 世界坐标系
+  cmd.push('_.PLAN','');
+  // 主板：闭合多段线(含顶弧) -> 面域 -> 拉伸（z 0→t）
+  cmd.push('_.PLINE',`${n(-P.W/2)},0`,`${n(P.W/2)},0`,`${n(T.x)},${n(T.y)}`,
+           '_A','_CE',`0,${n(hc)}`,`${n(-T.x)},${n(T.y)}`,'_L','_C');
+  cmd.push('_.REGION','_L','');
+  cmd.push('_.EXTRUDE','_L','',n(t));
+  const chH=P.st_chH, cv=P.st_chV;
+  // 贴板(2块)：圆草图 -> 拉伸，贴主板两面 z[t,t+tb] / z[-tb,0]
+  cmd.push('_.CIRCLE',`0,${n(hc)},${n(t)}`,n(Rb));  cmd.push('_.EXTRUDE','_L','',n(tb));   // 正面
+  cmd.push('_.CIRCLE',`0,${n(hc)},0`,n(Rb));        cmd.push('_.EXTRUDE','_L','',n(-tb));  // 背面
+  // 4 块加劲肋：带倒角五边形草图(XY:深×高) -> 拉伸成板 -> 绕Y旋转立起 -> 移到位
+  const pent=[[0,0],[sl,0],[sl,sh-cv],[sl-chH,sh],[0,sh]];  // 倒角在(深sl,高sh)外顶角
+  const rib=(rotDeg,mx,mz)=>{
+    cmd.push('_.PLINE',...pent.map(p=>`${n(p[0])},${n(p[1])}`),'_C');
+    cmd.push('_.REGION','_L','');
+    cmd.push('_.EXTRUDE','_L','',n(stt));
+    cmd.push('_.ROTATE3D','_L','','_Y','0,0,0',n(rotDeg));
+    cmd.push('_.MOVE','_L','','0,0,0',`${n(mx)},0,${n(mz)}`);
+  };
+  rib(-90, half+stt/2, t);        // +x 正面 -> x[130,170] z[60,210]
+  rib(90,  half-stt/2, 0);        // +x 背面 -> x[130,170] z[-150,0]
+  rib(-90, -(half-stt/2), t);     // -x 正面 -> x[-170,-130] z[60,210]
+  rib(90,  -(half+stt/2), 0);     // -x 背面 -> x[-170,-130] z[-150,0]
+  // 合并所有实体（贴合面自动焊成一体）
+  cmd.push('_.UNION','_ALL','');
+  // 钻孔：圆草图->拉伸成孔柱 -> 差集（交叉窗口选主体，孔为最后对象 _L）
+  cmd.push('_.CIRCLE',`0,${n(hc)},${n(-tb-20)}`,n(Rh));  cmd.push('_.EXTRUDE','_L','',n(t+2*tb+40));
+  cmd.push('_.ZOOM','_E');
+  const wx0=n(P.W*0.30),wx1=n(P.W*0.46);
+  cmd.push('_.SUBTRACT','_C',`${wx0},20`,`${wx1},${n(P.st_h*0.6)}`,'','_L','');
+  cmd.push('_.ZOOM','_E');
+  return cmd;
+}
+function exportSCR(){
+  dl(new Blob([scrCmds().join('\r\n')+'\r\n'],{type:'text/plain'}),'吊耳三维实体.scr');
+}
+
+/* ===================== 打印 ===================== */
+window.addEventListener('beforeprint',()=>{const pa=document.getElementById('printArea');pa.innerHTML='';
+  pa.insertAdjacentHTML('beforeend','<div class="ptitle">吊 耳 加 工 图</div><div class="psub">单位：mm　　制图：吊耳绘图工具</div>');
+  [['正视图',buildFront],['侧视图',buildSide],['三维图',buildIso]].forEach(([t,fn])=>{const d=document.createElement('div');d.className='pv';
+    d.innerHTML='<h3>'+t+'</h3>';const sv=fn();sv.removeAttribute('width');sv.removeAttribute('height');sv.style.maxWidth=t==='三维图'?'70%':'82%';if(t==='三维图')sv.style.background=isoBg;d.appendChild(sv);pa.appendChild(d);});});
+
+/* ===================== 启动 ===================== */
+buildPanel();renderAll();initInteract();
+// 三维图背景色切换
+document.querySelectorAll('.bgdot').forEach(dot=>{
+  dot.addEventListener('click',()=>{
+    document.querySelectorAll('.bgdot').forEach(d=>d.style.borderColor='transparent');
+    dot.style.borderColor='#aaa';
+    const c=dot.dataset.c;
+    document.getElementById('bgPicker').value=c;
+    setIsoBg(c);
+  });
+});
+document.getElementById('bgPicker').addEventListener('input',e=>{
+  document.querySelectorAll('.bgdot').forEach(d=>d.style.borderColor='transparent');
+  setIsoBg(e.target.value);
+});
+</script>
+</body>
+</html>

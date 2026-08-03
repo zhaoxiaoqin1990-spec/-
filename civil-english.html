@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>土木工程师专业英语口语提升计划 - 赵晓琴个人笔记</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #d97757;
+  --primary-dark: #b85a3e;
+  --primary-light: #f5e6de;
+  --bg: #faf9f7;
+  --card-bg: #ffffff;
+  --text: #1f1e1c;
+  --text-soft: #5a5754;
+  --text-muted: #8b8680;
+  --border: #e8e4dd;
+  --shadow: 0 4px 24px rgba(31, 30, 28, 0.06);
+  --accent-green: #2e7d5b;
+  --accent-blue: #3b6fa0;
+  --accent-purple: #7c5cbf;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+/* Back Navigation */
+.back-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(250, 249, 247, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+}
+
+.back-nav a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.back-nav a:hover { color: var(--primary-dark); }
+
+/* Hero Header */
+.hero {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 60px 24px 50px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  position: relative;
+  letter-spacing: -0.5px;
+}
+
+.hero .subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero-tags {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.hero-tag {
+  background: rgba(255,255,255,0.2);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  backdrop-filter: blur(5px);
+}
+
+/* Container */
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+/* Section */
+.section {
+  margin-bottom: 40px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.section-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.section-icon.orange { background: var(--primary-light); }
+.section-icon.green { background: #e6f4ed; }
+.section-icon.blue { background: #e3eef7; }
+.section-icon.purple { background: #efe8f8; }
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Principle Cards */
+.principles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.principle-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.principle-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(31, 30, 28, 0.1);
+}
+
+.principle-card .label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.principle-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.principle-card p {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+/* Timeline / Phase Table */
+.phase-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.phase-timeline::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 24px;
+  bottom: 24px;
+  width: 3px;
+  background: linear-gradient(180deg, var(--primary), var(--accent-green), var(--accent-blue));
+  border-radius: 2px;
+}
+
+.phase-item {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+  position: relative;
+}
+
+.phase-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.phase-dot.p1 { background: var(--primary); }
+.phase-dot.p2 { background: var(--accent-green); }
+.phase-dot.p3 { background: var(--accent-blue); }
+
+.phase-content {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  flex: 1;
+}
+
+.phase-content .phase-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.phase-content .phase-label.p1 { color: var(--primary); }
+.phase-content .phase-label.p2 { color: var(--accent-green); }
+.phase-content .phase-label.p3 { color: var(--accent-blue); }
+
+.phase-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.phase-content .time {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.phase-content .goal {
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  margin-bottom: 8px;
+}
+
+.phase-content .example-sentence {
+  background: #f8f6f3;
+  border-left: 3px solid var(--primary);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+/* Daily Plan - 3+3+4 */
+.daily-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.daily-block {
+  background: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.daily-block-header {
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.daily-block-header.t1 { background: linear-gradient(135deg, var(--primary), #e08a6a); }
+.daily-block-header.t2 { background: linear-gradient(135deg, var(--accent-green), #3d9970); }
+.daily-block-header.t3 { background: linear-gradient(135deg, var(--accent-blue), #5088b8); }
+
+.daily-block-header .time-badge {
+  background: rgba(255,255,255,0.25);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.daily-block-body {
+  padding: 20px 22px;
+}
+
+.daily-block-body h4 {
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.daily-block-body p,
+.daily-block-body li {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.daily-block-body ul {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.daily-block-body li {
+  margin-bottom: 6px;
+}
+
+.step-list {
+  list-style: none;
+  padding: 0;
+  counter-reset: step;
+}
+
+.step-list li {
+  counter-increment: step;
+  padding-left: 32px;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.step-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vocab-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vocab-tag {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.scenario-box {
+  background: #f8f6f3;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.scenario-box .q,
+.scenario-box .a {
+  font-size: 0.88rem;
+  margin-bottom: 6px;
+}
+
+.scenario-box .q { color: var(--accent-blue); font-weight: 600; }
+.scenario-box .a { color: var(--accent-green); font-weight: 500; }
+
+.tip-box {
+  background: #fff8e1;
+  border-left: 3px solid #f9a825;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  color: #7a6520;
+  margin-top: 12px;
+}
+
+/* Resources Table */
+.resource-table-wrapper {
+  overflow-x: auto;
+}
+
+.resource-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--card-bg);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.resource-table th {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  padding: 14px 18px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.resource-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  vertical-align: top;
+}
+
+.resource-table tr:last-child td { border-bottom: none; }
+
+.resource-table tr:hover td {
+  background: #faf8f5;
+}
+
+.resource-table .res-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.resource-table .res-type {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.res-type.course { background: var(--primary-light); color: var(--primary-dark); }
+.res-type.vocab { background: #e6f4ed; color: var(--accent-green); }
+.res-type.listen { background: #e3eef7; color: var(--accent-blue); }
+.res-type.tool { background: #efe8f8; color: var(--accent-purple); }
+.res-type.practice { background: #fff3e0; color: #e65100; }
+
+/* Monitor Section */
+.monitor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.monitor-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.monitor-card h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.monitor-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.monitor-card li {
+  padding: 8px 0;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  border-bottom: 1px dashed var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.monitor-card li:last-child { border-bottom: none; }
+
+.check-icon {
+  color: var(--accent-green);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Adjust Tips */
+.adjust-tips {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-top: 20px;
+}
+
+.adjust-tips h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adjust-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+
+.adjust-item:last-child { border-bottom: none; }
+
+.adjust-item .icon { flex-shrink: 0; }
+
+/* Intro Box */
+.intro-box {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 32px;
+  line-height: 1.9;
+}
+
+.intro-box p {
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+}
+
+.intro-box p:last-child { margin-bottom: 0; }
+
+.intro-box strong {
+  color: var(--primary-dark);
+}
+
+/* Footer */
+.page-footer {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.6rem; }
+  .hero { padding: 40px 16px 36px; }
+  .container { padding: 20px 14px 40px; }
+  .principles-grid { grid-template-columns: 1fr; }
+  .monitor-grid { grid-template-columns: 1fr; }
+  .phase-timeline::before { left: 15px; }
+  .phase-dot { width: 32px; height: 32px; font-size: 0.75rem; }
+  .phase-item { gap: 14px; }
+  .resource-table { font-size: 0.82rem; }
+  .resource-table th, .resource-table td { padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="back-nav">
+  <a href="index.html">&larr; 返回首页</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-icon">&#127959;</div>
+  <h1>土木工程师专业英语口语提升计划</h1>
+  <p class="subtitle">每日10分钟高效版 &mdash; 专为土木工程专业人士设计</p>
+  <div class="hero-tags">
+    <span class="hero-tag">CET-6 499分基础</span>
+    <span class="hero-tag">每日10分钟</span>
+    <span class="hero-tag">专业场景驱动</span>
+    <span class="hero-tag">24周系统规划</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Intro -->
+  <div class="intro-box">
+    <p>作为同时深耕土木工程和英语教学的导师，我非常理解您的需求：不是学"通用英语"，而是学<strong>"能用得上的专业口语"</strong>。</p>
+    <p>您六级499分的基础说明语法和阅读底子不错，我们只需聚焦<strong>"开口"</strong>和<strong>"专业场景"</strong>，每天10分钟完全可以见效。</p>
+  </div>
+
+  <!-- Core Principles -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon orange">&#128273;</div>
+      <h2 class="section-title">核心学习原则</h2>
+    </div>
+    <div class="principles-grid">
+      <div class="principle-card">
+        <div class="label">Principle 1</div>
+        <h3>Consistency > Intensity</h3>
+        <p>每天10分钟，远胜于周末突击2小时。短时高频练习更能强化神经连接，提升语言自动化输出能力。</p>
+      </div>
+      <div class="principle-card">
+        <div class="label">Principle 2</div>
+        <h3>Output-Driven</h3>
+        <p>以"说"为核心，输入（听/读）只为输出服务。一切学习都指向"能开口表达"。</p>
+      </div>
+      <div class="principle-card">
+        <div class="label">Principle 3</div>
+        <h3>Scenario-Based</h3>
+        <p>所有练习围绕真实工程场景展开，避免学"用不上"的内容，确保每一分钟都有价值。</p>
+      </div>
+      <div class="principle-card">
+        <div class="label">Principle 4</div>
+        <h3>Error-Tolerant</h3>
+        <p>专业交流中，"能传达意思"优先于"语法完美"。先敢说，再求精。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase Timeline -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon green">&#128197;</div>
+      <h2 class="section-title">阶段性目标规划</h2>
+    </div>
+    <div class="phase-timeline">
+
+      <div class="phase-item">
+        <div class="phase-dot p1">I</div>
+        <div class="phase-content">
+          <div class="phase-label p1">筑基期</div>
+          <h3>掌握50个高频专业词汇 + 10个核心句型</h3>
+          <div class="time">第 1 - 4 周</div>
+          <div class="goal">能进行简单自我介绍和项目描述</div>
+          <div class="example-sentence">
+            "I'm working on a bridge project..."<br>
+            "The foundation needs reinforcement."
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot p2">II</div>
+        <div class="phase-content">
+          <div class="phase-label p2">进阶期</div>
+          <h3>就施工方案、材料选择、安全规范等话题交流</h3>
+          <div class="time">第 5 - 12 周</div>
+          <div class="goal">能进行 3-5 轮问答交流</div>
+          <div class="example-sentence">
+            "Which material is more cost-effective for this slope protection?"
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-item">
+        <div class="phase-dot p3">III</div>
+        <div class="phase-content">
+          <div class="phase-label p3">应用期</div>
+          <h3>参与15分钟以上专业会议</h3>
+          <div class="time">第 13 - 24 周</div>
+          <div class="goal">表达观点、提问、澄清技术细节</div>
+          <div class="example-sentence">
+            在国际项目协调会上提出技术建议并回应质疑
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Daily Plan 3+3+4 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon blue">&#9201;</div>
+      <h2 class="section-title">每日10分钟执行方案</h2>
+    </div>
+    <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.92rem;">推荐 "3 + 3 + 4" 时间分配结构</p>
+
+    <div class="daily-plan">
+
+      <!-- Block 1 -->
+      <div class="daily-block">
+        <div class="daily-block-header t1">
+          <span>&#128312; 专业词汇"闪记 + 跟读"</span>
+          <span class="time-badge">第 1-3 分钟</span>
+        </div>
+        <div class="daily-block-body">
+          <h4>每天学习 3-5 个土木工程核心术语</h4>
+          <div class="vocab-examples">
+            <span class="vocab-tag">retaining wall</span>
+            <span class="vocab-tag">load-bearing</span>
+            <span class="vocab-tag">settlement</span>
+            <span class="vocab-tag">BIM</span>
+            <span class="vocab-tag">geotechnical investigation</span>
+          </div>
+          <br>
+          <h4>练习方法</h4>
+          <ol class="step-list">
+            <li>查词典听发音（推荐 Cambridge Dictionary 或 YouGlish）</li>
+            <li>跟读 3 遍，注意重音和连读</li>
+            <li>用该词造 1 个工程场景句子（口头即可）</li>
+          </ol>
+          <div class="tip-box">
+            推荐资源：Quizlet 土木词汇卡、LinkedIn 土木术语清单
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 2 -->
+      <div class="daily-block">
+        <div class="daily-block-header t2">
+          <span>&#128313; 场景句型"影子跟读"(Shadowing)</span>
+          <span class="time-badge">第 4-6 分钟</span>
+        </div>
+        <div class="daily-block-body">
+          <h4>选取 1 个短音频（30-60秒）</h4>
+          <p>推荐：TED-Ed 工程科普、BBC Engineering 片段</p>
+          <br>
+          <h4>练习方法</h4>
+          <ol class="step-list">
+            <li>盲听 1 遍理解大意</li>
+            <li>逐句暂停，模仿语音语调跟读</li>
+            <li>重点模仿：疑问句升调、技术描述的重音位置</li>
+          </ol>
+          <div class="tip-box">
+            优先选择含 "problem-solution" 结构的片段，贴合工程汇报逻辑
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 3 -->
+      <div class="daily-block">
+        <div class="daily-block-header t3">
+          <span>&#128309; 微型"自问自答"实战</span>
+          <span class="time-badge">第 7-10 分钟</span>
+        </div>
+        <div class="daily-block-body">
+          <h4>设定 1 个微场景，进行 3 轮自问自答（建议录音）</h4>
+          <div class="scenario-box">
+            <p class="q">Q: What's the current progress of the bridge project?</p>
+            <p class="a">A: We've completed the foundation work and are now working on the piers. The expected completion date is next March.</p>
+            <br>
+            <p class="q">Q: What material would you recommend for the retaining wall?</p>
+            <p class="a">A: I'd suggest reinforced concrete for its durability and cost-effectiveness in this soil condition.</p>
+            <br>
+            <p class="q">Q: Are there any safety concerns on site?</p>
+            <p class="a">A: Yes, we need to address the slope stability issue before proceeding with the excavation work.</p>
+          </div>
+          <div class="tip-box">
+            进阶：每周选 1 天，用 HelloTalk / Tandem 与语伴进行 10 分钟文字 + 语音交流
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Resources -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon purple">&#128218;</div>
+      <h2 class="section-title">推荐专业资源清单</h2>
+    </div>
+    <div class="resource-table-wrapper">
+      <table class="resource-table">
+        <thead>
+          <tr>
+            <th>类型</th>
+            <th>资源名称</th>
+            <th>特点</th>
+            <th>使用建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="res-type course">课程</span></td>
+            <td class="res-name">Let's Learn English: English for Civil Engineers</td>
+            <td>93单元，含专业词汇 + 场景对话 + 发音</td>
+            <td>每周选1单元，拆解到每日练习</td>
+          </tr>
+          <tr>
+            <td><span class="res-type vocab">词汇</span></td>
+            <td class="res-name">Quizlet Civil Engineering Vocabulary</td>
+            <td>图文 + 音频，支持间隔重复记忆</td>
+            <td>每日新学3词 + 复习旧词</td>
+          </tr>
+          <tr>
+            <td><span class="res-type listen">听力</span></td>
+            <td class="res-name">Practical Engineering / Real Engineering (YouTube)</td>
+            <td>动画演示 + 专业解说，语速适中</td>
+            <td>截取1分钟片段做 shadowing</td>
+          </tr>
+          <tr>
+            <td><span class="res-type tool">工具</span></td>
+            <td class="res-name">Talkpal AI 口语教练</td>
+            <td>即时发音反馈，支持专业话题定制</td>
+            <td>每周2-3次替代自问自答环节</td>
+          </tr>
+          <tr>
+            <td><span class="res-type practice">实战</span></td>
+            <td class="res-name">Everyday English Dialogues for Engineers (Scribd)</td>
+            <td>含角色扮演模板，如"讨论施工进度"</td>
+            <td>每月精练1个对话，熟记关键句</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Monitoring -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon orange">&#127919;</div>
+      <h2 class="section-title">效果监测与调整建议</h2>
+    </div>
+    <div class="monitor-grid">
+      <div class="monitor-card">
+        <h3>&#128197; 每周自检（周日2分钟）</h3>
+        <ul>
+          <li><span class="check-icon">&#10003;</span>录音：用同一话题（如 "Describe your current project"）说1分钟</li>
+          <li><span class="check-icon">&#10003;</span>对比：与上周录音比较，是否更流畅？专业词使用是否更自然？</li>
+        </ul>
+      </div>
+      <div class="monitor-card">
+        <h3>&#128202; 每月小测</h3>
+        <ul>
+          <li><span class="check-icon">&#10003;</span>找1位英语较好的同事/语伴，进行5分钟模拟技术讨论</li>
+          <li><span class="check-icon">&#10003;</span>重点评估：对方是否能准确理解您的技术意图？</li>
+        </ul>
+      </div>
+    </div>
+    <div class="adjust-tips">
+      <h3>&#128260; 灵活调整策略</h3>
+      <div class="adjust-item">
+        <span class="icon">&#128337;</span>
+        <span>若某周工作繁忙，可简化为 "5分钟词汇 + 5分钟跟读"</span>
+      </div>
+      <div class="adjust-item">
+        <span class="icon">&#127942;</span>
+        <span>若进步较快，可增加 "每周1次15分钟真实对话" 作为奖励</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <p>&copy; 2026 赵晓琴个人笔记 &middot; 土木工程师专业英语口语提升计划</p>
+  </div>
+
+</div>
+
+</body>
+</html>

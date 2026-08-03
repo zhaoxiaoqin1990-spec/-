@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>桥梁工程中英文翻译词典</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","SimSun",sans-serif;background:#f4f6f9;color:#333}
+header{background:#1a3a5c;color:#fff;padding:28px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+header h1{font-size:24px;font-weight:700}
+header p{font-size:13px;margin-top:6px;opacity:.75}
+.home-btn{flex-shrink:0;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);
+  padding:7px 16px;border-radius:5px;font-size:13px;font-weight:600;text-decoration:none;
+  cursor:pointer;transition:.2s;white-space:nowrap}
+.home-btn:hover{background:rgba(255,255,255,.28)}
+.back-to-top{position:fixed;right:24px;bottom:32px;width:46px;height:46px;border-radius:50%;
+  background:#1a3a5c;color:#fff;border:none;box-shadow:0 3px 12px rgba(0,0,0,.25);
+  font-size:20px;cursor:pointer;display:none;align-items:center;justify-content:center;
+  z-index:300;transition:.2s}
+.back-to-top:hover{background:#2c5282}
+.back-to-top.show{display:flex}
+.toolbar{display:flex;align-items:center;gap:12px;padding:14px 40px;background:#fff;
+  border-bottom:1px solid #dde2ea;position:sticky;top:0;z-index:10;
+  box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.toolbar input{flex:1;max-width:360px;padding:8px 14px;border:1px solid #ccd2db;
+  border-radius:6px;font-size:14px;outline:none}
+.toolbar input:focus{border-color:#1a3a5c}
+.toolbar select{padding:8px 12px;border:1px solid #ccd2db;border-radius:6px;
+  font-size:14px;background:#fff;cursor:pointer;outline:none}
+.count{font-size:13px;color:#888;margin-left:auto}
+.badge{display:inline-block;font-size:11px;background:#2c5282;color:#fff;
+  padding:1px 6px;border-radius:10px;margin-left:6px}
+.new-badge{background:#27ae60}
+.container{padding:24px 40px 48px}
+.category-block{margin-bottom:28px}
+.category-title{font-size:15px;font-weight:700;color:#1a3a5c;padding:8px 14px;
+  background:#e8eef5;border-left:4px solid #1a3a5c;border-radius:0 4px 4px 0;margin-bottom:0}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:0 0 6px 6px;
+  box-shadow:0 1px 4px rgba(0,0,0,.07)}
+th{background:#2c5282;color:#fff;text-align:left;padding:9px 16px;font-size:13px;font-weight:600}
+td{padding:8px 16px;font-size:13.5px;border-bottom:1px solid #edf0f5;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f0f4fa}
+td.en{font-family:"Consolas","Courier New",monospace;color:#1a3a5c;line-height:1.5}
+td.zh{color:#c0392b;font-weight:600}
+td.new-row .zh{color:#27ae60}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>桥梁工程中英文翻译词典</h1>
+    <p>Bridge Engineering Translation Dictionary &nbsp;·&nbsp; 基于29份图纸实际翻译内容汇总 &nbsp;·&nbsp; 共 <span id="totalCount">0</span> 条</p>
+  </div>
+  <a href="index.html" class="home-btn">← 返回主页</a>
+</header>
+<div class="toolbar">
+  <input type="text" id="searchBox" placeholder="搜索英文或中文…" oninput="filterTable()">
+  <select id="catFilter" onchange="filterTable()">
+    <option value="">全部类别</option>
+    <option>跨径几何</option><option>梁构件</option><option>主梁</option>
+    <option>翼缘腹板</option><option>加劲肋</option><option>支座</option>
+    <option>拼接</option><option>螺栓</option><option>焊缝</option>
+    <option>剪力连接件</option><option>桥墩桥台</option><option>桥面板</option>
+    <option>混凝土钢筋</option><option>钢板</option><option>图纸视图</option>
+    <option>标注说明</option><option>尺寸</option><option>结构其他</option>
+    <option>涂装</option><option>图框信息</option>
+    <option>桥面附属</option><option>图纸标记</option>
+  </select>
+  <span class="count" id="countLabel"></span>
+</div>
+<div class="container" id="mainContainer">
+
+<!-- ① 跨径几何 -->
+<div class="category-block" data-cat="跨径几何">
+<div class="category-title">跨径几何</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">LENGTH AT CENTER TO CENTER OF PIER<br>LENGTH AT CENTRE TO CENTRE OF PIER</td><td class="zh">墩中心间距</td></tr>
+<tr><td class="en">LENGTH AT END TO END OF GIRDER</td><td class="zh">梁端间距</td></tr>
+<tr><td class="en">CENTER TO CENTER OF BEARING PAD<br>CENTRE TO CENTRE OF BEARING PAD<br>CENTER TO CENTER OF BEARING</td><td class="zh">支座中心间距</td></tr>
+<tr><td class="en">C OF PIER / C.OF PIER / C. OF PIER<br>CENTER OF PIER / CENTRE OF PIER<br>CENTER LINE OF PIER</td><td class="zh">墩中心线</td></tr>
+<tr><td class="en">C OF BEARING</td><td class="zh">支座中心线</td></tr>
+</tbody></table>
+</div>
+
+<!-- ② 梁构件 -->
+<div class="category-block" data-cat="梁构件">
+<div class="category-title">梁构件</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">STEEL COPING BEAM</td><td class="zh">钢盖梁</td></tr>
+<tr><td class="en">COPING BEAM / CAP BEAM</td><td class="zh">盖梁</td></tr>
+<tr><td class="en">MID CROSS BEAM</td><td class="zh">中横梁</td></tr>
+<tr><td class="en">END CROSS BEAM</td><td class="zh">端横梁</td></tr>
+<tr><td class="en">INTERMEDIATE CROSS BEAM</td><td class="zh">中间横梁</td></tr>
+<tr><td class="en">CROSS BEAM / CROSS-BEAM</td><td class="zh">横梁</td></tr>
+<tr><td class="en">CROSS BEAM SPACING / GIRDER SPACING / BEAM SPACING</td><td class="zh">横梁间距 / 梁间距</td></tr>
+<tr><td class="en">INTERMEDIATE DIAPHRAGM</td><td class="zh">中间横隔板</td></tr>
+<tr><td class="en">END DIAPHRAGM</td><td class="zh">端横隔板</td></tr>
+<tr><td class="en">DIAPHRAGM BEAM</td><td class="zh">横隔梁</td></tr>
+<tr><td class="en">DIAPHRAGM</td><td class="zh">横隔板</td></tr>
+<tr><td class="en">TIMBER DIAPHRAGM</td><td class="zh">木横隔板</td></tr>
+</tbody></table>
+</div>
+
+<!-- ③ 主梁 -->
+<div class="category-block" data-cat="主梁">
+<div class="category-title">主梁</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">STEEL I GIRDER / STEEL I-GIRDER</td><td class="zh">钢工字梁</td></tr>
+<tr><td class="en">I GIRDER</td><td class="zh">工字钢梁</td></tr>
+<tr><td class="en">PLATE GIRDER</td><td class="zh">板梁</td></tr>
+<tr><td class="en">BOX GIRDER</td><td class="zh">箱梁</td></tr>
+<tr><td class="en">GIRDER</td><td class="zh">主梁</td></tr>
+<tr><td class="en">BEAM</td><td class="zh">梁</td></tr>
+<tr><td class="en">GIRDER NO. / BEAM NO. / GIRDER NUMBER</td><td class="zh">梁号</td></tr>
+<tr><td class="en">GIRDER LENGTH TABLE</td><td class="zh">主梁长度表</td></tr>
+</tbody></table>
+</div>
+
+<!-- ④ 翼缘腹板 -->
+<div class="category-block" data-cat="翼缘腹板">
+<div class="category-title">翼缘腹板</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">TOP FLANGE PLATE / TOP FLANGE</td><td class="zh">上翼缘板</td></tr>
+<tr><td class="en">BOTTOM FLANGE PLATE / BOTTOM FLANGE</td><td class="zh">下翼缘板</td></tr>
+<tr><td class="en">FLANGE PLATE / FLANGE</td><td class="zh">翼缘板</td></tr>
+<tr><td class="en">WEB PLATE / WEB</td><td class="zh">腹板</td></tr>
+<tr><td class="en">WEB REFERENCE LINE</td><td class="zh">腹板基准线</td></tr>
+<tr><td class="en">TOP PLATE / TOP SLAB</td><td class="zh">顶板</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑤ 加劲肋 -->
+<div class="category-block" data-cat="加劲肋">
+<div class="category-title">加劲肋</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">BEARING STIFFENER</td><td class="zh">支承加劲肋</td></tr>
+<tr><td class="en">TRANSVERSE STIFFENER</td><td class="zh">横向加劲肋</td></tr>
+<tr><td class="en">LONGITUDINAL STIFFENER</td><td class="zh">纵向加劲肋</td></tr>
+<tr><td class="en">INTERMEDIATE STIFFENER</td><td class="zh">中间加劲肋</td></tr>
+<tr><td class="en">VERTICAL STIFFENER</td><td class="zh">竖向加劲肋 / 竖向加劲板</td></tr>
+<tr><td class="en">STIFFENER PLATE / STIFFENER</td><td class="zh">加劲肋 / 加劲板</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑥ 支座 -->
+<div class="category-block" data-cat="支座">
+<div class="category-title">支座</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">ELASTOMERIC BEARING</td><td class="zh">橡胶支座</td></tr>
+<tr><td class="en">FIXED BEARING</td><td class="zh">固定支座</td></tr>
+<tr><td class="en">EXPANSION BEARING</td><td class="zh">活动支座</td></tr>
+<tr><td class="en">POT BEARING</td><td class="zh">盆式支座</td></tr>
+<tr><td class="en">SPHERICAL BEARING</td><td class="zh">球形支座</td></tr>
+<tr><td class="en">BEARING PAD</td><td class="zh">支座垫板</td></tr>
+<tr><td class="en">BEARING PLATE</td><td class="zh">支座板</td></tr>
+<tr><td class="en">BEARING</td><td class="zh">支座</td></tr>
+<tr><td class="en">EXPANSION / FIXED</td><td class="zh">活动 / 固定</td></tr>
+<tr><td class="en">RUBBER PAD / RUBBER BLOCK</td><td class="zh">橡胶垫块</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑦ 拼接 -->
+<div class="category-block" data-cat="拼接">
+<div class="category-title">拼接</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">FIELD SPLICE</td><td class="zh">工地拼接</td></tr>
+<tr><td class="en">SHOP SPLICE</td><td class="zh">工厂拼接</td></tr>
+<tr><td class="en">WEB SPLICE PLATE</td><td class="zh">腹板拼接板</td></tr>
+<tr><td class="en">FLANGE SPLICE PLATE</td><td class="zh">翼缘拼接板</td></tr>
+<tr><td class="en">SPLICE PLATE</td><td class="zh">拼接板</td></tr>
+<tr><td class="en">SPLICE / AT SPLICE</td><td class="zh">拼接 / 拼接处</td></tr>
+<tr><td class="en">SEGMENT LINE / SPLICE LINE</td><td class="zh">分段线</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑧ 螺栓 -->
+<div class="category-block" data-cat="螺栓">
+<div class="category-title">螺栓</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">HIGH STRENGTH BOLT / H.S. BOLT / HS BOLT</td><td class="zh">高强螺栓</td></tr>
+<tr><td class="en">BOLT HOLE</td><td class="zh">螺栓孔</td></tr>
+<tr><td class="en">BOLT</td><td class="zh">螺栓</td></tr>
+<tr><td class="en">NUT</td><td class="zh">螺母</td></tr>
+<tr><td class="en">WASHER</td><td class="zh">垫圈</td></tr>
+<tr><td class="en">ANCHOR BOLT</td><td class="zh">锚栓</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑨ 焊缝 -->
+<div class="category-block" data-cat="焊缝">
+<div class="category-title">焊缝</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">COMPLETE JOINT PENETRATION WELD<br>FULL PENETRATION WELD / CJP WELD</td><td class="zh">全熔透焊缝</td></tr>
+<tr><td class="en">FILLET WELD</td><td class="zh">角焊缝</td></tr>
+<tr><td class="en">GROOVE WELD</td><td class="zh">坡口焊缝</td></tr>
+<tr><td class="en">BUTT WELD</td><td class="zh">对接焊缝</td></tr>
+<tr><td class="en">WELD ALL AROUND</td><td class="zh">周围焊</td></tr>
+<tr><td class="en">WELD</td><td class="zh">焊缝</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑩ 剪力连接件 -->
+<div class="category-block" data-cat="剪力连接件">
+<div class="category-title">剪力连接件</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">HEADED STUD SHEAR CONNECTOR</td><td class="zh">圆柱头焊钉剪力连接件</td></tr>
+<tr><td class="en">SHEAR STUD CONNECTOR / SHEAR STUD</td><td class="zh">剪力栓钉 / 剪力钉</td></tr>
+<tr><td class="en">SHEAR CONNECTOR</td><td class="zh">剪力连接件</td></tr>
+<tr><td class="en">STUD CONNECTOR</td><td class="zh">栓钉连接件</td></tr>
+<tr><td class="en">SHEAR KEY</td><td class="zh">剪力键</td></tr>
+<tr><td class="en">STUD</td><td class="zh">栓钉</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑪ 桥墩桥台 -->
+<div class="category-block" data-cat="桥墩桥台">
+<div class="category-title">桥墩桥台</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">PIER CAP</td><td class="zh">墩帽</td></tr>
+<tr><td class="en">PIER</td><td class="zh">桥墩</td></tr>
+<tr><td class="en">ABUTMENT</td><td class="zh">桥台</td></tr>
+<tr><td class="en">ABUTMENT / PIER</td><td class="zh">桥台 / 桥墩</td></tr>
+<tr><td class="en">PILE CAP</td><td class="zh">承台</td></tr>
+<tr><td class="en">FOOTING</td><td class="zh">基础</td></tr>
+<tr><td class="en">BRIDGE</td><td class="zh">桥梁</td></tr>
+<tr><td class="en">APPROACH SPAN</td><td class="zh">引桥跨</td></tr>
+<tr><td class="en">MAIN SPAN</td><td class="zh">主跨</td></tr>
+<tr><td class="en">SPAN</td><td class="zh">跨径</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑫ 桥面板 -->
+<div class="category-block" data-cat="桥面板">
+<div class="category-title">桥面板</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">RC DECK SLAB / REINFORCED CONCRETE DECK</td><td class="zh">钢筋混凝土桥面板</td></tr>
+<tr><td class="en">CONCRETE DECK SLAB / CONCRETE DECK</td><td class="zh">混凝土桥面板</td></tr>
+<tr><td class="en">DECK SLAB / DECK</td><td class="zh">桥面板</td></tr>
+<tr><td class="en">SLAB</td><td class="zh">板</td></tr>
+<tr><td class="en">DRAIN HOLE / DRAINAGE HOLE</td><td class="zh">排水孔</td></tr>
+<tr><td class="en">MANHOLE</td><td class="zh">人孔</td></tr>
+<tr><td class="en">HAND HOLE</td><td class="zh">手孔</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑬ 混凝土钢筋 -->
+<div class="category-block" data-cat="混凝土钢筋">
+<div class="category-title">混凝土 / 钢筋</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">REINFORCED CONCRETE</td><td class="zh">钢筋混凝土</td></tr>
+<tr><td class="en">PRESTRESSED CONCRETE</td><td class="zh">预应力混凝土</td></tr>
+<tr><td class="en">PRECAST CONCRETE</td><td class="zh">预制混凝土</td></tr>
+<tr><td class="en">CAST IN PLACE</td><td class="zh">现浇</td></tr>
+<tr><td class="en">CONCRETE</td><td class="zh">混凝土</td></tr>
+<tr><td class="en">MAIN BAR / MAIN REINFORCEMENT</td><td class="zh">主筋 / 主钢筋</td></tr>
+<tr><td class="en">TRANSVERSE BAR</td><td class="zh">横向钢筋</td></tr>
+<tr><td class="en">DISTRIBUTION BAR</td><td class="zh">分布钢筋</td></tr>
+<tr><td class="en">STIRRUP</td><td class="zh">箍筋</td></tr>
+<tr><td class="en">REINFORCEMENT / REBAR</td><td class="zh">钢筋</td></tr>
+<tr><td class="en">CONNECTING REBAR / DOWEL BAR</td><td class="zh">连接钢筋</td></tr>
+<tr><td class="en">REBAR LAYOUT</td><td class="zh">钢筋布置图</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑭ 钢板 -->
+<div class="category-block" data-cat="钢板">
+<div class="category-title">钢材 / 钢板</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">STRUCTURAL STEEL</td><td class="zh">结构钢</td></tr>
+<tr><td class="en">STEEL PLATE / PLATE</td><td class="zh">钢板</td></tr>
+<tr><td class="en">GUSSET PLATE</td><td class="zh">节点板</td></tr>
+<tr><td class="en">CONNECTION PLATE</td><td class="zh">连接板</td></tr>
+<tr><td class="en">END PLATE</td><td class="zh">端板</td></tr>
+<tr><td class="en">BASE PLATE</td><td class="zh">底板</td></tr>
+<tr><td class="en">COVER PLATE</td><td class="zh">盖板</td></tr>
+<tr><td class="en">SHELF PLATE / CANTILEVER PLATE</td><td class="zh">悬臂托板 / 悬板</td></tr>
+<tr><td class="en">SOLE PLATE</td><td class="zh">垫板</td></tr>
+<tr><td class="en">RING PLATE / ANNULAR PLATE</td><td class="zh">环形板</td></tr>
+<tr><td class="en">RIB PLATE</td><td class="zh">肋板</td></tr>
+<tr><td class="en">STEEL</td><td class="zh">钢材</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑮ 图纸视图 -->
+<div class="category-block" data-cat="图纸视图">
+<div class="category-title">图纸视图</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">PLAN VIEW / PLAN</td><td class="zh">平面图</td></tr>
+<tr><td class="en">FRONT ELEVATION</td><td class="zh">正立面图</td></tr>
+<tr><td class="en">SIDE ELEVATION</td><td class="zh">侧立面图</td></tr>
+<tr><td class="en">ELEVATION VIEW / ELEVATION</td><td class="zh">立面图</td></tr>
+<tr><td class="en">CROSS SECTION / TYPICAL SECTION</td><td class="zh">横截面 / 典型截面</td></tr>
+<tr><td class="en">TYPICAL CROSS SECTION</td><td class="zh">典型横断面</td></tr>
+<tr><td class="en">LONGITUDINAL SECTION</td><td class="zh">纵截面</td></tr>
+<tr><td class="en">LONGITUDINAL PROFILE</td><td class="zh">纵断面图</td></tr>
+<tr><td class="en">SECTION VIEW / SECTION</td><td class="zh">剖面图 / 截面</td></tr>
+<tr><td class="en">DETAIL</td><td class="zh">详图</td></tr>
+<tr><td class="en">COPE DETAIL</td><td class="zh">切口详图</td></tr>
+<tr><td class="en">TYPICAL</td><td class="zh">典型</td></tr>
+<tr><td class="en">SEGMENT PLAN VIEW</td><td class="zh">分段平面图</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑯ 标注说明 -->
+<div class="category-block" data-cat="标注说明">
+<div class="category-title">标注说明</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">SYMMETRICAL ABOUT / SYMMETRICAL</td><td class="zh">关于...对称 / 对称</td></tr>
+<tr><td class="en">SYM ABOUT / SYM</td><td class="zh">对称于 / 对称</td></tr>
+<tr><td class="en">GENERAL NOTES</td><td class="zh">一般说明</td></tr>
+<tr><td class="en">NOTES / NOTE</td><td class="zh">注释 / 注</td></tr>
+<tr><td class="en">TYP</td><td class="zh">典型</td></tr>
+<tr><td class="en">QUANTITY / NO.</td><td class="zh">数量 / 编号</td></tr>
+<tr><td class="en">SEE TABLE / SEE SCHEDULE</td><td class="zh">见表</td></tr>
+<tr><td class="en">SEE DETAIL / SEE DRAWING</td><td class="zh">见详图</td></tr>
+<tr><td class="en">AS SHOWN</td><td class="zh">如图所示</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑰ 尺寸 -->
+<div class="category-block" data-cat="尺寸">
+<div class="category-title">尺寸标注</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">CENTERLINE / CENTRELINE / CENTER LINE</td><td class="zh">中心线</td></tr>
+<tr><td class="en">ROAD CENTERLINE / ROUTE CENTERLINE</td><td class="zh">路线中心线</td></tr>
+<tr><td class="en">THICKNESS / THK</td><td class="zh">厚度 / 厚</td></tr>
+<tr><td class="en">DEPTH</td><td class="zh">梁高</td></tr>
+<tr><td class="en">HEIGHT</td><td class="zh">高度</td></tr>
+<tr><td class="en">WIDTH</td><td class="zh">宽度</td></tr>
+<tr><td class="en">ROAD WIDTH</td><td class="zh">路幅宽度</td></tr>
+<tr><td class="en">LENGTH</td><td class="zh">长度</td></tr>
+<tr><td class="en">DIAMETER / DIA</td><td class="zh">直径</td></tr>
+<tr><td class="en">RADIUS</td><td class="zh">半径</td></tr>
+<tr><td class="en">SPACING / SPACES</td><td class="zh">间距</td></tr>
+<tr><td class="en">EQ / EQUAL</td><td class="zh">等分</td></tr>
+<tr><td class="en">CONT / CONTINUOUS</td><td class="zh">连续</td></tr>
+<tr><td class="en">MAX</td><td class="zh">最大</td></tr>
+<tr><td class="en">MIN</td><td class="zh">最小</td></tr>
+<tr><td class="en">VARIES / VARIABLE</td><td class="zh">可变宽度 / 变化</td></tr>
+<tr><td class="en">OUTSIDE / EXTERIOR</td><td class="zh">外侧</td></tr>
+<tr><td class="en">INSIDE / INTERIOR</td><td class="zh">内侧</td></tr>
+<tr><td class="en">LEFT SIDE</td><td class="zh">左侧</td></tr>
+<tr><td class="en">RIGHT SIDE</td><td class="zh">右侧</td></tr>
+<tr><td class="en">CENTER / CENTRE / MIDDLE</td><td class="zh">中部</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑱ 结构其他 -->
+<div class="category-block" data-cat="结构其他">
+<div class="category-title">结构其他</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">CAMBER DIAGRAM</td><td class="zh">预拱度图</td></tr>
+<tr><td class="en">CAMBER</td><td class="zh">预拱度</td></tr>
+<tr><td class="en">LATERAL BRACING</td><td class="zh">横向支撑</td></tr>
+<tr><td class="en">CROSS FRAME</td><td class="zh">横向框架</td></tr>
+<tr><td class="en">BRACING</td><td class="zh">支撑</td></tr>
+<tr><td class="en">EXPANSION JOINT</td><td class="zh">伸缩缝</td></tr>
+<tr><td class="en">SKEW ANGLE</td><td class="zh">斜交角</td></tr>
+<tr><td class="en">SKEW</td><td class="zh">斜交</td></tr>
+<tr><td class="en">GRADE / SLOPE</td><td class="zh">坡度</td></tr>
+<tr><td class="en">TOTAL</td><td class="zh">合计</td></tr>
+<tr><td class="en">EACH SIDE</td><td class="zh">两侧各</td></tr>
+<tr><td class="en">BOTH SIDES</td><td class="zh">两侧</td></tr>
+<tr><td class="en">FIELD</td><td class="zh">现场</td></tr>
+<tr><td class="en">SHOP</td><td class="zh">工厂</td></tr>
+<tr><td class="en">ERECTION</td><td class="zh">安装架设</td></tr>
+<tr><td class="en">FABRICATION</td><td class="zh">制造</td></tr>
+<tr><td class="en">LADDER / ACCESS LADDER</td><td class="zh">爬梯</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑲ 涂装 -->
+<div class="category-block" data-cat="涂装">
+<div class="category-title">涂装防腐</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">HOT DIP GALVANIZE</td><td class="zh">热浸镀锌</td></tr>
+<tr><td class="en">GALVANIZE</td><td class="zh">镀锌</td></tr>
+<tr><td class="en">PAINT SYSTEM</td><td class="zh">涂装体系</td></tr>
+<tr><td class="en">PRIMER</td><td class="zh">底漆</td></tr>
+<tr><td class="en">PAINT</td><td class="zh">油漆</td></tr>
+<tr><td class="en">COAT</td><td class="zh">涂层</td></tr>
+</tbody></table>
+</div>
+
+<!-- ⑳ 图框信息 -->
+<div class="category-block" data-cat="图框信息">
+<div class="category-title">图框信息</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">DRAWN BY</td><td class="zh">绘图</td></tr>
+<tr><td class="en">CHECKED BY</td><td class="zh">校核</td></tr>
+<tr><td class="en">APPROVED BY / APPROVED</td><td class="zh">审批 / 批准</td></tr>
+<tr><td class="en">REVISION</td><td class="zh">修订</td></tr>
+<tr><td class="en">SCALE</td><td class="zh">比例</td></tr>
+<tr><td class="en">SHEET</td><td class="zh">图号</td></tr>
+<tr><td class="en">SHEET X OF Y</td><td class="zh">第X页，共Y页</td></tr>
+<tr><td class="en">DATE</td><td class="zh">日期</td></tr>
+</tbody></table>
+</div>
+
+<!-- ㉑ 桥面附属 -->
+<div class="category-block" data-cat="桥面附属">
+<div class="category-title">桥面附属</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">MEDIAN BARRIER / MEDIAN CRASH BARRIER</td><td class="zh">中间防撞护栏 / 中护栏</td></tr>
+<tr><td class="en">EDGE BARRIER / EDGE CRASH BARRIER</td><td class="zh">边防撞护栏 / 边护栏</td></tr>
+<tr><td class="en">TRAFFIC LANE / TRAVEL LANE</td><td class="zh">行车道</td></tr>
+<tr><td class="en">SHOULDER / RIGHT SHOULDER / LEFT SHOULDER</td><td class="zh">路肩 / 右路肩 / 左路肩</td></tr>
+<tr><td class="en">NORTHBOUND LANE</td><td class="zh">北向车道</td></tr>
+<tr><td class="en">SOUTHBOUND LANE</td><td class="zh">南向车道</td></tr>
+<tr><td class="en">FWS / FLEXIBLE WEARING SURFACE</td><td class="zh">FWS桥面铺装</td></tr>
+</tbody></table>
+</div>
+
+<!-- ㉒ 图纸标记 -->
+<div class="category-block" data-cat="图纸标记">
+<div class="category-title">图纸标记缩写</div>
+<table><thead><tr><th>英文</th><th>中文</th></tr></thead><tbody>
+<tr><td class="en">PL (PLATE)</td><td class="zh">板</td></tr>
+<tr><td class="en">W (WIDTH)</td><td class="zh">宽</td></tr>
+<tr><td class="en">T / THK (THICKNESS)</td><td class="zh">厚</td></tr>
+<tr><td class="en">L (LENGTH)</td><td class="zh">长</td></tr>
+<tr><td class="en">H (HEIGHT)</td><td class="zh">高</td></tr>
+<tr><td class="en">φ / DIA (DIAMETER)</td><td class="zh">直径</td></tr>
+<tr><td class="en">CL / ℄ (CENTERLINE)</td><td class="zh">中心线</td></tr>
+<tr><td class="en">TYP (TYPICAL)</td><td class="zh">典型</td></tr>
+<tr><td class="en">SYM (SYMMETRICAL)</td><td class="zh">对称</td></tr>
+<tr><td class="en">BRG (BEARING)</td><td class="zh">支座</td></tr>
+<tr><td class="en">STF / STIF (STIFFENER)</td><td class="zh">加劲肋</td></tr>
+<tr><td class="en">BOT (BOTTOM)</td><td class="zh">底部</td></tr>
+<tr><td class="en">TOP</td><td class="zh">顶部</td></tr>
+<tr><td class="en">LT (LEFT)</td><td class="zh">左</td></tr>
+<tr><td class="en">RT (RIGHT)</td><td class="zh">右</td></tr>
+</tbody></table>
+</div>
+
+</div><!-- /container -->
+
+<script>
+(function(){
+  var rows = document.querySelectorAll('tbody tr');
+  document.getElementById('totalCount').textContent = rows.length;
+  document.getElementById('countLabel').textContent = '显示 ' + rows.length + ' / ' + rows.length + ' 条';
+})();
+
+function filterTable(){
+  var kw  = document.getElementById('searchBox').value.trim().toUpperCase();
+  var cat = document.getElementById('catFilter').value;
+  var blocks = document.querySelectorAll('.category-block');
+  var shown = 0, total = 0;
+
+  blocks.forEach(function(block){
+    var blockCat = block.getAttribute('data-cat');
+    var rows = block.querySelectorAll('tbody tr');
+    var anyVisible = false;
+    rows.forEach(function(row){
+      total++;
+      var en = row.cells[0].textContent.toUpperCase();
+      var zh = row.cells[1].textContent;
+      var mKw  = !kw  || en.indexOf(kw) >= 0 || zh.indexOf(kw) >= 0;
+      var mCat = !cat || blockCat === cat;
+      if(mKw && mCat){ row.classList.remove('hidden'); anyVisible=true; shown++; }
+      else            { row.classList.add('hidden'); }
+    });
+    block.classList.toggle('hidden', !anyVisible);
+  });
+  document.getElementById('countLabel').textContent = '显示 ' + shown + ' / ' + document.querySelectorAll('tbody tr').length + ' 条';
+}
+
+window.addEventListener('scroll',function(){
+  document.getElementById('backToTop').classList.toggle('show', window.scrollY>200);
+},{passive:true});
+function scrollToTop(){
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+<button id="backToTop" class="back-to-top" onclick="scrollToTop()" title="返回顶部">↑</button>
+</body>
+</html>

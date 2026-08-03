@@ -1,0 +1,2811 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>缆索吊计算程序 v15.0</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"微软雅黑","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#222;font-size:14px;display:flex}
+
+/* ===== 侧边栏 ===== */
+.sidebar{
+  position:fixed;left:0;top:0;width:120px;height:100vh;
+  background:#1a3a5c;display:flex;flex-direction:column;
+  z-index:200;box-shadow:3px 0 10px rgba(0,0,0,.25);overflow-y:auto;
+}
+.sidebar-logo{
+  padding:14px 8px 12px;color:#fff;text-align:center;
+  border-bottom:1px solid rgba(255,255,255,.2);line-height:1.5;
+}
+.sidebar-logo .ico{font-size:24px}
+.sidebar-logo .name{font-size:11px;font-weight:700;margin-top:4px;opacity:.9}
+.sidebar nav{display:flex;flex-direction:column;padding:6px 0;flex:1}
+.sidebar nav button{
+  background:none;border:none;color:rgba(255,255,255,.72);
+  padding:14px 6px;cursor:pointer;font-size:12px;font-family:inherit;
+  text-align:center;border-left:3px solid transparent;
+  transition:.18s;display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.sidebar nav button .ni{font-size:20px}
+.sidebar nav button.active{color:#fff;border-left-color:#ffd04b;background:rgba(255,255,255,.1)}
+.sidebar nav button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.sidebar-ver{padding:8px;text-align:center;font-size:10px;color:rgba(255,255,255,.3)}
+
+/* ===== 主内容区 ===== */
+.content{margin-left:120px;height:100vh;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;width:calc(100vw - 120px)}
+.topbar{background:#2455a4;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topbar h1{font-size:15px;font-weight:700}
+.topbar p{font-size:11px;opacity:.72;margin-top:2px}
+.home-btn{flex-shrink:0;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);
+  padding:6px 14px;border-radius:5px;font-size:12px;font-weight:600;text-decoration:none;
+  cursor:pointer;transition:.2s;white-space:nowrap}
+.home-btn:hover{background:rgba(255,255,255,.28)}
+.back-to-top{position:fixed;right:24px;bottom:32px;width:46px;height:46px;border-radius:50%;
+  background:#2455a4;color:#fff;border:none;box-shadow:0 3px 12px rgba(0,0,0,.25);
+  font-size:20px;cursor:pointer;display:none;align-items:center;justify-content:center;
+  z-index:300;transition:.2s}
+.back-to-top:hover{background:#1a3a5c}
+.back-to-top.show{display:flex}
+
+.page{display:none;padding:16px 20px;width:100%;box-sizing:border-box}
+.page.active{display:block}
+
+/* ===== 通用组件 ===== */
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.1);margin-bottom:14px}
+.card-header{background:#2455a4;color:#fff;padding:9px 14px;border-radius:8px 8px 0 0;font-weight:600;font-size:13.5px}
+.card-body{padding:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+label{display:block;margin-bottom:3px;font-size:11.5px;color:#555;font-weight:600}
+input,select{width:100%;padding:6px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;background:#fafafa}
+input:focus,select:focus{outline:none;border-color:#2455a4;background:#fff}
+.unit{font-size:10.5px;color:#999;margin-top:2px}
+.divider{border:none;border-top:1px solid #eee;margin:10px 0}
+.btn{padding:9px 22px;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s}
+.btn-primary{background:#2455a4;color:#fff}.btn-primary:hover{background:#1a3a5c}
+.btn-success{background:#28a745;color:#fff}
+.btn-outline{background:#fff;border:1px solid #2455a4;color:#2455a4}.btn-outline:hover{background:#f0f4ff}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-danger-sm{background:#dc3545;color:#fff;padding:4px 10px;border:none;border-radius:4px;cursor:pointer;font-size:12px}
+.flex-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.note{font-size:11px;color:#666;background:#fffde7;border:1px solid #ffd;padding:7px 11px;border-radius:4px;margin-top:8px}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+.tag-ok{background:#d4edda;color:#155724}.tag-fail{background:#f8d7da;color:#721c24}
+.ok{color:#28a745;font-weight:700}.fail{color:#dc3545;font-weight:700}
+.pg-label{font-size:11.5px;font-weight:700;padding:3px 10px 3px 10px;border-radius:3px;margin:12px 0 6px;display:inline-block}
+.pg-geo{background:#e8f0fe;color:#1a3a8c;border-left:3px solid #2455a4}
+.pg-elev{background:#e6f4ea;color:#1a5c2a;border-left:3px solid #34a853}
+.pg-safe{background:#fef9e7;color:#7d5a00;border-left:3px solid #f4a900}
+.pg-rope{background:#fde8e8;color:#8b0000;border-left:3px solid #cc2200}
+.pg-hoist{background:#e8f5e9;color:#1b5e20;border-left:3px solid #2e7d32}
+.pg-tract{background:#e3f2fd;color:#0d3c6e;border-left:3px solid #1565c0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#2455a4;color:#fff;padding:7px 10px;text-align:center;font-weight:600}
+td{padding:6px 10px;border-bottom:1px solid #eee;text-align:center}
+tr:hover td{background:#f0f4ff}
+/* 数据库表格：不强制100%宽，让内容自然撑开 */
+#rope-table{width:auto;min-width:860px;white-space:nowrap}
+#rope-table td{padding:4px 6px}
+#rope-table input{box-sizing:border-box;padding:3px 5px;border:1px solid #d0d5e0;border-radius:3px;font-size:12px;text-align:right}
+.result-box{background:#f7faff;border:1px solid #c8d8f0;border-radius:6px;padding:13px;margin-bottom:14px}
+.result-title{font-weight:700;color:#1a3a5c;font-size:15px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #2455a4}
+.step{margin-bottom:10px;padding:9px 11px;border-left:4px solid #2455a4;background:#f0f4ff;border-radius:0 4px 4px 0}
+.step-title{font-weight:700;color:#1a3a5c;font-size:12.5px;margin-bottom:3px}
+.step-body{font-size:12px;line-height:1.8}
+.summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.summary-item{background:#fff;border:1px solid #dde;border-radius:5px;padding:8px;text-align:center}
+.summary-item .val{font-size:15px;font-weight:700;color:#2455a4}
+.summary-item .lbl{font-size:10px;color:#777;margin-top:2px}
+/* 图容器 */
+.grid-diag{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.dw{background:#fff;border-radius:4px}
+.diagram-note{font-size:10px;color:#bbb;margin-top:4px}
+/* ===== 所有 grid-diag：flex 居中链 ===== */
+.grid-diag .card{display:flex;flex-direction:column}
+.grid-diag .card-body{flex:1;display:flex;flex-direction:column;padding:8px}
+.grid-diag .dw{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+.grid-diag .dw svg{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
+.grid-diag .diagram-note{flex:0 0 auto}
+/* ===== 塔架页覆盖：固定卡高 + 缩放按钮 ===== */
+#page-tower .grid-diag{grid-template-columns:1fr 1fr}
+#page-tower .grid-diag .card{height:360px;overflow:hidden}
+#page-tower .grid-diag .card-body{padding:6px 8px 4px}
+#page-tower .grid-diag .diagram-note{margin-top:3px}
+.tw-zoom-btns{display:flex;gap:4px;margin-left:auto}
+.tw-zoom-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:4px;padding:0 8px;font-size:15px;line-height:1.6;cursor:pointer}
+.tw-zoom-btn:hover{background:rgba(255,255,255,.35)}
+/* ===== 两栏主布局 ===== */
+.page-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.action-panel{background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.13);padding:16px;margin-bottom:14px;position:sticky;top:16px;z-index:50;border-top:3px solid #2455a4}
+.action-panel-title{font-size:11px;color:#888;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.action-btn-row{display:flex;gap:8px;margin-top:8px}
+@media(max-width:960px){.page-2col{grid-template-columns:1fr}}
+
+@media print{
+  .sidebar,.btn-outline{display:none!important}
+  .content{margin-left:0!important}
+  .card{box-shadow:none;break-inside:avoid}
+  .page{display:block!important}
+  .page:not(.active){display:none!important}
+}
+
+/* ===== 说明页：说明书原样嵌入 ===== */
+/* 布局：主内容 + 右侧粘性目录 */
+#page-help .man-wrap{display:flex;align-items:flex-start}
+#page-help .man-content{flex:1;min-width:0}
+#page-help .man-toc-col{width:185px;flex-shrink:0;margin-left:16px;position:sticky;top:16px;max-height:calc(100vh - 80px);overflow-y:auto}
+#page-help .man-toc{background:#fff;border:1px solid #dde3ee;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+#page-help .man-toc-hdr{background:#1a3a5c;color:#fff;padding:10px 13px;font-size:11.5px;font-weight:700;border-bottom:2px solid #e07b39}
+#page-help .man-toc-nav a{display:block;padding:7px 10px 7px 13px;color:#555;text-decoration:none;font-size:11px;line-height:1.45;border-left:3px solid transparent;border-bottom:1px solid #f0f0f0;transition:.15s}
+#page-help .man-toc-nav a:hover{color:#e07b39;background:#fdf6f1}
+#page-help .man-toc-nav a.man-active{color:#e07b39;border-left-color:#e07b39;background:#fdf6f1;font-weight:700}
+/* 覆盖程序.card样式（灰边框，无蓝色头） */
+#page-help .card{border:1px solid #dde3ee;padding:18px 22px;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:18px}
+#page-help .card-title{font-size:12pt;font-weight:bold;color:#1a3a5c;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #eef0f5;display:block;background:none;border-radius:0;padding-top:0}
+/* 排版：覆盖程序全局样式 */
+#page-help{font-size:13px;line-height:1.7;color:#222}
+#page-help .man-h1{font-size:20pt;font-weight:bold;color:#1a3a5c;border-bottom:3px solid #e07b39;padding-bottom:10px;margin-bottom:6px}
+#page-help .man-subtitle{color:#666;font-size:11pt;margin-bottom:28px}
+#page-help h2{font-size:14pt;color:#1a3a5c;border-left:5px solid #e07b39;padding-left:12px;margin:30px 0 14px;background:none;border-radius:0;font-weight:bold}
+#page-help h3{font-size:12pt;color:#2d5a8e;margin:20px 0 10px;padding-left:4px}
+#page-help h4{font-size:11pt;color:#444;margin:14px 0 6px}
+#page-help p{margin-bottom:8px;color:#333}
+#page-help ul,#page-help ol{padding-left:22px;margin-bottom:10px}
+#page-help li{margin-bottom:4px}
+/* 表格 */
+#page-help table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}
+#page-help th{background:#1a3a5c;color:#fff;padding:7px 10px;text-align:left;font-weight:normal}
+#page-help td{padding:6px 10px;border-bottom:1px solid #e8ebf2;vertical-align:top;text-align:left}
+#page-help tr:nth-child(even) td{background:#f7f8fb}
+#page-help tr:hover td{background:#eef3ff}
+/* 说明页特有组件 */
+#page-help .formula-block{background:#f0f4ff;border-left:4px solid #4472c4;border-radius:4px;padding:12px 16px;margin:10px 0;font-family:"Courier New",monospace;font-size:12px;line-height:2;white-space:pre-wrap}
+#page-help .warn-block{background:#fff8e1;border-left:4px solid #f0a500;border-radius:4px;padding:12px 16px;margin:10px 0}
+#page-help .toc{background:#fff;border:1px solid #dde3ee;border-radius:8px;padding:16px 22px;margin-bottom:28px}
+#page-help .toc-title{font-weight:bold;color:#1a3a5c;margin-bottom:10px;font-size:12pt}
+#page-help .toc a{color:#2d5a8e;text-decoration:none;display:block;padding:3px 0;border-bottom:1px dotted #ddd}
+#page-help .toc a:hover{color:#e07b39}
+#page-help .toc a span{float:right;color:#aaa;font-size:11px}
+#page-help .step-num{display:inline-block;background:#e07b39;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:11px;margin-right:6px;flex-shrink:0}
+#page-help .step-row{display:flex;align-items:flex-start;margin-bottom:8px}
+#page-help .step-content{flex:1}
+#page-help .module-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+#page-help .module-icon{font-size:18pt}
+#page-help .module-meta{flex:1}
+#page-help .module-meta .name{font-size:13pt;font-weight:bold;color:#1a3a5c}
+#page-help .module-meta .ref{font-size:10px;color:#888}
+#page-help .io-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
+#page-help .io-box{background:#f8f9fc;border:1px solid #dde3ee;border-radius:6px;padding:12px}
+#page-help .io-box .io-label{font-weight:bold;color:#444;margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+#page-help .io-box ul{padding-left:16px;margin:0}
+#page-help .io-box li{font-size:12px;margin-bottom:3px}
+#page-help .flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:12px 0}
+#page-help .flow-item{background:#e8edf5;border:1px solid #b0bcd8;border-radius:4px;padding:4px 10px;font-size:11px;color:#333}
+#page-help .flow-arrow{color:#e07b39;font-size:14px;font-weight:bold}
+</style>
+</head>
+<body>
+
+<!-- ===== 侧边栏 ===== -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="ico">⚙</div>
+    <div class="name">缆索吊<br>计算程序</div>
+  </div>
+  <nav>
+    <button class="active" onclick="showTab('design',this)">
+      <span class="ni">📐</span>设计
+    </button>
+    <button onclick="showTab('verify',this)">
+      <span class="ni">✅</span>验算
+    </button>
+    <button onclick="showTab('tower',this)">
+      <span class="ni">🏗</span>塔架
+    </button>
+    <button onclick="showTab('db',this)">
+      <span class="ni">📋</span>数据库
+    </button>
+    <button onclick="showTab('help',this)">
+      <span class="ni">📖</span>说明
+    </button>
+  </nav>
+  <div class="sidebar-ver">v15.0 · 周继祖1981</div>
+</div>
+
+<!-- ===== 主内容 ===== -->
+<div class="content">
+  <div class="topbar">
+    <div>
+      <h1>缆索吊设计验算计算程序</h1>
+      <p>理论依据：周继祖《缆索吊车》1981版 &nbsp;|&nbsp; 适用于桥梁、水利工程施工缆索吊</p>
+    </div>
+    <a href="index.html" class="home-btn">← 返回主页</a>
+  </div>
+
+  <!-- ===== 设计页 ===== -->
+  <div id="page-design" class="page active">
+    <!-- 图在最前 -->
+    <div class="grid-diag">
+      <div class="card">
+        <div class="card-header">📐 立面示意图（设计）</div>
+        <div class="card-body">
+          <div class="dw" id="d-elev"></div>
+          <div class="diagram-note">示意图，竖向比例可能放大</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">🗺 平面示意图（设计）</div>
+        <div class="card-body">
+          <div class="dw" id="d-plan"></div>
+          <div class="diagram-note">俯视示意，索间距示意</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-2col">
+    <!-- LEFT: input card -->
+    <div>
+    <!-- 输入参数（上） -->
+    <div class="card">
+      <div class="card-header">📋 设计参数输入</div>
+      <div class="card-body">
+        <div class="pg-label pg-geo">📏 跨径与荷载</div>
+        <div class="grid4">
+          <div><label>水平跨径 L (m)</label><input type="number" id="d_L" value="200" min="20" max="1000" oninput="debounceDraw('d')"><div class="unit">两塔架水平距离</div></div>
+          <div><label>两端高差 h (m)</label><input type="number" id="d_h" value="0" min="0" max="200" step="0.1" oninput="debounceDraw('d')"><div class="unit">高端减低端，0=等高</div></div>
+          <div><label>最大吊装荷载 Q (t)</label><input type="number" id="d_Q" value="5" min="0.5" max="500" step="0.5" oninput="debounceDraw('d')"><div class="unit">净吊重（不含吊具）</div></div>
+          <div><label>冲击系数 φ</label><input type="number" id="d_phi" value="0.25" min="0.1" max="0.5" step="0.05"><div class="unit">通常取 0.20~0.30</div></div>
+          <div><label>相对垂度 f/L</label>
+            <select id="d_fL" oninput="debounceDraw('d')">
+              <option value="0.04">1/25（推荐）</option>
+              <option value="0.05">1/20（大跨径）</option>
+              <option value="0.033">1/30（张紧型）</option>
+              <option value="0.067">1/15</option>
+            </select><div class="unit">推荐 1/20~1/30</div>
+          </div>
+          <div><label>主索根数</label><input type="number" id="d_nc" value="0" min="0" max="99" placeholder="0=自动" oninput="debounceDraw('d')"><div class="unit">0=自动，或正整数</div></div>
+          <div><label>跑车自重估算 (kg)</label><input type="number" id="d_Gtrolley" value="0" min="0" max="5000" step="50"><div class="unit">0=自动(≈15%Q)</div></div>
+          <div><label>附加均布荷载 (kg/m)</label><input type="number" id="d_qadd" value="2.5" min="0" max="20" step="0.5"><div class="unit">牵引索+起重索等</div></div>
+        </div>
+        <div class="pg-label pg-elev">📐 高程与净空</div>
+        <div class="grid4">
+          <div><label>低端塔基标高 (m)</label><input type="number" id="d_elev_A" value="0" step="0.1" oninput="debounceDraw('d')"></div>
+          <div><label>高端塔基标高 (m)</label><input type="number" id="d_elev_B" value="0" step="0.1" oninput="debounceDraw('d')"></div>
+          <div><label>跨中障碍物标高 (m)</label><input type="number" id="d_obstElev" value="0" step="0.1" oninput="debounceDraw('d')"></div>
+          <div><label>主索离障碍物净距 (m)</label><input type="number" id="d_clearance" value="2" min="1" max="10" step="0.5" oninput="debounceDraw('d')"></div>
+        </div>
+        <div class="pg-label pg-safe">🔒 安全系数要求</div>
+        <div class="grid4">
+          <div><label>主索 K₁≥</label><input type="number" id="d_K1main" value="3.0" min="2.5" max="5" step="0.5"></div>
+          <div><label>起重索 K₁≥</label><input type="number" id="d_K1hoist" value="5.0" min="4" max="8" step="0.5"></div>
+          <div><label>牵引索 K₁≥</label><input type="number" id="d_K1tract" value="4.0" min="3" max="6" step="0.5"></div>
+        </div>
+        <hr class="divider">
+        <div style="cursor:pointer;font-size:12px;color:#2455a4;font-weight:600;margin-bottom:6px" onclick="toggleAdv('d')">▶ 高级参数（牵引索/起重索详细计算）</div>
+        <div id="d_adv" style="display:none">
+          <div class="grid4" style="margin-top:8px">
+            <div><label>吊钩+动滑轮重 (kg)</label><input type="number" id="d_Ghook" value="0" min="0" step="10"><div class="unit">0=不计，约净吊重8~15%</div></div>
+            <div><label>防磨段长度 la (m)</label><input type="number" id="d_la" value="30" min="5" max="100" step="5"><div class="unit">牵引索端部防磨段</div></div>
+            <div><label>走行轮直径 (mm)</label><input type="number" id="d_Dwheel" value="500" min="200" max="1000" step="50"><div class="unit">跑车走行轮</div></div>
+            <div><label>走行轮轴半径 ρ (mm)</label><input type="number" id="d_rhowheel" value="25" min="10" max="60" step="5"><div class="unit">轮轴半径</div></div>
+            <div><label>轴承摩擦系数 μ₁</label><input type="number" id="d_mu1" value="0.012" min="0.005" max="0.05" step="0.001"><div class="unit">滚动轴承取0.012</div></div>
+            <div><label>轮缘摩擦 μ₀ (mm)</label><input type="number" id="d_mu0" value="0.6" min="0.3" max="2" step="0.1"><div class="unit">通常取0.6mm</div></div>
+            <div><label>起重+牵引滑轮总数</label><input type="number" id="d_ab" value="10" min="2" max="20"><div class="unit">a+b（见书§3-3）</div></div>
+            <div><label>绳轮直径 D (mm)</label><input type="number" id="d_Dpulley" value="500" min="200" max="1200" step="50"><div class="unit">起重/牵引绳轮</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- end LEFT -->
+    <!-- RIGHT: sticky action panel + result -->
+    <div>
+      <div class="action-panel">
+        <div class="action-panel-title">设计计算</div>
+        <button class="btn btn-primary" onclick="runDesign()" style="width:100%;font-size:15px;padding:10px 0">▶ 开始计算</button>
+        <div class="action-btn-row">
+          <button class="btn btn-outline" onclick="resetDesign()" style="flex:1" title="恢复默认参数">↺ 重置默认</button>
+          <button class="btn btn-outline" onclick="window.print()" style="flex:1">🖨 打印</button>
+        </div>
+      </div>
+      <div id="design-result">
+        <div class="card"><div class="card-header">💡 计算结果</div>
+          <div class="card-body" style="color:#999;text-align:center;padding:32px">填入参数后点击"开始计算"</div>
+        </div>
+      </div>
+    </div><!-- end RIGHT -->
+    </div><!-- end page-2col -->
+
+    <!-- ===== 沿线受力分析 ===== -->
+    <div class="card" id="stress-analysis-card" style="margin-top:4px">
+      <div class="card-header">📊 沿线受力分析（升角 / 各索张力随位置变化）</div>
+      <div class="card-body">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px">
+          <label style="font-size:12px;color:#555;font-weight:600">分析模式</label>
+          <select id="sa-mode" onchange="saToggleMode()" style="font-size:12px;padding:3px 8px;border:1px solid #ccc;border-radius:4px">
+            <option value="equal">等分 n 段</option>
+            <option value="step">固定步长 (m)</option>
+          </select>
+          <div id="sa-n-div" style="display:flex;align-items:center;gap:5px">
+            <label style="font-size:12px;color:#555">等分数 n =</label>
+            <input type="number" id="sa-n" value="20" min="5" max="200" style="width:60px;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px">
+          </div>
+          <div id="sa-step-div" style="display:none;flex-direction:row;align-items:center;gap:5px">
+            <label style="font-size:12px;color:#555">步长</label>
+            <input type="number" id="sa-step" value="5" min="0.1" step="0.1" style="width:60px;font-size:12px;padding:3px 6px;border:1px solid #ccc;border-radius:4px">
+            <span style="font-size:11px;color:#888">m</span>
+          </div>
+          <button class="btn btn-primary" onclick="runStressAnalysis()" style="padding:4px 16px;font-size:12px">▶ 分析</button>
+          <span style="width:1px;height:20px;background:#ddd;margin:0 6px;display:inline-block"></span>
+          <label style="font-size:11px;color:#444;cursor:pointer"><input type="checkbox" id="sa-chk-TA" checked onchange="runStressAnalysis()"> 甲端张力 T_A</label>
+          <label style="font-size:11px;color:#444;cursor:pointer"><input type="checkbox" id="sa-chk-TB" checked onchange="runStressAnalysis()"> 乙端张力 T_B</label>
+          <label style="font-size:11px;color:#444;cursor:pointer"><input type="checkbox" id="sa-chk-aL" checked onchange="runStressAnalysis()"> 左升角 α_L</label>
+          <label style="font-size:11px;color:#444;cursor:pointer"><input type="checkbox" id="sa-chk-aR" checked onchange="runStressAnalysis()"> 右升角 α_R</label>
+        </div>
+        <div id="sa-chart-area" style="min-height:60px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px">点击"▶ 分析"按钮显示沿线受力图表</div>
+        <div id="sa-table-area"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== 验算页 ===== -->
+  <div id="page-verify" class="page">
+    <!-- 图在最前 -->
+    <div class="grid-diag">
+      <div class="card">
+        <div class="card-header">📐 立面示意图（验算）</div>
+        <div class="card-body">
+          <div class="dw" id="v-elev"></div>
+          <div class="diagram-note">示意图，竖向比例可能放大</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">🗺 平面示意图（验算）</div>
+        <div class="card-body">
+          <div class="dw" id="v-plan"></div>
+          <div class="diagram-note">俯视示意，索间距示意</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-2col">
+    <!-- LEFT: input card -->
+    <div>
+    <!-- 输入参数（上） -->
+    <div class="card">
+      <div class="card-header">📋 验算参数输入</div>
+      <div class="card-body">
+        <div class="pg-label pg-geo">📏 跨径与荷载</div>
+        <div class="grid4">
+          <div><label>水平跨径 L (m)</label><input type="number" id="v_L" value="200" min="10" max="1000" oninput="debounceDraw('v')"></div>
+          <div><label>两端高差 h (m)</label><input type="number" id="v_h" value="0" min="0" step="0.1" oninput="debounceDraw('v')"></div>
+          <div><label>主索垂度 f_max (m)</label><input type="number" id="v_fmax" placeholder="留空=1/25L" step="0.1" oninput="debounceDraw('v')"></div>
+          <div><label>附加均布荷载 (kg/m)</label><input type="number" id="v_qadd" value="2.5" step="0.5"></div>
+          <div><label>冲击系数 φ</label><input type="number" id="v_phi" value="0.25" step="0.05"></div>
+        </div>
+        <div class="pg-label pg-rope">🔴 主索参数</div>
+        <div class="grid4">
+          <div><label>主索型号</label><select id="v_mainRope" onchange="fillVerifyRope('main');debounceDraw('v')"></select></div>
+          <div><label>主索根数</label><input type="number" id="v_nc" value="4" min="1" max="99" oninput="debounceDraw('v')"><div class="unit">任意正整数</div></div>
+          <div><label>破断拉力 Tp (kg)</label><input type="number" id="v_mainTp" placeholder="自动填入"></div>
+          <div><label>截面积 Fk (mm²)</label><input type="number" id="v_mainFk" placeholder="自动填入"></div>
+          <div><label>单重 (kg/m)</label><input type="number" id="v_mainW" placeholder="自动填入" step="0.01"></div>
+          <div><label>钢丝强度 σ_b (kg/mm²)</label><input type="number" id="v_mainSigma" placeholder="自动填入" step="0.1"></div>
+        </div>
+        <div class="pg-label pg-hoist">🟢 起重索参数</div>
+        <div class="grid4">
+          <div><label>起重索型号</label><select id="v_hoistRope" onchange="fillVerifyRope('hoist');debounceDraw('v')"></select></div>
+          <div><label>跑马绳数</label><select id="v_nparts" oninput="debounceDraw('v')"><option value="2">2根</option><option value="4" selected>4根</option><option value="6">6根</option><option value="8">8根</option><option value="10">10根</option></select></div>
+          <div><label>起重索 Tp (kg)</label><input type="number" id="v_hoistTp" placeholder="自动填入"></div>
+        </div>
+        <div class="pg-label pg-tract">🔵 牵引索参数</div>
+        <div class="grid4">
+          <div><label>牵引索型号</label><select id="v_tractRope" onchange="fillVerifyRope('tract');debounceDraw('v')"></select></div>
+          <div><label>牵引索 Tp (kg)</label><input type="number" id="v_tractTp" placeholder="自动填入"></div>
+        </div>
+        <div class="pg-label pg-safe">🔒 安全系数要求</div>
+        <div class="grid4">
+          <div><label>主索 K₁≥</label><input type="number" id="v_K1main" value="3.0" step="0.5"></div>
+          <div><label>起重索 K₁≥</label><input type="number" id="v_K1hoist" value="5.0" step="0.5"></div>
+          <div><label>牵引索 K₁≥</label><input type="number" id="v_K1tract" value="4.0" step="0.5"></div>
+        </div>
+        <hr class="divider">
+        <div style="cursor:pointer;font-size:12px;color:#2455a4;font-weight:600;margin-bottom:6px" onclick="toggleAdv('v')">▶ 高级参数（牵引索/起重索详细计算）</div>
+        <div id="v_adv" style="display:none">
+          <div class="grid4" style="margin-top:8px">
+            <div><label>吊钩+动滑轮重 (kg)</label><input type="number" id="v_Ghook" value="0" min="0" step="10"><div class="unit">0=不计</div></div>
+            <div><label>防磨段长度 la (m)</label><input type="number" id="v_la" value="30" min="5" max="100" step="5"></div>
+            <div><label>走行轮直径 (mm)</label><input type="number" id="v_Dwheel" value="500" min="200" max="1000" step="50"></div>
+            <div><label>走行轮轴半径 ρ (mm)</label><input type="number" id="v_rhowheel" value="25" min="10" max="60" step="5"></div>
+            <div><label>轴承摩擦系数 μ₁</label><input type="number" id="v_mu1" value="0.012" min="0.005" max="0.05" step="0.001"></div>
+            <div><label>轮缘摩擦 μ₀ (mm)</label><input type="number" id="v_mu0" value="0.6" min="0.3" max="2" step="0.1"></div>
+            <div><label>起重+牵引滑轮总数</label><input type="number" id="v_ab" value="10" min="2" max="20"></div>
+            <div><label>绳轮直径 D (mm)</label><input type="number" id="v_Dpulley" value="500" min="200" max="1200" step="50"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- end LEFT -->
+    <!-- RIGHT: sticky action panel + result -->
+    <div>
+      <div class="action-panel">
+        <div class="action-panel-title">验算</div>
+        <button class="btn btn-success" onclick="runVerify()" style="width:100%;font-size:15px;padding:10px 0">▶ 开始验算</button>
+        <div class="action-btn-row">
+          <button class="btn btn-outline" onclick="resetVerify()" style="flex:1" title="恢复默认参数">↺ 重置默认</button>
+          <button class="btn btn-outline" onclick="window.print()" style="flex:1">🖨 打印</button>
+        </div>
+      </div>
+      <div id="verify-result">
+        <div class="card"><div class="card-header">💡 验算结果</div>
+          <div class="card-body" style="color:#999;text-align:center;padding:32px">填入方案参数后点击"开始验算"</div>
+        </div>
+      </div>
+    </div><!-- end RIGHT -->
+    </div><!-- end page-2col -->
+  </div>
+
+  <!-- ===== 数据库页 ===== -->
+  <div id="page-db" class="page">
+    <div class="card">
+      <div class="card-header">📋 钢丝绳参数数据库（可编辑）</div>
+      <div class="card-body">
+        <div class="note">⚠ 数据参照周继祖《缆索吊车》1981版及GB/T 8918标准估算，重要工程请以实际产品检测报告为准。</div>
+
+        <!-- 符号说明 -->
+        <div style="background:#f0f4ff;border:1px solid #c8d8f0;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:12px;color:#333;line-height:1.9">
+          <div style="font-weight:700;color:#2455a4;margin-bottom:6px;font-size:13px">📘 参数符号说明</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:2px 24px">
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">d</span>　钢丝绳公称直径（外径），单位 mm</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">d<sub>s</sub></span>　单根钢丝直径，单位 mm</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">单重</span>　钢丝绳每米质量，单位 kg/m</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">F<sub>k</sub></span>　钢丝绳金属截面积（钢丝总面积），单位 mm²</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">T<sub>p</sub></span>　钢丝绳最小破断拉力（整绳），单位 kg</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">σ<sub>b</sub>′</span>　钢丝公称抗拉强度，单位 kg/mm²；主索常用 144~160，起重/牵引常用 125~140</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">E<sub>k</sub></span>　钢丝绳弹性模量，单位 kg/mm²；6×19 类约 8500~11000，主索（密封索）约 15000~18000</div>
+            <div><span style="font-weight:600;color:#1a3a5c;font-family:serif">用途</span>　主索（承载索）/ 起重索 / 牵引索，影响验算时的安全系数要求</div>
+          </div>
+          <div style="margin-top:8px;color:#777;font-size:11px">
+            T<sub>p</sub> 与 F<sub>k</sub>、σ<sub>b</sub>′ 的关系：T<sub>p</sub> ≈ k · F<sub>k</sub> · σ<sub>b</sub>′，其中 k 为捻制系数（6×19 类约 0.82~0.85）。<br>
+            安全系数 K₁ = T<sub>p</sub> / S（S 为工作张力），主索要求 K₁ ≥ 3.0，起重索 ≥ 5.0，牵引索 ≥ 4.0。
+          </div>
+        </div>
+
+        <div style="margin:10px 0"><button class="btn btn-primary btn-sm" onclick="addRopeRow()">＋ 添加型号</button></div>
+        <div style="overflow-x:auto">
+          <table id="rope-table"><thead><tr><th>型号</th><th>d(mm)</th><th>ds钢丝(mm)</th><th>单重(kg/m)</th><th>Fk(mm²)</th><th>Tp(kg)</th><th>σ_b'(kg/mm²)</th><th>Ek(kg/mm²)</th><th>用途</th><th>操作</th></tr></thead>
+          <tbody id="rope-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 塔架页 ===== -->
+  <div id="page-tower" class="page">
+    <!-- 两个塔架示意图 -->
+    <div class="grid-diag">
+      <div class="card" id="tw-card-A">
+        <div class="card-header" style="display:flex;align-items:center">
+          <span>🏗 甲端塔架（低端）受力示意图</span>
+          <div class="tw-zoom-btns">
+            <button class="tw-zoom-btn" onclick="zoomTower('A',-0.2)" title="缩小">－</button>
+            <button class="tw-zoom-btn" onclick="zoomTower('A',0)" title="重置">⊙</button>
+            <button class="tw-zoom-btn" onclick="zoomTower('A',0.2)" title="放大">＋</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dw" id="tw-A"></div>
+          <div class="diagram-note">甲端（低端）塔架，T_A = √(H²+V_A²)</div>
+        </div>
+      </div>
+      <div class="card" id="tw-card-B">
+        <div class="card-header" style="display:flex;align-items:center">
+          <span>🏗 乙端塔架（高端）受力示意图</span>
+          <div class="tw-zoom-btns">
+            <button class="tw-zoom-btn" onclick="zoomTower('B',-0.2)" title="缩小">－</button>
+            <button class="tw-zoom-btn" onclick="zoomTower('B',0)" title="重置">⊙</button>
+            <button class="tw-zoom-btn" onclick="zoomTower('B',0.2)" title="放大">＋</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dw" id="tw-B"></div>
+          <div class="diagram-note">乙端（高端）塔架，T_max = √(H²+V_B²)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-2col">
+    <!-- LEFT: linked card + geometry card -->
+    <div>
+    <!-- 来自缆索系统的关联参数（只读显示） -->
+    <div class="card" id="tw-linked-card">
+      <div class="card-header">🔗 来自设计模块的关联参数（请先在设计模块计算后点击"填入塔架验算"）</div>
+      <div class="card-body">
+        <div id="tw-linked-info" style="color:#999;font-size:12px;padding:4px 0">尚未关联缆索系统计算结果，请在设计模块计算后点击"🏗 → 填入塔架验算"按钮。也可在下方手动填写。</div>
+        <div class="pg-label pg-geo" style="margin-top:8px">🔗 公共绳索参数（牵引索/起重索走行两端）</div>
+        <div class="grid4">
+          <div><label>主索根数 n<sub>c</sub></label><input type="number" id="tw_nc" value="4" min="1" max="20" oninput="drawTowerSVGs()"><div class="unit">两端塔架相同</div></div>
+          <div><label>牵引索最大张力 t<sub>max</sub> (kg)</label><input type="number" id="tw_tmax" value="2473" step="100"><div class="unit">工作状态，来自缆索计算</div></div>
+          <div><label>起重索绞车端张力 T<sub>q</sub> (kg)</label><input type="number" id="tw_Tq" value="3199" step="100"><div class="unit">单头拉力</div></div>
+          <div><label>牵引索初张力 t<sub>0</sub> (kg)</label><input type="number" id="tw_t0" value="656" step="10"><div class="unit">防磨段张力</div></div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">
+          <div style="flex:1;min-width:220px;background:#f4f8ff;border:1px solid #b8d0ee;border-radius:6px;padding:10px">
+            <div class="pg-label pg-rope" style="margin:0 0 8px">🔷 甲端（低端）主索参数</div>
+            <div><label>每根主索张力 T_A (kg)</label><input type="number" id="tw_TA" value="20000" step="100" oninput="drawTowerSVGs()"><div class="unit">= √(H²+V_A²)</div></div>
+            <div style="margin-top:6px"><label>承载索切线角 φ_A (°)</label><input type="number" id="tw_phiA" value="7.0" step="0.1" oninput="drawTowerSVGs()"></div>
+            <div style="margin-top:6px"><label>塔架高度 H_A (m)</label><input type="number" id="tw_HA" value="30" step="0.1" oninput="drawTowerSVGs()"><div class="unit">来自设计：H甲 = 跨中净空+垂度-低端塔基标高</div></div>
+          </div>
+          <div style="flex:1;min-width:220px;background:#fffaf4;border:1px solid #e8c8a8;border-radius:6px;padding:10px">
+            <div class="pg-label pg-rope" style="margin:0 0 8px;background:#fde8dc;color:#7a2000;border-left-color:#cc4400">🔶 乙端（高端）主索参数</div>
+            <div><label>每根主索张力 T_B (kg)</label><input type="number" id="tw_TB" value="29042" step="100" oninput="drawTowerSVGs()"><div class="unit">= T_max = √(H²+V_B²)</div></div>
+            <div style="margin-top:6px"><label>承载索切线角 φ_B (°)</label><input type="number" id="tw_phiB" value="7.2" step="0.1" oninput="drawTowerSVGs()"></div>
+            <div style="margin-top:6px"><label>塔架高度 H_B (m)</label><input type="number" id="tw_HB" value="34" step="0.1" oninput="drawTowerSVGs()"><div class="unit">来自设计：H乙 = 跨中净空+垂度+高差-高端塔基标高</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 塔架几何参数（两端） -->
+    <div class="card">
+      <div class="card-header">📋 塔架几何与稳定参数</div>
+      <div class="card-body">
+        <div class="pg-label pg-safe">⚙ 公共稳定参数（两端塔架相同）</div>
+        <div class="grid4">
+          <div><label>锚固索倾角 α (°)</label><input type="number" id="tw_alpha" value="30" step="1" oninput="drawTowerSVGs()"><div class="unit">地锚绳对水平夹角（两端相同）</div></div>
+          <div><label>基本风压 w₀ (kg/m²)</label><input type="number" id="tw_w0" value="50" step="5"><div class="unit">临时结构通常取50</div></div>
+          <div><label>摩擦系数 f</label><input type="number" id="tw_fric" value="0.25" step="0.05"><div class="unit">柱靴与轨道面</div></div>
+          <div><label>稳定安全系数 K≥</label><input type="number" id="tw_Kreq" value="1.3" step="0.1"></div>
+        </div>
+        <!-- 两端塔架几何 -->
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px">
+          <div style="flex:1;min-width:240px;border:2px solid #b8d0ee;border-radius:8px;padding:10px;background:#f4f8ff">
+            <div style="font-weight:bold;color:#1a3a5c;margin-bottom:8px;font-size:12px;letter-spacing:.5px">🔷 甲端塔架（低端）几何</div>
+            <div class="grid4" style="grid-template-columns:1fr 1fr">
+              <div><label>底宽 B_A (m)</label><input type="number" id="tw_BA" value="6" step="0.5"></div>
+              <div><label>自重 W₁_A (t)</label><input type="number" id="tw_W1A" value="40" step="1"></div>
+              <div><label>压重 W₂_A (t)</label><input type="number" id="tw_W2A" value="4" step="0.5"></div>
+              <div><label>迎风面积 F_A (m²)</label><input type="number" id="tw_FA" value="40" step="1"></div>
+            </div>
+            <div style="margin-top:8px;font-size:11px;font-weight:600;color:#227722">🟢 风缆索（若需）</div>
+            <div class="grid4" style="grid-template-columns:1fr 1fr;margin-top:4px">
+              <div><label>附着点高 y_VF_A (m)</label><input type="number" id="tw_yVFA" value="28" step="0.5"></div>
+              <div><label>附着点水平距 X_VF_A (m)</label><input type="number" id="tw_XVFA" value="4" step="0.5"></div>
+              <div><label>水平偏角 ψ_A (°)</label><input type="number" id="tw_psiA" value="30" step="1"></div>
+              <div><label>竖向仰角 ξ_A (°)</label><input type="number" id="tw_xiA" value="25" step="1"></div>
+              <div><label>风缆索根数 n_F</label><input type="number" id="tw_nFA" value="2" min="1" max="8" step="1"><div class="unit">两侧对称各n根</div></div>
+              <div><label>安全系数要求 K_F ≥</label><input type="number" id="tw_KFA" value="3.5" step="0.5"></div>
+              <div style="grid-column:span 2"><label>风缆索型号（甲端）</label><select id="tw_ropeFA" style="width:100%;padding:4px 6px;border:1px solid #b8d8b8;border-radius:4px;font-size:12px"></select></div>
+            </div>
+          </div>
+          <div style="flex:1;min-width:240px;border:2px solid #e8c8a8;border-radius:8px;padding:10px;background:#fffaf4">
+            <div style="font-weight:bold;color:#8b4513;margin-bottom:8px;font-size:12px;letter-spacing:.5px">🔶 乙端塔架（高端）几何</div>
+            <div class="grid4" style="grid-template-columns:1fr 1fr">
+              <div><label>底宽 B_B (m)</label><input type="number" id="tw_BB" value="6" step="0.5"></div>
+              <div><label>自重 W₁_B (t)</label><input type="number" id="tw_W1B" value="50" step="1"></div>
+              <div><label>压重 W₂_B (t)</label><input type="number" id="tw_W2B" value="4" step="0.5"></div>
+              <div><label>迎风面积 F_B (m²)</label><input type="number" id="tw_FB" value="50" step="1"></div>
+            </div>
+            <div style="margin-top:8px;font-size:11px;font-weight:600;color:#227722">🟢 风缆索（若需）</div>
+            <div class="grid4" style="grid-template-columns:1fr 1fr;margin-top:4px">
+              <div><label>附着点高 y_VF_B (m)</label><input type="number" id="tw_yVFB" value="32" step="0.5"></div>
+              <div><label>附着点水平距 X_VF_B (m)</label><input type="number" id="tw_XVFB" value="4" step="0.5"></div>
+              <div><label>水平偏角 ψ_B (°)</label><input type="number" id="tw_psiB" value="30" step="1"></div>
+              <div><label>竖向仰角 ξ_B (°)</label><input type="number" id="tw_xiB" value="25" step="1"></div>
+              <div><label>风缆索根数 n_F</label><input type="number" id="tw_nFB" value="2" min="1" max="8" step="1"><div class="unit">两侧对称各n根</div></div>
+              <div><label>安全系数要求 K_F ≥</label><input type="number" id="tw_KFB" value="3.5" step="0.5"></div>
+              <div style="grid-column:span 2"><label>风缆索型号（乙端）</label><select id="tw_ropeFB" style="width:100%;padding:4px 6px;border:1px solid #b8d8b8;border-radius:4px;font-size:12px"></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- end LEFT -->
+    <!-- RIGHT: sticky action panel + result -->
+    <div>
+      <div class="action-panel">
+        <div class="action-panel-title">塔架稳定验算</div>
+        <button class="btn btn-success" onclick="runTower()" style="width:100%;font-size:15px;padding:10px 0">▶ 计算两端塔架</button>
+        <div class="action-btn-row">
+          <button class="btn btn-outline" onclick="resetTower()" style="flex:1" title="恢复默认参数">↺ 重置默认</button>
+        </div>
+      </div>
+      <div id="tower-result">
+        <div class="card"><div class="card-header">💡 塔架验算结果</div>
+          <div class="card-body" style="color:#999;text-align:center;padding:32px">填入参数后点击"计算两端塔架"</div>
+        </div>
+      </div>
+    </div><!-- end RIGHT -->
+    </div><!-- end page-2col -->
+  </div>
+
+  <!-- ===== 说明页 ===== -->
+  <div id="page-help" class="page">
+  <div class="man-wrap">
+
+  <!-- 主内容（说明书原样） -->
+  <div class="man-content">
+
+<h1 class="man-h1">缆索吊计算程序 — 计算原理说明书</h1>
+<p class="man-subtitle">版本 v1 · 依据：周继祖《缆索吊车》1981年版 · 2026年6月</p>
+
+<!-- 目录 -->
+<div class="toc">
+  <div class="toc-title">目录</div>
+  <a href="#sec1">一、整体计算思路 <span>▼</span></a>
+  <a href="#sec2">二、模块一：设计模块 <span>▼</span></a>
+  <a href="#sec3">三、模块二：验算模块 <span>▼</span></a>
+  <a href="#sec4">四、模块三：塔架验算模块 <span>▼</span></a>
+  <a href="#sec5">五、模块四：沿线受力分析 <span>▼</span></a>
+  <a href="#sec6">六、注意事项 <span>▼</span></a>
+  <a href="#sec7">七、输入输出参数总表 <span>▼</span></a>
+</div>
+
+
+<!-- ===== 一、整体计算思路 ===== -->
+<h2 id="sec1">一、整体计算思路</h2>
+
+<div class="card">
+  <div class="card-title">1.1 系统构成</div>
+  <p>缆索吊系统由以下构件组成，程序对每类构件分别进行受力计算：</p>
+  <table>
+    <tr><th>构件</th><th>作用</th><th>验算内容</th></tr>
+    <tr><td>主索（承载索）</td><td>n<sub>c</sub> 根并排，承受全部垂向荷载</td><td>K₁≥3.0；K₂≥2.0</td></tr>
+    <tr><td>起重索（提升索）</td><td>通过滑轮组提升重物</td><td>K₁≥5.0</td></tr>
+    <tr><td>牵引索</td><td>驱动小车（跑车）沿主索水平运动</td><td>K₁≥4.0</td></tr>
+    <tr><td>甲端塔架（低端）</td><td>支撑主索甲端，承受斜拉力</td><td>K₀₁≥1.3；Kc≥1.3</td></tr>
+    <tr><td>乙端塔架（高端）</td><td>支撑主索乙端，承受较大斜拉力</td><td>K₀₁≥1.3；Kc≥1.3</td></tr>
+    <tr><td>风缆索</td><td>抵抗塔架倾覆弯矩</td><td>张力 T_F（由力矩平衡求出）</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">1.2 整体计算流程</div>
+  <div class="flow">
+    <div class="flow-item">① 输入基本参数<br><small>L, h, Q, f/L, nc</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">② 主索受力<br><small>H, V_A, V_B, T_max</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">③ 自动选主索<br><small>遍历数据库→K₁,K₂满足</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">④ 起重索选型<br><small>滑轮组→T_q→K₁</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">⑤ 牵引索选型<br><small>四步法→t_max→K₁</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">⑥ 建议塔高</div>
+  </div>
+  <div class="flow">
+    <div class="flow-item">已有方案</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">⑦ 验算模块<br><small>二分法求 Q_max</small></div>
+  </div>
+  <div class="flow">
+    <div class="flow-item">主索张力</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">⑧ 塔架验算<br><small>K₀₁, Kc, T_F</small></div>
+  </div>
+  <div class="flow">
+    <div class="flow-item">设计参数</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">⑨ 沿线分析<br><small>各位置 T(x), φ(x), α(x)</small></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">1.3 坐标系与符号约定</div>
+  <table>
+    <tr><th>符号</th><th>含义</th><th>单位</th></tr>
+    <tr><td>L</td><td>主索跨径（两塔顶水平距离）</td><td>m</td></tr>
+    <tr><td>h</td><td>两塔顶高差（乙端高于甲端为正）</td><td>m</td></tr>
+    <tr><td>f</td><td>主索最大垂度（跨中最低点距弦线垂直距离），f = (f/L)·L</td><td>m</td></tr>
+    <tr><td>q</td><td>每根主索承担的均布线荷载（自重 + 附加）</td><td>kg/m</td></tr>
+    <tr><td>Q</td><td>每根主索承担的集中荷载（= Q设计 / nc）</td><td>kg</td></tr>
+    <tr><td>H</td><td>每根主索水平张力（沿全索恒定）</td><td>kg</td></tr>
+    <tr><td>V_A / V_B</td><td>甲端（低端）/ 乙端（高端）索端竖向分力</td><td>kg</td></tr>
+    <tr><td>T_A / T_B</td><td>甲端 / 乙端索端张力 = √(H²+V²)</td><td>kg</td></tr>
+    <tr><td>φ_A / φ_B</td><td>甲端 / 乙端主索与水平夹角（升角）</td><td>°</td></tr>
+    <tr><td>nc</td><td>主索根数</td><td>根</td></tr>
+    <tr><td>φ（phi）</td><td>动力冲击系数（一般 0.25）</td><td>—</td></tr>
+  </table>
+</div>
+
+<!-- ===== 二、设计模块 ===== -->
+<h2 id="sec2">二、模块一：设计模块</h2>
+
+<div class="card">
+  <div class="module-header">
+    <div class="module-icon">📐</div>
+    <div class="module-meta">
+      <div class="name">设计模块（自动选型）</div>
+      <div class="ref">依据：周继祖《缆索吊车》第4章、第5章</div>
+    </div>
+  </div>
+  <p><strong>功能：</strong>根据跨度、吊重等基本参数，从数据库中自动挑选满足安全系数要求的主索、起重索、牵引索型号，并给出塔架建议高度。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">2.1 主索计算</div>
+
+  <h4>（1）荷载计算</h4>
+  <div class="formula-block">
+Q设计 = Q × (1 + φ) + G_吊钩         [kg]
+Q_单  = Q设计 / nc                     [kg，每根主索承担集中力]
+q     = w_绳 + q_附加 / nc             [kg/m，每根线荷载，w_绳为单位自重]
+  </div>
+  <p>冲击系数 φ 通常取 0.25，G_吊钩默认取 Q×0.05（可在高级选项中修改）。</p>
+
+  <h4>（2）水平张力 H（抛物线理论）</h4>
+  <div class="formula-block">
+H = q·L² / (8f) + Q_单·L / (4f)      [kg]
+  </div>
+  <p>第一项为均布荷载引起的水平分力，第二项为跨中集中荷载（荷载在跨中时水平力最大，此处取控制工况）。</p>
+
+  <h4>（3）两端竖向分力</h4>
+  <div class="formula-block">
+V_A = q·L/2 + Q_单/2 − H·h/L         [甲端，低端]
+V_B = q·L/2 + Q_单/2 + H·h/L         [乙端，高端]
+  </div>
+  <p>高差 h 使乙端竖向分力增大，甲端减小。当 h=0 时 V_A = V_B。</p>
+
+  <h4>（4）最大张力（控制值）</h4>
+  <div class="formula-block">
+T_max = √(H² + V_B²)                  [乙端，即高端张力最大]
+φ_A   = arctan(V_A / H)               [甲端索端角]
+φ_B   = arctan(V_B / H)               [乙端索端角]
+  </div>
+
+  <h4>（5）安全系数验算</h4>
+  <div class="formula-block">
+K₁ = T_p / T_max  ≥ 3.0              [破断拉力 / 最大张力]
+σ_t = T_max / F_K                     [拉伸应力，kg/mm²]
+σ_w = (Q_单/2) · √(E_K / (T_max·F_K))[弯曲应力（绳绕滑轮引起）]
+σ_z = σ_t + σ_w                       [总应力]
+K₂  = σ'_b / σ_z  ≥ 2.0             [折减强度极限 / 总应力]
+  </div>
+
+  <h4>（6）索长估算</h4>
+  <div class="formula-block">
+弦长 S₀ = √(L² + h²)
+索长 S  ≈ S₀ · (1 + 8f² / (3·S₀²))  [抛物线弧长近似公式，含15m余量]
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">2.2 起重索计算（滑轮组）</div>
+  <div class="formula-block">
+T_q = Q设计 / Σ(1/f_p^i)，  i = 0, 1, …, n−1
+f_p = 1.04（单滑轮阻力系数）
+K₁  = T_p / T_q  ≥ 5.0
+σ_z = T_q/F_K + E_K·d_s/D_滑轮        [含绕滑轮弯曲应力]
+  </div>
+
+  <h4>走绳段数 n 的含义</h4>
+  <p>公式中的 <strong>n</strong> 是起重索穿过滑轮组后，<strong>同时承受吊重的绳段数</strong>（又称走绳数、倍率）。起重索从卷扬机引出，在定滑轮（固定于吊架）和动滑轮（随吊钩移动）之间来回穿绕——绕几段，就有几段绳共同承担荷载。</p>
+  <p>n 越大 → 每段绳受力越小 → 可选用更细的起重索；但滑轮数量增多，效率损失也随之增大（每经过一个滑轮，摩擦损失约 4%，即 f_p = 1.04）。</p>
+
+  <svg viewBox="0 0 600 300" style="width:100%;max-width:600px;display:block;margin:14px auto 4px;border:1px solid #dde3ee;border-radius:6px" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="ha2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#444"/></marker>
+    </defs>
+    <rect width="600" height="300" fill="#f8f9fc"/>
+    <line x1="300" y1="12" x2="300" y2="288" stroke="#ccc" stroke-dasharray="5,4" stroke-width="1.2"/>
+    <!-- ===== 左：n=2 ===== -->
+    <text x="150" y="24" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">n = 2</text>
+    <text x="150" y="40" text-anchor="middle" font-size="10" fill="#555" font-family="微软雅黑,sans-serif">1个定滑轮 + 1个动滑轮</text>
+    <line x1="22" y1="77" x2="68" y2="77" stroke="#888" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="12" y="72" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">卷</text>
+    <text x="12" y="83" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">扬机</text>
+    <rect x="68" y="62" width="164" height="30" fill="#cde4ff" stroke="#336fbe" stroke-width="1.5" rx="4"/>
+    <circle cx="128" cy="77" r="12" fill="white" stroke="#336fbe" stroke-width="1.5"/>
+    <circle cx="128" cy="77" r="4" fill="#336fbe"/>
+    <text x="180" y="81" text-anchor="middle" font-size="10" fill="#1a3a5c" font-family="微软雅黑,sans-serif">定滑轮</text>
+    <line x1="232" y1="77" x2="275" y2="77" stroke="#888" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="286" y="72" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">锚</text>
+    <text x="286" y="83" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">固</text>
+    <line x1="108" y1="92" x2="108" y2="174" stroke="#e07b39" stroke-width="3"/>
+    <line x1="162" y1="92" x2="162" y2="174" stroke="#e07b39" stroke-width="3"/>
+    <circle cx="90" cy="133" r="10" fill="#e07b39"/>
+    <text x="90" y="137" text-anchor="middle" font-size="10" fill="white" font-family="Arial,sans-serif">①</text>
+    <circle cx="180" cy="133" r="10" fill="#e07b39"/>
+    <text x="180" y="137" text-anchor="middle" font-size="10" fill="white" font-family="Arial,sans-serif">②</text>
+    <rect x="68" y="174" width="164" height="30" fill="#cff0d8" stroke="#2e7d32" stroke-width="1.5" rx="4"/>
+    <circle cx="150" cy="189" r="12" fill="white" stroke="#2e7d32" stroke-width="1.5"/>
+    <circle cx="150" cy="189" r="4" fill="#2e7d32"/>
+    <text x="183" y="193" text-anchor="middle" font-size="10" fill="#2e7d32" font-family="微软雅黑,sans-serif">动滑轮</text>
+    <line x1="150" y1="204" x2="150" y2="237" stroke="#444" stroke-width="2" marker-end="url(#ha2)"/>
+    <rect x="116" y="237" width="68" height="22" fill="#fff3cd" stroke="#f0a500" stroke-width="1.2" rx="3"/>
+    <text x="150" y="252" text-anchor="middle" font-size="10" fill="#333" font-weight="bold" font-family="微软雅黑,sans-serif">Q（吊重）</text>
+    <text x="150" y="282" text-anchor="middle" font-size="9.5" fill="#444" font-family="微软雅黑,sans-serif">每段绳受力 ≈ Q / 2</text>
+    <!-- ===== 右：n=4 ===== -->
+    <text x="450" y="24" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">n = 4</text>
+    <text x="450" y="40" text-anchor="middle" font-size="10" fill="#555" font-family="微软雅黑,sans-serif">2个定滑轮 + 2个动滑轮</text>
+    <line x1="306" y1="77" x2="320" y2="77" stroke="#888" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="303" y="72" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">卷</text>
+    <text x="303" y="83" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">扬机</text>
+    <rect x="320" y="62" width="232" height="30" fill="#cde4ff" stroke="#336fbe" stroke-width="1.5" rx="4"/>
+    <circle cx="368" cy="77" r="12" fill="white" stroke="#336fbe" stroke-width="1.5"/>
+    <circle cx="368" cy="77" r="4" fill="#336fbe"/>
+    <circle cx="456" cy="77" r="12" fill="white" stroke="#336fbe" stroke-width="1.5"/>
+    <circle cx="456" cy="77" r="4" fill="#336fbe"/>
+    <text x="518" y="81" text-anchor="middle" font-size="10" fill="#1a3a5c" font-family="微软雅黑,sans-serif">定滑轮×2</text>
+    <line x1="552" y1="77" x2="574" y2="77" stroke="#888" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="585" y="72" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">锚</text>
+    <text x="585" y="83" text-anchor="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">固</text>
+    <line x1="342" y1="92" x2="342" y2="174" stroke="#e07b39" stroke-width="3"/>
+    <line x1="386" y1="92" x2="386" y2="174" stroke="#e07b39" stroke-width="3"/>
+    <line x1="430" y1="92" x2="430" y2="174" stroke="#e07b39" stroke-width="3"/>
+    <line x1="474" y1="92" x2="474" y2="174" stroke="#e07b39" stroke-width="3"/>
+    <circle cx="325" cy="133" r="10" fill="#e07b39"/>
+    <text x="325" y="137" text-anchor="middle" font-size="10" fill="white" font-family="Arial,sans-serif">①</text>
+    <circle cx="368" cy="133" r="10" fill="#e07b39"/>
+    <text x="368" y="137" text-anchor="middle" font-size="10" fill="white" font-family="Arial,sans-serif">②</text>
+    <circle cx="452" cy="133" r="10" fill="#e07b39"/>
+    <text x="452" y="137" text-anchor="middle" font-size="10" fill="white" font-family="Arial,sans-serif">③</text>
+    <circle cx="490" cy="133" r="10" fill="#e07b39"/>
+    <text x="490" y="137" text-anchor="middle" font-size="10" fill="white" font-family="Arial,sans-serif">④</text>
+    <rect x="320" y="174" width="232" height="30" fill="#cff0d8" stroke="#2e7d32" stroke-width="1.5" rx="4"/>
+    <circle cx="392" cy="189" r="12" fill="white" stroke="#2e7d32" stroke-width="1.5"/>
+    <circle cx="392" cy="189" r="4" fill="#2e7d32"/>
+    <circle cx="460" cy="189" r="12" fill="white" stroke="#2e7d32" stroke-width="1.5"/>
+    <circle cx="460" cy="189" r="4" fill="#2e7d32"/>
+    <text x="520" y="193" text-anchor="middle" font-size="10" fill="#2e7d32" font-family="微软雅黑,sans-serif">动滑轮×2</text>
+    <line x1="436" y1="204" x2="436" y2="237" stroke="#444" stroke-width="2" marker-end="url(#ha2)"/>
+    <rect x="402" y="237" width="68" height="22" fill="#fff3cd" stroke="#f0a500" stroke-width="1.2" rx="3"/>
+    <text x="436" y="252" text-anchor="middle" font-size="10" fill="#333" font-weight="bold" font-family="微软雅黑,sans-serif">Q（吊重）</text>
+    <text x="450" y="282" text-anchor="middle" font-size="9.5" fill="#444" font-family="微软雅黑,sans-serif">每段绳受力 ≈ Q / 4</text>
+  </svg>
+  <p style="font-size:11px;color:#888;text-align:center;margin-top:3px">图示：蓝色框为定滑轮组（固定），绿色框为动滑轮组（随吊钩移动），橙色线为承力绳段</p>
+
+  <p style="margin-top:10px">程序自动试算 n = 2, 4, 6, 8, 10，从最小绳径开始遍历数据库，找出首个满足 K₁ ≥ 5.0 的方案。</p>
+  <p><strong>术语说明：</strong>程序界面中的"跑马绳数"即指此处的走绳段数 n。注意，"跑马绳"在不同语境下也指牵引绳（循环索），两者容易混淆，理解时以<strong>走绳段数</strong>为准。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">2.3 牵引索计算（四步法）</div>
+
+  <h4>第一步：最大升角 γ</h4>
+  <div class="formula-block">
+tg γ = h/L + (L − 2l_a)/(2H) · (q + Q_单/L)
+  </div>
+  <p>l_a 为牵引绳在甲端地锚处的水平距离（高级参数，默认 L/4）。</p>
+
+  <h4>第二步：牵引索初张力 t₀</h4>
+  <div class="formula-block">
+t₀ = q_牵 · l_a² / (8f_a)，   f_a = 0.01·l_a
+  </div>
+  <p>q_牵 为牵引索自重线荷载。</p>
+
+  <h4>第三步：运行阻力</h4>
+  <div class="formula-block">
+坡度阻力：w₁ = 2·Q_单·sin γ
+摩擦阻力：f_m = μ₁·ρ/R + μ₀/R
+          w₂ = 2·f_m·Q_单·cos γ
+  </div>
+  <p>μ₁ 为钢轮滚动摩擦系数（≈0.06），μ₀ 为轴颈静摩擦系数（≈1.5），ρ 为车轮半径，R 为轴颈半径。</p>
+
+  <h4>第四步：导向滑轮阻力 w₃</h4>
+  <div class="formula-block">
+w₃ = (t₀ + w₁ + w₂) · (f_p^(a+b) − 1)
+t_max = t₀ + w₁ + w₂ + w₃
+K₁    = T_p / t_max  ≥ 4.0
+  </div>
+  <p>a, b 为绳端和固定端的滑轮数（高级参数）。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">2.4 塔架建议高度</div>
+  <div class="formula-block">
+净空高度要求：top_R = 障碍物高程 + 安全净空 + f
+甲端塔高 ≥ max(5, top_R − 甲端地面高程)
+乙端塔高 ≥ max(5, top_R + h − 乙端地面高程)
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">2.5 自动选型逻辑</div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-content">过滤数据库：主索选 <code>用途="主索"</code> 的型号</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-content">依次试算 nc = 2, 4, 6, 8（若未固定）</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-content">对每个 nc，按绳径从小到大遍历主索型号，找第一个 K₁≥K₁要求 且 K₂≥2.0 的组合</div></div>
+  <div class="step-row"><div class="step-num">4</div><div class="step-content">起重索：试算走绳段数 n = 2, 4, 6, 8, 10（即 2段/4段…绳共同承力，详见 2.2节图示），遍历全部绳型，取首个满足 K₁ ≥ K₁要求 的方案</div></div>
+  <div class="step-row"><div class="step-num">5</div><div class="step-content">牵引索：基于已选主索的 H、q、Q，遍历绳型，找满足 K₁≥K₁要求 的最小型号</div></div>
+</div>
+
+<!-- ===== 三、验算模块 ===== -->
+<h2 id="sec3">三、模块二：验算模块</h2>
+
+<div class="card">
+  <div class="module-header">
+    <div class="module-icon">✅</div>
+    <div class="module-meta">
+      <div class="name">验算模块（既有方案复核）</div>
+      <div class="ref">依据：周继祖《缆索吊车》第4、5章</div>
+    </div>
+  </div>
+  <p><strong>功能：</strong>已知缆索具体型号和参数，求满足全部安全系数要求的最大允许吊重 Q_max。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">3.1 计算方法（二分法）</div>
+  <p>验算模块采用<strong>二分搜索</strong>求解 Q_max：</p>
+  <div class="step-row"><div class="step-num">1</div><div class="step-content">设定搜索区间 [0, 2000t]</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-content">取中值 Q_试，用与设计模块完全相同的公式计算 K₁(主索)、K₁(起重索)、K₁(牵引索)</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-content">若所有 K₁ 均满足要求，则 Q_试 可行，下界上移；否则 Q_试 不可行，上界下移</div></div>
+  <div class="step-row"><div class="step-num">4</div><div class="step-content">迭代 50 次，精度达到 0.001kg 级，下界即为 Q_max</div></div>
+  <p style="margin-top:12px">最终按 Q_max 重新计算一遍所有安全系数，输出完整验算结论。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">3.2 与设计模块的区别</div>
+  <table>
+    <tr><th></th><th>设计模块</th><th>验算模块</th></tr>
+    <tr><td>已知</td><td>Q（吊重）</td><td>缆索型号 + 参数</td></tr>
+    <tr><td>求解</td><td>缆索型号</td><td>最大允许吊重 Q_max</td></tr>
+    <tr><td>方法</td><td>遍历数据库，找首个满足的型号</td><td>二分法，精确求解临界荷载</td></tr>
+    <tr><td>用途</td><td>新设计</td><td>既有设备安全复核</td></tr>
+  </table>
+</div>
+
+<!-- ===== 四、塔架模块 ===== -->
+<h2 id="sec4">四、模块三：塔架验算模块</h2>
+
+<div class="card">
+  <div class="module-header">
+    <div class="module-icon">🏗</div>
+    <div class="module-meta">
+      <div class="name">塔架验算模块</div>
+      <div class="ref">依据：周继祖《缆索吊车》第6章</div>
+    </div>
+  </div>
+  <p><strong>功能：</strong>验算甲、乙两端塔架的抗倾覆和抗滑移稳定性，计算所需风缆索张力。甲乙两端独立计算，逻辑相同。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">4.1 作用在塔顶的力（主索 + 绳系合力）</div>
+  <div class="formula-block">
+竖向力 V_I = nc · T_max · (sin φ_B + sin α) / 1000   [t]
+水平力 H_I = nc · T_max · (cos φ_B − cos α) / 1000   [t]
+  </div>
+  <p>φ_B 为主索乙端升角，α 为主索甲端（或引索）升角。<br>
+  起重索 + 牵引索 + 初张力合力：</p>
+  <div class="formula-block">
+T_绳合 = t_max + t₀ + T_q
+竖向：v_rope = T_绳合 · sin φ_B / 1000
+水平：h_rope = T_绳合 · cos φ_B / 1000
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">4.2 工况一：主索满载（荷载在跨中）</div>
+  <div class="formula-block">
+ΣV = V_I + v_rope + W₁ + W₂       [t，竖向合力]
+ΣH = H_I + h_rope + P_wind         [t，水平合力]
+
+P_wind = 1.4 × 1.4 × w₀ × F_受风面积 / 1000   [t，风压标准值×双风压系数]
+M_风   = P_wind × H_t / 2          [t·m，风荷载绕底铰力矩]
+
+M_稳定 = ΣV × B/2                  [t·m，重力稳定力矩]
+M_倾覆 = H_I·H_t + h_rope·H_t + M_风    [t·m，倾覆力矩]
+
+K₀₁ = M_稳定 / M_倾覆  ≥ 1.3
+Kc  = f · ΣV / ΣH    ≥ 1.3     [f = 0.25，塔脚摩擦系数]
+  </div>
+  <p>W₁ 为塔架自重，W₂ 为配重。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">4.3 工况二：空索（无吊重）</div>
+  <div class="formula-block">
+V_II = 2·V_I，  H_II = 2·H_I     [空索时，主索两侧对称，力翻倍]
+ΣV_II = V_II + v_rope_II + W₁ + W₂
+ΣH_II = H_II + h_rope_II          [无风载工况]
+K₀₁_II = (ΣV_II·B/2) / (H_II·H_t + h_rope_II·H_t)  ≥ 1.3
+Kc_II   = f·ΣV_II / ΣH_II         ≥ 1.3
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">4.4 风缆索张力 T_F（力矩平衡法）</div>
+  <p>当工况一不满足 K₀₁ 要求时，需设风缆索。由绕塔底力矩平衡求所需风缆索张力：</p>
+  <div class="formula-block">
+T_F · (V_F · X_VF + H_F · y_VF) × 2 = K要求 · M_倾覆 − M_稳定 + W₂·B/2
+
+V_F = sin(ψ)·cos(ξ)   [风缆索竖向分量系数]
+H_F = cos(ψ)·cos(ξ)   [风缆索水平分量系数]
+ψ = 风缆索与水平面夹角（俯仰角）
+ξ = 风缆索平面外偏角
+X_VF = 风缆索在塔顶的水平作用点距底铰距离
+y_VF = 风缆索竖向分力对底铰的力臂
+  </div>
+  <p>T_F 即为每根风缆索所需最小张力，除以风缆索根数得每根张力，再按安全系数 K_F 核验选用型号。</p>
+</div>
+
+<!-- ===== 五、沿线受力分析 ===== -->
+<h2 id="sec5">五、模块四：沿线受力分析</h2>
+
+<div class="card">
+  <div class="module-header">
+    <div class="module-icon">📊</div>
+    <div class="module-meta">
+      <div class="name">沿线受力分析</div>
+      <div class="ref">依据：周继祖《缆索吊车》第7章（升角概念）</div>
+    </div>
+  </div>
+  <p><strong>功能：</strong>计算重物在不同水平位置 x 处，主索两端张力、主索端部升角、以及重物两侧主索升角（仰斜角）随位置的变化规律，以图表形式输出。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">5.1 基本假设</div>
+  <ul>
+    <li>主索按抛物线理论计算（垂度适中，f/L ≤ 1/8 时误差很小）</li>
+    <li>水平张力 H 沿索全长不变（抛物线索假设）</li>
+    <li>集中荷载 Q 仅引起荷载点处额外下挠，不改变 H</li>
+    <li>以甲端（A端）挂点为坐标原点，x 轴水平向乙端，y 轴向上</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-title">5.2 各位置受力公式</div>
+
+  <h4>（1）每根主索承担荷载</h4>
+  <div class="formula-block">
+Q设计 = Q × (1 + φ)       [kg，总设计荷载]
+Q_单  = Q设计 / nc         [kg，每根主索]
+q_单  = q_附加 / nc        [kg/m，每根均布]
+H     = q_单 · L² / (8f)  [kg，水平张力，与位置无关]
+  </div>
+
+  <h4>（2）两端竖向分力（随位置 x 变化）</h4>
+  <div class="formula-block">
+tan φ_A0 = (4f − h) / L   [无荷载时甲端切线角正切]
+tan φ_B0 = (4f + h) / L   [无荷载时乙端切线角正切]
+
+V_A(x) = H · tan φ_A0 + Q_单 · (L−x) / L   [甲端竖向分力]
+V_B(x) = H · tan φ_B0 + Q_单 · x / L       [乙端竖向分力]
+  </div>
+  <p>当荷载靠近乙端（x→L），乙端竖向力增大；反之亦然。</p>
+
+  <h4>（3）全部主索合计张力</h4>
+  <div class="formula-block">
+T_A(x) = nc · √(H² + V_A²) / 1000    [t]
+T_B(x) = nc · √(H² + V_B²) / 1000    [t]
+  </div>
+
+  <h4>（4）主索端部升角</h4>
+  <div class="formula-block">
+φ_A(x) = arctan(V_A / H)   [甲端主索与水平夹角，°]
+φ_B(x) = arctan(V_B / H)   [乙端主索与水平夹角，°]
+  </div>
+
+  <h4>（5）荷载点高度（空索 + 荷载挠度）</h4>
+  <div class="formula-block">
+y₀(x) = h·x/L − 4f·(x/L)·(1−x/L)   [空索时荷载点高度，甲端为零点，向下为负]
+δ(x)  = Q_单·x·(L−x) / (H·L)         [集中荷载引起的附加下挠]
+y_l(x) = y₀(x) − δ(x)                [荷载点实际高度]
+  </div>
+
+  <h4>（6）重物两侧升角（仰斜角）</h4>
+  <p>升角（仰斜角）指重物两侧主索与水平方向的夹角，决定主索对重物的合力方向。</p>
+  <div class="formula-block">
+α_L(x) = arctan(−y_l / x)            [左侧升角：荷载点到甲端挂点（0,0）的弦线角度]
+α_R(x) = arctan((h − y_l) / (L−x))   [右侧升角：荷载点到乙端挂点（L,h）的弦线角度]
+  </div>
+  <p>升角越大，起吊时绳索对重物的水平分力越大，同时小车爬坡阻力越大。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">5.3 图表输出说明</div>
+  <table>
+    <tr><th>曲线</th><th>左轴/右轴</th><th>含义</th></tr>
+    <tr><td>T_A（甲端张力）</td><td>左轴（t）</td><td>全部主索在甲端的合计张力，随荷载远离甲端而减小</td></tr>
+    <tr><td>T_B（乙端张力）</td><td>左轴（t）</td><td>全部主索在乙端的合计张力，随荷载靠近乙端而增大</td></tr>
+    <tr><td>α_L（左升角）</td><td>右轴（°）</td><td>荷载左侧主索仰斜角</td></tr>
+    <tr><td>α_R（右升角）</td><td>右轴（°）</td><td>荷载右侧主索仰斜角</td></tr>
+  </table>
+</div>
+
+<!-- ===== 六、注意事项 ===== -->
+<h2 id="sec6">六、注意事项</h2>
+
+<div class="card">
+  <div class="card-title">6.1 计算假设与适用条件</div>
+  <ul>
+    <li><strong>抛物线假设</strong>：本程序采用抛物线近似（而非悬链线），适用于 f/L ≤ 1/10 的场合；垂度比较大时应按悬链线精确计算。</li>
+    <li><strong>集中荷载位置</strong>：设计模块将集中荷载置于跨中（产生最大水平张力的控制工况），并非实际最危险位置（最大张力可能出现在荷载位于高端附近）。沿线分析模块可查看全跨张力分布。</li>
+    <li><strong>主索并行</strong>：各根主索承担相同荷载（均等分配），实际安装中需保证各主索张力均匀。</li>
+    <li><strong>弯曲应力</strong>：σ_w 公式基于绳绕滑轮的等效弯曲应力近似，计算中滑轮直径 D 取高级参数输入值，务必与实际选用滑轮匹配。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-title">6.2 安全系数标准</div>
+  <table>
+    <tr><th>构件</th><th>K₁（破断安全系数）</th><th>K₂（强度安全系数）</th><th>备注</th></tr>
+    <tr><td>主索</td><td>≥ 3.0</td><td>≥ 2.0</td><td>可在高级选项中调整 K₁</td></tr>
+    <tr><td>起重索</td><td>≥ 5.0</td><td>—</td><td>提升荷载，安全系数最高</td></tr>
+    <tr><td>牵引索</td><td>≥ 4.0</td><td>—</td><td></td></tr>
+    <tr><td>塔架稳定</td><td>K₀₁ ≥ 1.3</td><td>Kc ≥ 1.3</td><td>抗倾覆、抗滑移</td></tr>
+  </table>
+  <p>以上标准来自周继祖《缆索吊车》1981年版，用户可在高级参数中自行调整 K₁ 要求值。</p>
+</div>
+
+<div class="card">
+  <div class="card-title">6.3 数据库使用注意</div>
+  <ul>
+    <li>数据库分为<strong>主索型号</strong>（6×19 类，σ_b′=144.5 kg/mm²）和<strong>起重/牵引型号</strong>（σ_b′=125 kg/mm²），程序按 <code>用途</code> 字段筛选，请勿混用。</li>
+    <li><code>T_p</code>（破断拉力）需由实测或厂家提供，程序内默认值仅供参考，正式工程必须以实际检测值为准。</li>
+    <li>数据库中 <code>d_s</code>（钢丝直径）用于弯曲应力计算，应与实际绳型一致；修改数据库后须重新运行计算。</li>
+    <li>新增或修改绳型后，下拉列表自动更新，已保存的设计结果不自动重算，需手动点击【▶ 计算】。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-title">6.4 塔架计算注意</div>
+  <ul>
+    <li>程序仅验算塔架整体稳定（倾覆、滑移），<strong>不含</strong>塔身构件强度、焊缝、底脚螺栓等细部计算，需另行专项设计。</li>
+    <li>风压 w₀ 应按工程所在地基本风压及高度系数确定，默认 50 kg/m² 为参考值。</li>
+    <li>风缆索张力 T_F 为力矩平衡所需最小值，实际预张力应适当放大并考虑弹性变形。</li>
+    <li>工况一（满载+风）和工况二（空载无风）均需验算，以较不利者控制。</li>
+    <li>点击【→ 填入塔架验算】可将设计模块结果（T_max、φ_A/φ_B、塔高建议值）直接传入塔架模块，减少手动输入错误。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-title">6.5 计算书导出注意</div>
+  <ul>
+    <li>导出格式为 <code>.doc</code>（HTML 伪 Word），可用 Microsoft Word 或 WPS 打开并二次编辑。</li>
+    <li>导出前必须先执行计算，否则提示错误。</li>
+    <li>计算书中包含所有中间结果和公式出处，但不含图纸；立面图和平面图需截图附入。</li>
+    <li>本程序为辅助工具，<strong>导出计算书须经有资质的专业工程师审核签字</strong>方可作为正式文件使用。</li>
+  </ul>
+</div>
+
+<!-- ===== 七、输入输出参数总表 ===== -->
+<h2 id="sec7">七、输入输出参数总表</h2>
+
+<div class="card">
+  <div class="card-title">7.1 设计模块输入参数</div>
+  <table>
+    <tr><th>参数</th><th>符号</th><th>单位</th><th>说明</th><th>默认值</th></tr>
+    <tr><td>主索跨径</td><td>L</td><td>m</td><td>两端塔顶挂索点水平距离</td><td>—</td></tr>
+    <tr><td>高差</td><td>h</td><td>m</td><td>乙端高于甲端的高度差，同高时为 0</td><td>0</td></tr>
+    <tr><td>吊重</td><td>Q</td><td>t</td><td>最大起吊重量（净重，不含冲击）</td><td>—</td></tr>
+    <tr><td>垂跨比</td><td>f/L</td><td>—</td><td>最大垂度与跨径之比，常取 1/25~1/20</td><td>0.04</td></tr>
+    <tr><td>主索根数</td><td>nc</td><td>根</td><td>0=自动（试算2/4/6/8），否则固定</td><td>0</td></tr>
+    <tr><td>动力冲击系数</td><td>φ</td><td>—</td><td>一般取 0.25</td><td>0.25</td></tr>
+    <tr><td>附加均布荷载</td><td>q_附加</td><td>kg/m</td><td>小车、牵引绳等附加于主索的线荷载（总量）</td><td>2.5</td></tr>
+    <tr><td>小车重</td><td>G_车</td><td>kg</td><td>跑车自重（高级参数）</td><td>Q×15%</td></tr>
+    <tr><td>甲端地面高程</td><td>e_A</td><td>m</td><td>用于估算塔高</td><td>0</td></tr>
+    <tr><td>乙端地面高程</td><td>e_B</td><td>m</td><td>用于估算塔高</td><td>0</td></tr>
+    <tr><td>障碍物高程</td><td>e_障</td><td>m</td><td>跨越障碍物顶部高程</td><td>0</td></tr>
+    <tr><td>安全净空</td><td>c</td><td>m</td><td>主索最低点距障碍物顶面净距</td><td>2</td></tr>
+    <tr><td>K₁_主索要求</td><td>K₁m</td><td>—</td><td>主索安全系数下限</td><td>3.0</td></tr>
+    <tr><td>K₁_起重索要求</td><td>K₁h</td><td>—</td><td>起重索安全系数下限</td><td>5.0</td></tr>
+    <tr><td>K₁_牵引索要求</td><td>K₁t</td><td>—</td><td>牵引索安全系数下限</td><td>4.0</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">7.2 设计模块输出参数</div>
+  <table>
+    <tr><th>参数</th><th>符号</th><th>单位</th><th>说明</th></tr>
+    <tr><td>主索型号 × 根数</td><td>—</td><td>—</td><td>推荐选用型号及 nc</td></tr>
+    <tr><td>单根索长</td><td>S</td><td>m</td><td>含 15m 余量</td></tr>
+    <tr><td>最大垂度</td><td>f</td><td>m</td><td>= (f/L)·L</td></tr>
+    <tr><td>水平张力</td><td>H</td><td>kg</td><td>每根主索</td></tr>
+    <tr><td>乙端最大张力</td><td>T_max</td><td>kg</td><td>= nc × √(H²+V_B²) 为验算基准</td></tr>
+    <tr><td>甲/乙端升角</td><td>φ_A, φ_B</td><td>°</td><td>主索端部与水平夹角</td></tr>
+    <tr><td>安全系数 K₁, K₂</td><td>—</td><td>—</td><td>主索：K₁≥3.0, K₂≥2.0</td></tr>
+    <tr><td>起重索型号 + 跑马绳数</td><td>—</td><td>—</td><td>满足 K₁≥5.0</td></tr>
+    <tr><td>牵引索型号</td><td>—</td><td>—</td><td>满足 K₁≥4.0</td></tr>
+    <tr><td>甲/乙端建议塔高</td><td>H_A, H_B</td><td>m</td><td>满足障碍物净空要求的最小塔高</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">7.3 验算模块输入参数</div>
+  <table>
+    <tr><th>参数</th><th>单位</th><th>说明</th></tr>
+    <tr><td>L, h, φ, q_附加</td><td>m / — / — / kg/m</td><td>与设计模块相同</td></tr>
+    <tr><td>主索根数 nc</td><td>根</td><td>固定值</td></tr>
+    <tr><td>最大垂度 f_max</td><td>m</td><td>实测垂度（0 = 取 L/25）</td></tr>
+    <tr><td>跑马绳数 n</td><td>根</td><td>固定值</td></tr>
+    <tr><td>主索型号 + 参数</td><td>—</td><td>从数据库选取或手动输入 T_p, F_K, σ_b′</td></tr>
+    <tr><td>起重索型号 + T_p</td><td>—</td><td>实际破断拉力</td></tr>
+    <tr><td>牵引索型号 + T_p</td><td>—</td><td>实际破断拉力</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">7.4 塔架模块输入参数</div>
+  <table>
+    <tr><th>参数</th><th>符号</th><th>单位</th><th>说明</th></tr>
+    <tr><td>主索根数</td><td>nc</td><td>根</td><td>与设计模块一致</td></tr>
+    <tr><td>乙端最大张力</td><td>T_max</td><td>t</td><td>单根，来自设计/验算结果</td></tr>
+    <tr><td>起重索最大张力</td><td>T_q</td><td>t</td><td>牵引绳+初张力等合计</td></tr>
+    <tr><td>牵引索初张力</td><td>t₀</td><td>t</td><td></td></tr>
+    <tr><td>主索引索升角</td><td>α</td><td>°</td><td>背面引绳与水平夹角，默认 30°</td></tr>
+    <tr><td>风压标准值</td><td>w₀</td><td>kg/m²</td><td>按工程所在地确定</td></tr>
+    <tr><td>甲/乙端主索升角</td><td>φ_A, φ_B</td><td>°</td><td>来自设计结果，或手动输入</td></tr>
+    <tr><td>塔高</td><td>H_t</td><td>m</td><td>甲/乙端各自输入</td></tr>
+    <tr><td>底座宽度</td><td>B</td><td>m</td><td>塔脚抗倾覆力臂基准</td></tr>
+    <tr><td>塔架自重 W₁</td><td>W₁</td><td>t</td><td></td></tr>
+    <tr><td>配重 W₂</td><td>W₂</td><td>t</td><td>压重，增大稳定力矩</td></tr>
+    <tr><td>受风面积</td><td>F_w</td><td>m²</td><td>塔架迎风投影面积</td></tr>
+    <tr><td>风缆索俯仰角 ψ</td><td>ψ</td><td>°</td><td>风缆索与水平面夹角</td></tr>
+    <tr><td>风缆索偏角 ξ</td><td>ξ</td><td>°</td><td>风缆索平面外偏角</td></tr>
+    <tr><td>风缆索根数</td><td>n_F</td><td>根</td><td></td></tr>
+    <tr><td>风缆索型号</td><td>—</td><td>—</td><td>用于核验 K_F</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">7.5 沿线受力分析输入参数</div>
+  <table>
+    <tr><th>参数</th><th>单位</th><th>说明</th></tr>
+    <tr><td>L, h, f/L, Q, φ, nc, q_附加</td><td>同设计模块</td><td>从设计页面读取，修改设计参数后需重新分析</td></tr>
+    <tr><td>分析方式</td><td>—</td><td>等分（n 等分）或固定步长（m 间距）</td></tr>
+    <tr><td>等分数 n</td><td>—</td><td>5~200，默认 20</td></tr>
+    <tr><td>步长</td><td>m</td><td>位置间距，最小 0.1m</td></tr>
+    <tr><td>显示曲线选择</td><td>—</td><td>T_A / T_B / α_L / α_R 可单独勾选</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">7.6 数据库字段说明</div>
+  <table>
+    <tr><th>字段</th><th>符号</th><th>单位</th><th>含义</th></tr>
+    <tr><td>名称</td><td>—</td><td>—</td><td>绳型识别码，如"Φ28-主"</td></tr>
+    <tr><td>公称直径</td><td>d</td><td>mm</td><td>钢丝绳外径</td></tr>
+    <tr><td>钢丝直径</td><td>d_s</td><td>mm</td><td>单根钢丝直径（用于弯曲应力计算）</td></tr>
+    <tr><td>单位自重</td><td>w</td><td>kg/m</td><td>单根索每米重量</td></tr>
+    <tr><td>有效面积</td><td>F_K</td><td>mm²</td><td>钢丝总截面积（用于拉伸应力计算）</td></tr>
+    <tr><td>破断拉力</td><td>T_p</td><td>kg</td><td>整绳破断拉力实测或手册值</td></tr>
+    <tr><td>折减强度极限</td><td>σ'_b</td><td>kg/mm²</td><td>考虑捻制折减后的钢丝强度极限</td></tr>
+    <tr><td>弹性模量</td><td>E_K</td><td>kg/mm²</td><td>钢丝绳等效弹性模量（≈9000~10000）</td></tr>
+    <tr><td>用途</td><td>—</td><td>—</td><td>"主索" 或 "起重/牵引"，程序据此筛选</td></tr>
+  </table>
+</div>
+
+<div style="margin-top:30px;padding:14px 18px;background:#fff8e1;border:1px solid #f0a500;border-radius:6px;font-size:12px;color:#555">
+  ⚠ <strong>免责声明：</strong>本程序为辅助计算工具，依据周继祖《缆索吊车》（1981年版）编制。计算结果仅供参考，不能替代正式工程设计。任何实际工程应用前，须经具有相应资质的注册工程师审核确认，并遵守现行有效的国家及行业标准规范。
+</div>
+
+  </div><!-- end man-content -->
+
+  <!-- 右侧粘性目录 -->
+  <div class="man-toc-col">
+    <div class="man-toc">
+      <div class="man-toc-hdr">📋 目录</div>
+      <div class="man-toc-nav" id="man-toc-nav">
+        <a href="#sec1">一、整体计算思路</a>
+        <a href="#sec2">二、模块一：设计模块</a>
+        <a href="#sec3">三、模块二：验算模块</a>
+        <a href="#sec4">四、模块三：塔架验算模块</a>
+        <a href="#sec5">五、模块四：沿线受力分析</a>
+        <a href="#sec6">六、注意事项</a>
+        <a href="#sec7">七、输入输出参数总表</a>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end man-wrap -->
+  </div><!-- end page-help -->
+
+  <script>
+  // 说明页右侧目录：IntersectionObserver 高亮当前章节
+  (function(){
+    const nav = document.getElementById('man-toc-nav');
+    if(!nav) return;
+    const links = nav.querySelectorAll('a');
+    const secs = [];
+    links.forEach(a=>{
+      const id=a.getAttribute('href').replace('#','');
+      const el=document.getElementById(id);
+      if(el) secs.push({el,a});
+      a.addEventListener('click',e=>{
+        e.preventDefault();
+        document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    });
+    const obs=new IntersectionObserver(entries=>{
+      entries.forEach(en=>{
+        if(en.isIntersecting){
+          links.forEach(a=>a.classList.remove('man-active'));
+          const it=secs.find(s=>s.el===en.target);
+          if(it){it.a.classList.add('man-active');it.a.scrollIntoView({block:'nearest'});}
+        }
+      });
+    },{rootMargin:'-8% 0px -75% 0px',threshold:0});
+    secs.forEach(s=>obs.observe(s.el));
+    if(secs.length) secs[0].a.classList.add('man-active');
+  })();
+  </script>
+
+</div><!-- end .content -->
+
+<script>
+// ===== 数据库 =====
+let ropeDB=[
+  {name:"Φ20-主",d:20,ds:1.4,w:1.43,Fk:152,Tp:21980,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ24-主",d:24,ds:1.6,w:2.06,Fk:218,Tp:31540,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ28-主",d:28,ds:1.9,w:2.80,Fk:297,Tp:42920,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ32-主",d:32,ds:2.1,w:3.66,Fk:387,Tp:55950,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ36-主",d:36,ds:2.4,w:4.63,Fk:490,Tp:70830,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ40-主",d:40,ds:2.6,w:5.72,Fk:605,Tp:87125,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ44-主",d:44,ds:2.9,w:6.92,Fk:733,Tp:105990,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ48-主",d:48,ds:3.2,w:8.24,Fk:872,Tp:126040,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ52-主",d:52,ds:3.5,w:9.68,Fk:1024,Tp:148000,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ56-主",d:56,ds:3.8,w:11.2,Fk:1188,Tp:171720,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ60-主",d:60,ds:4.0,w:12.9,Fk:1361,Tp:196700,sigma_b:144.5,Ek:10000,use:"主索"},
+  {name:"Φ9.5-轻",d:9.5,ds:0.4,w:0.34,Fk:38,Tp:4750,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ11-轻",d:11,ds:0.5,w:0.46,Fk:50,Tp:6300,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ12.5",d:12.5,ds:0.6,w:0.60,Fk:65,Tp:8125,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ14",d:14,ds:0.6,w:0.75,Fk:82,Tp:10250,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ15.5",d:15.5,ds:0.7,w:0.92,Fk:101,Tp:12625,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ17.5",d:17.5,ds:0.8,w:1.17,Fk:128,Tp:16000,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ19.5",d:19.5,ds:0.9,w:1.46,Fk:160,Tp:20000,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ21.5",d:21.5,ds:1.0,w:1.78,Fk:194,Tp:24250,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ24",d:24,ds:1.1,w:2.21,Fk:242,Tp:30250,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ26",d:26,ds:1.2,w:2.60,Fk:284,Tp:35500,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ28",d:28,ds:1.3,w:3.01,Fk:330,Tp:41250,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ32",d:32,ds:1.5,w:3.94,Fk:431,Tp:53875,sigma_b:125,Ek:9000,use:"起重/牵引"},
+  {name:"Φ36",d:36,ds:1.7,w:4.98,Fk:546,Tp:68250,sigma_b:125,Ek:9000,use:"起重/牵引"},
+];
+
+function showTab(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+function renderDB(){
+  const tbody=document.getElementById('rope-tbody');tbody.innerHTML='';
+  ropeDB.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input style="width:90px" value="${r.name}" onchange="ropeDB[${i}].name=this.value;refreshSelects()"></td>
+      <td><input type="number" style="width:58px" value="${r.d}" onchange="ropeDB[${i}].d=+this.value"></td>
+      <td><input type="number" style="width:62px" value="${r.ds||0}" step="0.1" onchange="ropeDB[${i}].ds=+this.value"></td>
+      <td><input type="number" style="width:72px" value="${r.w}" step="0.01" onchange="ropeDB[${i}].w=+this.value"></td>
+      <td><input type="number" style="width:66px" value="${r.Fk}" onchange="ropeDB[${i}].Fk=+this.value"></td>
+      <td><input type="number" style="width:80px" value="${r.Tp}" onchange="ropeDB[${i}].Tp=+this.value"></td>
+      <td><input type="number" style="width:70px" value="${r.sigma_b}" step="0.1" onchange="ropeDB[${i}].sigma_b=+this.value"></td>
+      <td><input type="number" style="width:70px" value="${r.Ek}" onchange="ropeDB[${i}].Ek=+this.value"></td>
+      <td><input style="width:76px" value="${r.use}" onchange="ropeDB[${i}].use=this.value"></td>
+      <td><button class="btn-danger-sm" onclick="ropeDB.splice(${i},1);renderDB();refreshSelects()">删除</button></td>`;
+    tbody.appendChild(tr);
+  });refreshSelects();
+}
+function addRopeRow(){ropeDB.push({name:"新型号",d:20,ds:0.9,w:1.5,Fk:150,Tp:20000,sigma_b:125,Ek:9000,use:"起重/牵引"});renderDB();}
+function toggleAdv(p){const el=document.getElementById(p+'_adv');const btn=el.previousElementSibling;if(el.style.display==='none'){el.style.display='block';btn.textContent=btn.textContent.replace('▶','▼');}else{el.style.display='none';btn.textContent=btn.textContent.replace('▼','▶');}}
+function refreshSelects(){
+  ['v_mainRope','v_hoistRope','v_tractRope','tw_ropeFA','tw_ropeFB'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const prev=sel.value;
+    sel.innerHTML=ropeDB.map((r,i)=>`<option value="${i}">${r.name}（T_p=${r.Tp}kg）</option>`).join('');
+    sel.value=prev;
+  });
+}
+function fillVerifyRope(type){
+  const map={main:{selId:'v_mainRope',tpId:'v_mainTp',fkId:'v_mainFk',wId:'v_mainW',sigmaId:'v_mainSigma'},
+             hoist:{selId:'v_hoistRope',tpId:'v_hoistTp'},tract:{selId:'v_tractRope',tpId:'v_tractTp'}};
+  const m=map[type];const r=ropeDB[+document.getElementById(m.selId).value];if(!r)return;
+  document.getElementById(m.tpId).value=r.Tp;
+  if(type==='main'){document.getElementById(m.fkId).value=r.Fk;document.getElementById(m.wId).value=r.w;document.getElementById(m.sigmaId).value=r.sigma_b;}
+}
+
+// ===== 计算核心 =====
+function pulleyForce(Q,n,fp=1.04){let s=0;for(let i=0;i<n;i++)s+=Math.pow(fp,i);return Q/s;}
+function mainCableCalc(L,h,Q_total,n_cables,fRatio,rope,q_add,phi){
+  const Q_design=Q_total*(1+phi),f=L*fRatio,q=rope.w+q_add/n_cables,Q=Q_design/n_cables;
+  const H=q*L*L/(8*f)+Q*L/(4*f);
+  const V_A=q*L/2+Q/2-H*h/L,V_B=q*L/2+Q/2+H*h/L;
+  const T_max=Math.sqrt(H*H+V_B*V_B);
+  const phi_A=Math.atan2(V_A,H)*180/Math.PI,phi_B=Math.atan2(V_B,H)*180/Math.PI;
+  const chord=Math.sqrt(L*L+h*h),S=chord*(1+8*f*f/(3*chord*chord));
+  const sigma_t=T_max/rope.Fk,sigma_w=(Q/2)*Math.sqrt(rope.Ek/(T_max*rope.Fk));
+  const sigma_z=sigma_t+sigma_w,K1=rope.Tp/T_max,K2=rope.sigma_b/sigma_z;
+  return{H,V_A,V_B,T_max,phi_A,phi_B,S,f,q,Q,sigma_t,sigma_w,sigma_z,K1,K2,Q_design};
+}
+function fmt(v,d=2){return(+v).toFixed(d);}
+function kTag(v,t,l){return v>=t?`<span class="tag tag-ok">✓ ${l}</span>`:`<span class="tag tag-fail">✗ ${l}</span>`;}
+
+// ===== 立面图 =====
+function buildElevSVG(dp,uid){
+  const{L,h,elev_A,elev_B,towerH_A,towerH_B,f_max,mainRopeName,nc,hoistRopeName,nparts,tractRopeName,phi_A,phi_B,Q_t,obstElev}=dp;
+  const A_top=elev_A+towerH_A,B_top=elev_B+towerH_B,h_tops=B_top-A_top;
+  const SW=860,SH=460,ML=94,MR=72,MT=50,MB=80;
+  const PW=SW-ML-MR,PH=SH-MT-MB;
+  const gR=Math.min(L*0.13,48),xMin=-gR,xMax=L+gR;
+  const yMin=Math.min(elev_A,elev_B,obstElev)-3,yMax=Math.max(A_top,B_top)+8;
+  const sx=PW/(xMax-xMin),sy_n=PH/Math.max(yMax-yMin,1);
+  const minTH=Math.max(Math.min(towerH_A,towerH_B),1);
+  const sy=Math.max(sy_n,Math.min(3*sx,70/minTH));
+  const wx=x=>ML+(x-xMin)*sx,wy=y=>SH-MB-(y-yMin)*sy;
+  const xA=wx(0),yAg=wy(elev_A),yAt=wy(A_top),xB=wx(L),yBg=wy(elev_B),yBt=wy(B_top);
+  const twAb=Math.max(9,towerH_A*sy*.11),twAt=Math.max(4,towerH_A*sy*.04);
+  const twBb=Math.max(9,towerH_B*sy*.11),twBt=Math.max(4,towerH_B*sy*.04);
+  let cp=[],tp=[];
+  for(let i=0;i<=60;i++){const t=i/60,xc=t*L,yC=A_top+h_tops*t,sg=f_max*4*t*(1-t);
+    cp.push(`${wx(xc).toFixed(1)},${wy(yC-sg).toFixed(1)}`);
+    tp.push(`${wx(xc).toFixed(1)},${wy(yC-sg*.06+.5).toFixed(1)}`);
+  }
+  const xtS=wx(L/2),ytS=wy(A_top+h_tops/2-f_max);
+  const gyAx=wx(-gR*.85),gyBx=wx(L+gR*.85);
+  const yGnd=Math.max(yAg,yBg)+16;
+  const vsc=sy/sx,note=vsc>1.15?`竖向×${vsc.toFixed(1)}放大`:'立面示意';
+  const a=uid;
+  let g=`<defs>
+  <pattern id="gh${a}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#aaa" stroke-width="1.5"/></pattern>
+  <pattern id="wv${a}" width="16" height="8" patternUnits="userSpaceOnUse"><path d="M0,4 Q4,0 8,4 Q12,8 16,4" fill="none" stroke="#5b9bd5" stroke-width="1"/></pattern>
+  <marker id="ea${a}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="#444"/></marker>
+  <marker id="er${a}" markerWidth="7" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="7,0 0,3.5 7,7" fill="#444"/></marker>
+  <marker id="eg${a}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="#2e7d32"/></marker>
+  <marker id="egr${a}" markerWidth="7" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="7,0 0,3.5 7,7" fill="#2e7d32"/></marker>
+  </defs>`;
+  g+=`<rect width="${SW}" height="${SH}" fill="#fafaf8"/>`;
+  g+=`<text x="${SW/2}" y="20" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">缆索吊立面示意图</text>`;
+  g+=`<text x="${SW/2}" y="34" text-anchor="middle" font-size="10" fill="#999" font-family="微软雅黑,sans-serif">${note} | L=${L}m，f=${f_max.toFixed(1)}m，Q=${(Q_t/1000).toFixed(1)}t</text>`;
+  // 水面/障碍
+  const xGL=xA+twAb+3,xGR=xB-twBb-3;
+  if(obstElev>Math.min(elev_A,elev_B)&&xGR>xGL){
+    const yOb=wy(obstElev);
+    g+=`<rect x="${xGL}" y="${yOb}" width="${xGR-xGL}" height="${yGnd-yOb+20}" fill="url(#wv${a})"/>`;
+    g+=`<line x1="${xGL}" y1="${yOb}" x2="${xGR}" y2="${yOb}" stroke="#1565C0" stroke-width="1.5"/>`;
+    g+=`<text x="${(xGL+xGR)/2}" y="${yOb-5}" text-anchor="middle" font-size="10" fill="#1565C0" font-family="微软雅黑,sans-serif">▽${obstElev.toFixed(1)}m</text>`;
+  }
+  // 地面
+  g+=`<rect x="${ML-8}" y="${yAg}" width="${xA-ML+8+twAb+4}" height="${yGnd-yAg+20}" fill="url(#gh${a})"/>`;
+  g+=`<line x1="${ML-8}" y1="${yAg}" x2="${xA+twAb+4}" y2="${yAg}" stroke="#555" stroke-width="2"/>`;
+  g+=`<rect x="${xB-twBb-4}" y="${yBg}" width="${SW-MR+8-(xB-twBb-4)}" height="${yGnd-yBg+20}" fill="url(#gh${a})"/>`;
+  g+=`<line x1="${xB-twBb-4}" y1="${yBg}" x2="${SW-MR+8}" y2="${yBg}" stroke="#555" stroke-width="2"/>`;
+  // 缆风索
+  g+=`<line x1="${xA-twAt}" y1="${yAt}" x2="${gyAx}" y2="${yAg}" stroke="#777" stroke-width="1.2" stroke-dasharray="6,4"/>`;
+  g+=`<line x1="${xB+twBt}" y1="${yBt}" x2="${gyBx}" y2="${yBg}" stroke="#777" stroke-width="1.2" stroke-dasharray="6,4"/>`;
+  [[gyAx,yAg],[gyBx,yBg]].forEach(([ax,ay])=>{g+=`<line x1="${ax-6}" y1="${ay}" x2="${ax+6}" y2="${ay}" stroke="#333" stroke-width="2"/><circle cx="${ax}" cy="${ay}" r="3" fill="#555"/>`;});
+  g+=`<text x="${gyAx}" y="${yAg-7}" text-anchor="middle" font-size="9" fill="#666" font-family="微软雅黑,sans-serif">缆风索</text>`;
+  g+=`<text x="${gyBx}" y="${yBg-7}" text-anchor="middle" font-size="9" fill="#666" font-family="微软雅黑,sans-serif">缆风索</text>`;
+  // 锚固索
+  g+=`<line x1="${xA-twAt}" y1="${yAt-4}" x2="${xA-twAt-26}" y2="${yAt-4}" stroke="#777" stroke-width="1" stroke-dasharray="5,3"/>`;
+  g+=`<text x="${xA-twAt-28}" y="${yAt-4}" text-anchor="end" font-size="9" fill="#555" font-family="微软雅黑,sans-serif">锚固索</text>`;
+  g+=`<line x1="${xB+twBt}" y1="${yBt-4}" x2="${xB+twBt+26}" y2="${yBt-4}" stroke="#777" stroke-width="1" stroke-dasharray="5,3"/>`;
+  g+=`<text x="${xB+twBt+28}" y="${yBt-4}" text-anchor="start" font-size="9" fill="#555" font-family="微软雅黑,sans-serif">锚固索</text>`;
+  // 牵引索
+  g+=`<polyline points="${tp.join(' ')}" fill="none" stroke="#1976D2" stroke-width="1.3" stroke-dasharray="7,4" opacity=".85"/>`;
+  // 主索
+  g+=`<polyline points="${cp.join(' ')}" fill="none" stroke="#0D47A1" stroke-width="2.6"/>`;
+  // 塔架A
+  g+=`<polygon points="${xA-twAb},${yAg} ${xA+twAb},${yAg} ${xA+twAt},${yAt} ${xA-twAt},${yAt}" fill="#d6d6d6" stroke="#333" stroke-width="1.8"/>`;
+  g+=`<line x1="${xA-twAb}" y1="${yAg}" x2="${xA+twAt}" y2="${yAt}" stroke="#888" stroke-width="1" opacity=".7"/>`;
+  g+=`<line x1="${xA+twAb}" y1="${yAg}" x2="${xA-twAt}" y2="${yAt}" stroke="#888" stroke-width="1" opacity=".7"/>`;
+  const ymA=(yAg+yAt)/2,hwA=twAt+(twAb-twAt)*.5;
+  g+=`<line x1="${xA-hwA}" y1="${ymA}" x2="${xA+hwA}" y2="${ymA}" stroke="#888" stroke-width="1.2"/>`;
+  // 塔架B
+  g+=`<polygon points="${xB-twBb},${yBg} ${xB+twBb},${yBg} ${xB+twBt},${yBt} ${xB-twBt},${yBt}" fill="#d6d6d6" stroke="#333" stroke-width="1.8"/>`;
+  g+=`<line x1="${xB-twBb}" y1="${yBg}" x2="${xB+twBt}" y2="${yBt}" stroke="#888" stroke-width="1" opacity=".7"/>`;
+  g+=`<line x1="${xB+twBb}" y1="${yBg}" x2="${xB-twBt}" y2="${yBt}" stroke="#888" stroke-width="1" opacity=".7"/>`;
+  const ymB=(yBg+yBt)/2,hwB=twBt+(twBb-twBt)*.5;
+  g+=`<line x1="${xB-hwB}" y1="${ymB}" x2="${xB+hwB}" y2="${ymB}" stroke="#888" stroke-width="1.2"/>`;
+  // 索鞍
+  g+=`<circle cx="${xA}" cy="${yAt}" r="5" fill="#fff" stroke="#1565C0" stroke-width="2"/>`;
+  g+=`<circle cx="${xB}" cy="${yBt}" r="5" fill="#fff" stroke="#1565C0" stroke-width="2"/>`;
+  // 跑车+起重索+荷载
+  g+=`<rect x="${xtS-13}" y="${ytS-12}" width="26" height="12" fill="#c62828" stroke="#7f0000" stroke-width="1.5" rx="2"/>`;
+  [-7,7].forEach(dx=>{g+=`<circle cx="${xtS+dx}" cy="${ytS-6}" r="4.5" fill="#bbb" stroke="#555" stroke-width="1.2"/><circle cx="${xtS+dx}" cy="${ytS-6}" r="1.8" fill="#555"/>`;});
+  g+=`<text x="${xtS}" y="${ytS-14}" text-anchor="middle" font-size="9" fill="#c62828" font-weight="bold" font-family="微软雅黑,sans-serif">走${nc*2}清</text>`;
+  g+=`<line x1="${xtS}" y1="${ytS}" x2="${xtS}" y2="${ytS+30}" stroke="#1976D2" stroke-width="1.8"/>`;
+  g+=`<ellipse cx="${xtS}" cy="${ytS+36}" rx="8" ry="5" fill="none" stroke="#1976D2" stroke-width="1.5"/>`;
+  g+=`<line x1="${xtS}" y1="${ytS+41}" x2="${xtS}" y2="${ytS+50}" stroke="#1976D2" stroke-width="1.5"/>`;
+  g+=`<rect x="${xtS-16}" y="${ytS+50}" width="32" height="20" fill="#e65100" stroke="#bf360c" stroke-width="1.8" rx="2"/>`;
+  g+=`<text x="${xtS}" y="${ytS+63}" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold" font-family="微软雅黑,sans-serif">Q</text>`;
+  g+=`<text x="${xtS+19}" y="${ytS+63}" font-size="9.5" fill="#e65100" font-family="微软雅黑,sans-serif">=${(Q_t/1000).toFixed(1)}t</text>`;
+  // 索型标注
+  const lx=xtS+44,ly=ytS+4;
+  g+=`<text x="${lx}" y="${ly}" font-size="10" fill="#0D47A1" font-weight="bold" font-family="微软雅黑,sans-serif">承载索 ${mainRopeName}×${nc}</text>`;
+  g+=`<text x="${lx}" y="${ly-13}" font-size="9.5" fill="#1976D2" font-family="微软雅黑,sans-serif">牵引索 ${tractRopeName}</text>`;
+  g+=`<text x="${xtS+10}" y="${ytS+24}" font-size="9.5" fill="#1976D2" font-family="微软雅黑,sans-serif">起重索 ${hoistRopeName}(${nparts}跑马)</text>`;
+  // 端名+标高
+  g+=`<text x="${xA}" y="${yAt-12}" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">甲端</text>`;
+  g+=`<text x="${xB}" y="${yBt-12}" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">乙端</text>`;
+  g+=`<text x="${xA-twAt-5}" y="${yAt+4}" text-anchor="end" font-size="9" fill="#333" font-family="微软雅黑,sans-serif">▽${A_top.toFixed(2)}m</text>`;
+  g+=`<text x="${xA-twAb-5}" y="${yAg+4}" text-anchor="end" font-size="9" fill="#666" font-family="微软雅黑,sans-serif">▽${elev_A.toFixed(2)}m</text>`;
+  g+=`<text x="${xB+twBt+5}" y="${yBt+4}" text-anchor="start" font-size="9" fill="#333" font-family="微软雅黑,sans-serif">▽${B_top.toFixed(2)}m</text>`;
+  g+=`<text x="${xB+twBb+5}" y="${yBg+4}" text-anchor="start" font-size="9" fill="#666" font-family="微软雅黑,sans-serif">▽${elev_B.toFixed(2)}m</text>`;
+  // 角度
+  const aR=16;
+  g+=`<path d="M${xA+twAt},${yAt} A${aR},${aR} 0 0,0 ${xA+twAt+aR*.9},${yAt-aR*.45}" fill="none" stroke="#555" stroke-width="1"/>`;
+  g+=`<text x="${xA+twAt+aR+2}" y="${yAt-aR*.1}" font-size="9" fill="#555" font-family="微软雅黑,sans-serif">${Math.abs(phi_A||0).toFixed(1)}°</text>`;
+  g+=`<path d="M${xB-twBt-aR*.9},${yBt-aR*.45} A${aR},${aR} 0 0,1 ${xB-twBt},${yBt}" fill="none" stroke="#555" stroke-width="1"/>`;
+  g+=`<text x="${xB-twBt-aR-2}" y="${yBt-aR*.1}" text-anchor="end" font-size="9" fill="#555" font-family="微软雅黑,sans-serif">${Math.abs(phi_B||0).toFixed(1)}°</text>`;
+  // 尺寸线L
+  const dimY=yGnd+24;
+  g+=`<line x1="${xA}" y1="${yAg+4}" x2="${xA}" y2="${dimY+2}" stroke="#444" stroke-width=".7" stroke-dasharray="4,3"/>`;
+  g+=`<line x1="${xB}" y1="${yBg+4}" x2="${xB}" y2="${dimY+2}" stroke="#444" stroke-width=".7" stroke-dasharray="4,3"/>`;
+  g+=`<line x1="${xA}" y1="${dimY}" x2="${xB}" y2="${dimY}" stroke="#333" stroke-width="1.3" marker-start="url(#er${a})" marker-end="url(#ea${a})"/>`;
+  g+=`<text x="${(xA+xB)/2}" y="${dimY+13}" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">L = ${L} m</text>`;
+  // H甲
+  const dxL=ML-18;
+  g+=`<line x1="${xA-twAb-2}" y1="${yAg}" x2="${dxL}" y2="${yAg}" stroke="#444" stroke-width=".7" stroke-dasharray="3,3"/>`;
+  g+=`<line x1="${xA-twAt-2}" y1="${yAt}" x2="${dxL}" y2="${yAt}" stroke="#444" stroke-width=".7" stroke-dasharray="3,3"/>`;
+  g+=`<line x1="${dxL}" y1="${yAg}" x2="${dxL}" y2="${yAt}" stroke="#333" stroke-width="1.3" marker-start="url(#er${a})" marker-end="url(#ea${a})"/>`;
+  g+=`<text x="${dxL-3}" y="${(yAg+yAt)/2}" text-anchor="end" dominant-baseline="middle" font-size="9.5" fill="#333" font-family="微软雅黑,sans-serif">H甲=${towerH_A.toFixed(1)}m</text>`;
+  // H乙
+  const dxR=SW-MR+18;
+  g+=`<line x1="${xB+twBb+2}" y1="${yBg}" x2="${dxR}" y2="${yBg}" stroke="#444" stroke-width=".7" stroke-dasharray="3,3"/>`;
+  g+=`<line x1="${xB+twBt+2}" y1="${yBt}" x2="${dxR}" y2="${yBt}" stroke="#444" stroke-width=".7" stroke-dasharray="3,3"/>`;
+  g+=`<line x1="${dxR}" y1="${yBg}" x2="${dxR}" y2="${yBt}" stroke="#333" stroke-width="1.3" marker-start="url(#er${a})" marker-end="url(#ea${a})"/>`;
+  g+=`<text x="${dxR+3}" y="${(yBg+yBt)/2}" dominant-baseline="middle" font-size="9.5" fill="#333" font-family="微软雅黑,sans-serif">H乙=${towerH_B.toFixed(1)}m</text>`;
+  // 高差h
+  if(Math.abs(h_tops)>.3){
+    const hx=Math.min(xB+twBt+50,dxR-50);
+    const yHi=Math.min(yAt,yBt),yLo=Math.max(yAt,yBt);
+    g+=`<line x1="${xA}" y1="${yAt}" x2="${hx}" y2="${yAt}" stroke="#e65100" stroke-width=".8" stroke-dasharray="5,3"/>`;
+    g+=`<line x1="${xB}" y1="${yBt}" x2="${hx}" y2="${yBt}" stroke="#e65100" stroke-width=".8" stroke-dasharray="5,3"/>`;
+    g+=`<line x1="${hx}" y1="${yLo}" x2="${hx}" y2="${yHi}" stroke="#e65100" stroke-width="1.3" marker-start="url(#egr${a})" marker-end="url(#eg${a})"/>`;
+    g+=`<text x="${hx+4}" y="${(yHi+yLo)/2}" dominant-baseline="middle" font-size="9.5" fill="#e65100" font-family="微软雅黑,sans-serif">h=${Math.abs(h_tops).toFixed(1)}m</text>`;
+  }
+  // 弦线+垂度
+  g+=`<line x1="${xA}" y1="${yAt}" x2="${xB}" y2="${yBt}" stroke="#2e7d32" stroke-width=".9" stroke-dasharray="7,4" opacity=".8"/>`;
+  const fyM=(yAt+yBt)/2;
+  g+=`<line x1="${xtS}" y1="${fyM}" x2="${xtS}" y2="${ytS}" stroke="#2e7d32" stroke-width="1.4" marker-end="url(#eg${a})" stroke-dasharray="4,3"/>`;
+  g+=`<text x="${xtS+5}" y="${(fyM+ytS)/2}" dominant-baseline="middle" font-size="9.5" fill="#2e7d32" font-weight="bold" font-family="微软雅黑,sans-serif">f=${f_max.toFixed(1)}m</text>`;
+  g+=`<rect x="1" y="1" width="${SW-2}" height="${SH-2}" fill="none" stroke="#bbb" stroke-width="1.5" rx="4"/>`;
+  return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}">${g}</svg>`;
+}
+
+// ===== 平面图 =====
+function buildPlanSVG(dp,uid){
+  const{L,nc,mainRopeName,tractRopeName,nparts,Q_t}=dp;
+  const SW=440,SH=290,ML=58,MR=58,MT=44,MB=50;
+  const PW=SW-ML-MR,PH=SH-MT-MB;
+  const cy=MT+PH/2;
+  const nc_d=Math.min(nc,10);
+  const csp=Math.min(13,Math.max(7,Math.floor(PH*.55/(nc_d||1))));
+  const gH=(nc_d-1)*csp,tW=Math.max(gH+26,34),tD=15;
+  const xA=ML,xB=ML+PW;
+  const yTT=cy-tW/2,yTB=cy+tW/2;
+  const gR2=Math.min(PW*.13,48),gSp=tW/2+10;
+  const a=uid;
+  let g=`<defs>
+  <marker id="pa${a}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><polygon points="0,0 7,3.5 0,7" fill="#444"/></marker>
+  <marker id="par${a}" markerWidth="7" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="7,0 0,3.5 7,7" fill="#444"/></marker>
+  </defs>`;
+  g+=`<rect width="${SW}" height="${SH}" fill="#fafaf8"/>`;
+  g+=`<text x="${SW/2}" y="19" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">缆索吊平面示意图（俯视）</text>`;
+  g+=`<text x="${SW/2}" y="32" text-anchor="middle" font-size="9.5" fill="#999" font-family="微软雅黑,sans-serif">L=${L}m，承载索×${nc}根，${nparts}跑马</text>`;
+  // 缆风锚
+  const anch=[[xA-gR2,cy-gSp],[xA-gR2,cy+gSp],[xB+gR2,cy-gSp],[xB+gR2,cy+gSp]];
+  anch.forEach(([ax,ay])=>g+=`<circle cx="${ax}" cy="${ay}" r="4.5" fill="#aaa" stroke="#555" stroke-width="1.2"/>`);
+  [[xA,yTT,anch[0]],[xA,yTB,anch[1]]].forEach(([tx,ty,[ax,ay]])=>g+=`<line x1="${tx}" y1="${ty}" x2="${ax}" y2="${ay}" stroke="#777" stroke-width="1.2" stroke-dasharray="5,3"/>`);
+  [[xB,yTT,anch[2]],[xB,yTB,anch[3]]].forEach(([tx,ty,[ax,ay]])=>g+=`<line x1="${tx}" y1="${ty}" x2="${ax}" y2="${ay}" stroke="#777" stroke-width="1.2" stroke-dasharray="5,3"/>`);
+  g+=`<text x="${anch[0][0]}" y="${anch[0][1]-7}" text-anchor="middle" font-size="8.5" fill="#666" font-family="微软雅黑,sans-serif">缆风锚</text>`;
+  g+=`<text x="${anch[2][0]}" y="${anch[2][1]-7}" text-anchor="middle" font-size="8.5" fill="#666" font-family="微软雅黑,sans-serif">缆风锚</text>`;
+  // 牵引索
+  const tY=cy+gH/2+14;
+  g+=`<line x1="${xA+tD/2}" y1="${tY}" x2="${xB-tD/2}" y2="${tY}" stroke="#1976D2" stroke-width="1.5" stroke-dasharray="10,5"/>`;
+  // 承载索
+  for(let i=0;i<nc_d;i++){
+    const cy_i=cy-gH/2+i*csp;
+    g+=`<line x1="${xA+tD/2}" y1="${cy_i}" x2="${xB-tD/2}" y2="${cy_i}" stroke="#0D47A1" stroke-width="2.2"/>`;
+  }
+  // 轴线
+  g+=`<line x1="${xA-6}" y1="${cy}" x2="${xB+6}" y2="${cy}" stroke="#999" stroke-width=".8" stroke-dasharray="12,4,2,4"/>`;
+  // 跑车
+  const xM=(xA+xB)/2;
+  g+=`<rect x="${xM-10}" y="${cy-gH/2-4}" width="20" height="${gH+8}" fill="none" stroke="#c62828" stroke-width="1.8" stroke-dasharray="4,2" rx="2"/>`;
+  g+=`<text x="${xM}" y="${cy-gH/2-8}" text-anchor="middle" font-size="8.5" fill="#c62828" font-family="微软雅黑,sans-serif">跑车</text>`;
+  // 塔架
+  g+=`<rect x="${xA-tD/2}" y="${yTT}" width="${tD}" height="${tW}" fill="#d6d6d6" stroke="#333" stroke-width="1.8"/>`;
+  g+=`<line x1="${xA-tD/2}" y1="${yTT}" x2="${xA+tD/2}" y2="${yTB}" stroke="#888" stroke-width="1"/>`;
+  g+=`<line x1="${xA+tD/2}" y1="${yTT}" x2="${xA-tD/2}" y2="${yTB}" stroke="#888" stroke-width="1"/>`;
+  g+=`<rect x="${xB-tD/2}" y="${yTT}" width="${tD}" height="${tW}" fill="#d6d6d6" stroke="#333" stroke-width="1.8"/>`;
+  g+=`<line x1="${xB-tD/2}" y1="${yTT}" x2="${xB+tD/2}" y2="${yTB}" stroke="#888" stroke-width="1"/>`;
+  g+=`<line x1="${xB+tD/2}" y1="${yTT}" x2="${xB-tD/2}" y2="${yTB}" stroke="#888" stroke-width="1"/>`;
+  g+=`<text x="${xA}" y="${yTT-6}" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">甲端</text>`;
+  g+=`<text x="${xB}" y="${yTT-6}" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">乙端</text>`;
+  // 标注
+  g+=`<text x="${xB+tD/2+4}" y="${cy-gH/2+4}" font-size="9" fill="#0D47A1" font-family="微软雅黑,sans-serif">承载索</text>`;
+  g+=`<text x="${xB+tD/2+4}" y="${cy-gH/2+15}" font-size="9" fill="#0D47A1" font-family="微软雅黑,sans-serif">${mainRopeName}×${nc}</text>`;
+  g+=`<text x="${xB+tD/2+4}" y="${tY+3}" font-size="9" fill="#1976D2" font-family="微软雅黑,sans-serif">牵引索</text>`;
+  g+=`<text x="${xB+tD/2+4}" y="${tY+14}" font-size="9" fill="#1976D2" font-family="微软雅黑,sans-serif">${tractRopeName}</text>`;
+  if(nc_d>1){
+    const y1c=cy-gH/2,y2c=y1c+csp,xdim=xA-12;
+    g+=`<line x1="${xdim}" y1="${y1c}" x2="${xdim}" y2="${y2c}" stroke="#555" stroke-width="1" marker-start="url(#par${a})" marker-end="url(#pa${a})"/>`;
+    g+=`<text x="${xdim-3}" y="${(y1c+y2c)/2}" text-anchor="end" dominant-baseline="middle" font-size="8.5" fill="#555" font-family="微软雅黑,sans-serif">≈1m</text>`;
+  }
+  // 尺寸L
+  const dimY2=SH-MB+28;
+  g+=`<line x1="${xA}" y1="${yTB+4}" x2="${xA}" y2="${dimY2+2}" stroke="#444" stroke-width=".7" stroke-dasharray="4,3"/>`;
+  g+=`<line x1="${xB}" y1="${yTB+4}" x2="${xB}" y2="${dimY2+2}" stroke="#444" stroke-width=".7" stroke-dasharray="4,3"/>`;
+  g+=`<line x1="${xA}" y1="${dimY2}" x2="${xB}" y2="${dimY2}" stroke="#333" stroke-width="1.3" marker-start="url(#par${a})" marker-end="url(#pa${a})"/>`;
+  g+=`<text x="${(xA+xB)/2}" y="${dimY2+12}" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">L = ${L} m</text>`;
+  // 北向
+  const nX=SW-14,nY=MT+16;
+  g+=`<line x1="${nX}" y1="${nY+12}" x2="${nX}" y2="${nY-2}" stroke="#666" stroke-width="1.5" marker-end="url(#pa${a})"/>`;
+  g+=`<text x="${nX}" y="${nY+22}" text-anchor="middle" font-size="9" fill="#666" font-family="微软雅黑,sans-serif">N</text>`;
+  g+=`<rect x="1" y="1" width="${SW-2}" height="${SH-2}" fill="none" stroke="#bbb" stroke-width="1.5" rx="4"/>`;
+  return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}">${g}</svg>`;
+}
+
+function updateDiagrams(eId,pId,dp){
+  document.getElementById(eId).innerHTML=buildElevSVG(dp,eId.replace(/[^a-z]/gi,''));
+  document.getElementById(pId).innerHTML=buildPlanSVG(dp,pId.replace(/[^a-z]/gi,''));
+}
+function designDP(){
+  const L=+document.getElementById('d_L').value||200,h=+document.getElementById('d_h').value||0;
+  const fR=+document.getElementById('d_fL').value||0.04,f=L*fR;
+  const nc_fix=+document.getElementById('d_nc').value||0,nc=nc_fix>0?nc_fix:2;
+  const eA=+document.getElementById('d_elev_A').value||0,eB=+document.getElementById('d_elev_B').value||0;
+  const ob=+document.getElementById('d_obstElev').value||0,cl=+document.getElementById('d_clearance').value||2;
+  const topR=ob+cl+f,tHA=Math.max(8,topR-eA),tHB=Math.max(8,topR+h-eB);
+  const pa=Math.atan2(f*2/L,1)*180/Math.PI;
+  return{L,h,elev_A:eA,elev_B:eB,towerH_A:tHA,towerH_B:tHB,f_max:f,
+    mainRopeName:'承载索',nc,hoistRopeName:'起重索',nparts:4,
+    tractRopeName:'牵引索',phi_A:pa,phi_B:pa,
+    Q_t:(+document.getElementById('d_Q').value||5)*1000,obstElev:ob,clearance:cl};
+}
+function verifyDP(){
+  const L=+document.getElementById('v_L').value||200,h=+document.getElementById('v_h').value||0;
+  const nc=+document.getElementById('v_nc').value||4;
+  const f=(+document.getElementById('v_fmax').value)||L/25;
+  const pa=Math.atan2(f*2/L,1)*180/Math.PI;
+  const mi=+document.getElementById('v_mainRope').value||0;
+  const hi=+document.getElementById('v_hoistRope').value||0;
+  const ti=+document.getElementById('v_tractRope').value||0;
+  return{L,h,elev_A:0,elev_B:h,towerH_A:f+12,towerH_B:f+12,f_max:f,
+    mainRopeName:(ropeDB[mi]||{name:'承载索'}).name,nc,
+    hoistRopeName:(ropeDB[hi]||{name:'起重索'}).name,
+    nparts:+document.getElementById('v_nparts').value||4,
+    tractRopeName:(ropeDB[ti]||{name:'牵引索'}).name,
+    phi_A:pa,phi_B:pa,Q_t:5000,obstElev:0,clearance:2};
+}
+let _dT=null,_vT=null;
+function debounceDraw(p){
+  if(p==='d'){clearTimeout(_dT);_dT=setTimeout(()=>updateDiagrams('d-elev','d-plan',designDP()),280);}
+  else{clearTimeout(_vT);_vT=setTimeout(()=>updateDiagrams('v-elev','v-plan',verifyDP()),280);}
+}
+
+let lastDesignParams=null,lastDesignResults=null,lastVerifyParams=null,lastVerifyResults=null;
+function downloadDoc(html,fn){
+  const b=new Blob([html],{type:'application/msword;charset=utf-8'});
+  const u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download=fn;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u);},1000);
+}
+function exportCalcBook(){if(!lastDesignParams||!lastDesignResults){alert('请先执行设计计算');return;}downloadDoc(buildCalcBookHTML(lastDesignParams,lastDesignResults),'缆索吊设计计算书.doc');}
+function exportVerifyBook(){if(!lastVerifyParams||!lastVerifyResults){alert('请先执行验算');return;}downloadDoc(buildVerifyBookHTML(lastVerifyParams,lastVerifyResults),'缆索吊验算计算书.doc');}
+
+// ===== 高级参数读取 =====
+function getAdv(p){
+  const g=id=>+(document.getElementById(id)?.value||0);
+  return{G_hook:g(p+'_Ghook'),la:g(p+'_la')||30,D_wheel:g(p+'_Dwheel')||500,
+    rho_w:g(p+'_rhowheel')||25,mu1:g(p+'_mu1')||0.012,mu0:g(p+'_mu0')||0.6,
+    ab:g(p+'_ab')||10,D_pulley:g(p+'_Dpulley')||500};
+}
+// ===== 牵引索完整计算 =====
+function calcTract(r,H,L,h,q,Q_per_rope,Q_design_total,adv){
+  const{la,D_wheel,rho_w,mu1,mu0,ab}=adv;
+  const R=D_wheel/2;
+  const tg_g=h/L+(L-2*la)/(2*H)*(q+Q_per_rope/L);
+  const gamma=Math.atan(tg_g);
+  const fa=0.01*la,t0=r.w*la*la/(8*fa);
+  const w1=2*Q_design_total*Math.sin(gamma);
+  const fm=mu1*rho_w/R+mu0/R;
+  const w2=2*fm*Q_design_total*Math.cos(gamma);
+  const w3=(t0+w1+w2)*(Math.pow(1.04,ab)-1);
+  const t_max=t0+w1+w2+w3;
+  return{gamma:gamma*180/Math.PI,tg_g,fa,t0,w1,fm,w2,w3,t_max,la,R,mu1,mu0,ab};
+}
+// ===== 设计计算 =====
+function runDesign(){
+  const L=+document.getElementById('d_L').value,h=+document.getElementById('d_h').value;
+  const Q_t=+document.getElementById('d_Q').value*1000,phi=+document.getElementById('d_phi').value;
+  const fR=+document.getElementById('d_fL').value,nc_fix=+document.getElementById('d_nc').value;
+  const q_add=+document.getElementById('d_qadd').value,Gtr=+document.getElementById('d_Gtrolley').value;
+  const K1m=+document.getElementById('d_K1main').value,K1h=+document.getElementById('d_K1hoist').value,K1t=+document.getElementById('d_K1tract').value;
+  const eA=+document.getElementById('d_elev_A').value,eB=+document.getElementById('d_elev_B').value;
+  const ob=+document.getElementById('d_obstElev').value,cl=+document.getElementById('d_clearance').value;
+  const adv=getAdv('d');
+  const G_trolley=Gtr||Q_t*.15,f=L*fR;
+  const mains=ropeDB.filter(r=>r.use.includes('主'));
+  const nc_opt=nc_fix>0?[nc_fix]:[2,4,6,8];
+  let mRes=null,cho_nc=2;
+  outer:for(const nc of nc_opt){for(const rope of mains){const res=mainCableCalc(L,h,Q_t,nc,fR,rope,q_add,phi);if(res.K1>=K1m&&res.K2>=2){mRes={res,rope,nc};cho_nc=nc;break outer;}}}
+  const Qd=Q_t*(1+phi)+adv.G_hook;
+  // 起重索：σ_z用 ds/D 公式
+  let hRes=null;
+  for(const np of[2,4,6,8,10]){
+    const Tq=pulleyForce(Qd,np);
+    let sfp='';for(let i=0;i<np;i++)sfp+=`1/1.04^${i}=${(1/Math.pow(1.04,i)).toFixed(4)}`;
+    let sum_fp=0;for(let i=0;i<np;i++)sum_fp+=1/Math.pow(1.04,i);
+    for(const r of[...ropeDB].sort((a,b)=>a.Tp-b.Tp)){
+      if(r.Tp/Tq>=K1h){
+        const sigma_z_h=Tq/r.Fk+(r.Ek||9000)*(r.ds||0.9)/adv.D_pulley;
+        const K2_h=r.sigma_b/sigma_z_h;
+        hRes={rope:r,nparts:np,T_q:Tq,K1:r.Tp/Tq,sigma_z:sigma_z_h,K2:K2_h,sum_fp,Q_design:Qd};break;
+      }
+    }
+    if(hRes)break;
+  }
+  // 牵引索：完整四步公式
+  let tRes=null;
+  if(mRes){
+    const mr=mRes.res;
+    for(const r of[...ropeDB].sort((a,b)=>a.Tp-b.Tp)){
+      const tc=calcTract(r,mr.H,L,h,mr.q,mr.Q,Qd,adv);
+      if(r.Tp/tc.t_max>=K1t){
+        const sigma_z_t=tc.t_max/r.Fk+(r.Ek||9000)*(r.ds||0.8)/adv.D_pulley;
+        const K2_t=r.sigma_b/sigma_z_t;
+        tRes={rope:r,...tc,K1:r.Tp/tc.t_max,sigma_z:sigma_z_t,K2:K2_t};break;
+      }
+    }
+  }
+  const topR=ob+cl+f,tHA=Math.max(5,topR-eA),tHB=Math.max(5,topR+h-eB);
+  const mr=mRes?mRes.res:null,mrope=mRes?mRes.rope:null,mnc=mRes?mRes.nc:'—';
+  const S=mr?(mr.S+15).toFixed(1):'—';
+  lastDesignParams={L,h,Q_t,phi,fRatio:fR,nc:cho_nc,q_add,G_trolley,towerH_A:tHA,towerH_B:tHB,eA,eB,obstElev:ob,clearance:cl,K1m,K1h,K1t,adv};
+  const T_A=mr?Math.sqrt(mr.H*mr.H+mr.V_A*mr.V_A):0;
+  lastDesignResults={mr,mrope,mnc,hoistResult:hRes,tractResult:tRes,f,chord:Math.sqrt(L*L+h*h),S,tHA,tHB,T_A};
+  let html=`<div class="result-box"><div class="result-title">设计结果 — 跨径${L}m，吊重${(Q_t/1000).toFixed(1)}t</div>`;
+  html+=`<div class="summary-grid">
+    <div class="summary-item"><div class="val">${mrope?mrope.name:'未找到'}</div><div class="lbl">主索(×${mnc}根)</div></div>
+    <div class="summary-item"><div class="val">${hRes?hRes.rope.name:'—'}</div><div class="lbl">起重索</div></div>
+    <div class="summary-item"><div class="val">${tRes?tRes.rope.name:'—'}</div><div class="lbl">牵引索</div></div>
+    <div class="summary-item"><div class="val">${fmt(f,1)}m</div><div class="lbl">最大垂度</div></div>
+    <div class="summary-item"><div class="val">${hRes?hRes.nparts:'—'}</div><div class="lbl">跑马绳数</div></div>
+    <div class="summary-item"><div class="val">${S}m</div><div class="lbl">单根主索长(含余量)</div></div>
+  </div>`;
+  if(mr&&mrope){html+=`<hr style="border:none;border-top:1px solid #eee;margin:10px 0"><div class="step"><div class="step-title">主索受力</div><div class="step-body">
+    Q设计=${fmt(Qd/1000,2)}t，q=${fmt(mr.q,3)}kg/m，Q单=${fmt(mr.Q,0)}kg<br>
+    H=${fmt(mr.H,0)}kg，V_B=${fmt(mr.V_B,0)}kg，T_max=<b>${fmt(mr.T_max,0)}kg</b><br>
+    K₁=<b>${fmt(mr.K1,2)}</b> ${kTag(mr.K1,K1m,'≥'+K1m)}，σ_z=${fmt(mr.sigma_z,1)}kg/mm²，K₂=<b>${fmt(mr.K2,2)}</b> ${kTag(mr.K2,2,'≥2.0')}<br>
+    索端角：甲${fmt(mr.phi_A,1)}°，乙${fmt(mr.phi_B,1)}°
+  </div></div>`;}
+  if(hRes)html+=`<div class="step"><div class="step-title">起重索</div><div class="step-body">${hRes.nparts}跑马，T_q=${fmt(hRes.T_q,0)}kg，选<b>${hRes.rope.name}</b>，K₁=${fmt(hRes.K1,2)} ${kTag(hRes.K1,K1h,'≥'+K1h)}</div></div>`;
+  if(tRes)html+=`<div class="step"><div class="step-title">牵引索</div><div class="step-body">t_max=${fmt(tRes.t_max,0)}kg，选<b>${tRes.rope.name}</b>，K₁=${fmt(tRes.K1,2)} ${kTag(tRes.K1,K1t,'≥'+K1t)}</div></div>`;
+  html+=`<div class="step"><div class="step-title">塔架</div><div class="step-body">甲端≥<b>${fmt(tHA,1)}m</b>（▽${fmt(eA+tHA,1)}m），乙端≥<b>${fmt(tHB,1)}m</b></div></div>`;
+  html+=`<table style="margin-top:10px"><tr><th>项目</th><th>规格</th><th>配置</th><th>K₁</th><th>K₂</th><th>结论</th></tr>
+  <tr><td>主索</td><td>${mrope?mrope.name:'—'}</td><td>${mnc}根,≈${S}m</td><td>${mr?fmt(mr.K1,2):'—'}</td><td>${mr?fmt(mr.K2,2):'—'}</td><td>${mr&&mr.K1>=K1m&&mr.K2>=2?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+  <tr><td>起重索</td><td>${hRes?hRes.rope.name:'—'}</td><td>${hRes?hRes.nparts+'跑马':'—'}</td><td>${hRes?fmt(hRes.K1,2):'—'}</td><td>—</td><td>${hRes&&hRes.K1>=K1h?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+  <tr><td>牵引索</td><td>${tRes?tRes.rope.name:'—'}</td><td>循环</td><td>${tRes?fmt(tRes.K1,2):'—'}</td><td>—</td><td>${tRes&&tRes.K1>=K1t?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+  </table><div class="note">⚠ 塔架强度稳定、锚碇须另行专项计算。</div>`;
+  html+=`<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="exportCalcBook()" style="font-size:14px;padding:9px 22px">📄 导出计算书（Word）</button>
+    <button class="btn btn-outline" onclick="applyDesignToTower()" style="font-size:14px;padding:9px 22px">🏗 → 填入塔架验算</button>
+  </div></div>`;
+  document.getElementById('design-result').innerHTML=html;
+  if(mr&&mrope)updateDiagrams('d-elev','d-plan',{L,h,elev_A:eA,elev_B:eB,towerH_A:tHA,towerH_B:tHB,f_max:f,mainRopeName:mrope.name,nc:cho_nc,hoistRopeName:hRes?hRes.rope.name:'起重索',nparts:hRes?hRes.nparts:4,tractRopeName:tRes?tRes.rope.name:'牵引索',phi_A:mr.phi_A,phi_B:mr.phi_B,Q_t,obstElev:ob,clearance:cl});
+}
+
+// ===== 验算 =====
+function runVerify(){
+  const L=+document.getElementById('v_L').value,h=+document.getElementById('v_h').value;
+  const nc=+document.getElementById('v_nc').value,phi=+document.getElementById('v_phi').value;
+  const nparts=+document.getElementById('v_nparts').value;
+  const K1m=+document.getElementById('v_K1main').value,K1h=+document.getElementById('v_K1hoist').value,K1t=+document.getElementById('v_K1tract').value;
+  const q_add=+document.getElementById('v_qadd').value;
+  const mi=+document.getElementById('v_mainRope').value;
+  const mTp=+document.getElementById('v_mainTp').value||ropeDB[mi].Tp;
+  const mFk=+document.getElementById('v_mainFk').value||ropeDB[mi].Fk;
+  const mW=+document.getElementById('v_mainW').value||ropeDB[mi].w;
+  const mSig=+document.getElementById('v_mainSigma').value||ropeDB[mi].sigma_b;
+  const mRope={Tp:mTp,Fk:mFk,w:mW,sigma_b:mSig,Ek:ropeDB[mi].Ek,name:ropeDB[mi].name};
+  const hi=+document.getElementById('v_hoistRope').value,hTp=+document.getElementById('v_hoistTp').value||ropeDB[hi].Tp;
+  const ti=+document.getElementById('v_tractRope').value,tTp=+document.getElementById('v_tractTp').value||ropeDB[ti].Tp;
+  const fin=+document.getElementById('v_fmax').value;
+  const adv=getAdv('v');
+  function chk(Qt){
+    const f=fin||L/25;const mr=mainCableCalc(L,h,Qt,nc,f/L,mRope,q_add,phi);
+    if(mr.K1<K1m||mr.K2<2)return false;
+    const Qd2=(Qt*(1+phi))+adv.G_hook;
+    if(hTp/pulleyForce(Qd2,nparts)<K1h)return false;
+    const tc2=calcTract(ropeDB[ti],mr.H,L,h,mr.q,mr.Q,Qd2,adv);
+    if(tTp/tc2.t_max<K1t)return false;
+    return true;
+  }
+  let lo=0,hi2=2000000;for(let i=0;i<50;i++){const m=(lo+hi2)/2;if(chk(m))lo=m;else hi2=m;}
+  const Qmax=lo,f=fin||L/25,Qd=Qmax*(1+phi)+adv.G_hook;
+  const mr=mainCableCalc(L,h,Qmax,nc,f/L,mRope,q_add,phi);
+  const Tq=pulleyForce(Qd,nparts),K1hoist=hTp/Tq;
+  const sigma_z_h=Tq/ropeDB[hi].Fk+(ropeDB[hi].Ek||9000)*(ropeDB[hi].ds||0.9)/adv.D_pulley;
+  const K2hoist=ropeDB[hi].sigma_b/sigma_z_h;
+  const tc=calcTract(ropeDB[ti],mr.H,L,h,mr.q,mr.Q,Qd,adv);
+  const tmax=tc.t_max,K1tract=tTp/tmax;
+  const sigma_z_t=tmax/ropeDB[ti].Fk+(ropeDB[ti].Ek||9000)*(ropeDB[ti].ds||0.8)/adv.D_pulley;
+  const K2tract=ropeDB[ti].sigma_b/sigma_z_t;
+  const ck=(v,lim)=>v>=lim?`<span class="tag tag-ok">✓${fmt(v,2)}</span>`:`<span class="tag tag-fail">✗${fmt(v,2)}</span>`;
+  let html=`<div class="result-box"><div class="result-title">验算结果</div>`;
+  html+=`<div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:14px;text-align:center;margin-bottom:12px">
+    <div style="font-size:12px;color:#2e7d32">最大安全起吊荷载</div>
+    <div style="font-size:30px;font-weight:700;color:#1b5e20">${fmt(Qmax/1000,2)} t</div>
+    <div style="font-size:11px;color:#777">= ${fmt(Qmax,0)} kg</div></div>`;
+  html+=`<div class="step"><div class="step-title">主索</div><div class="step-body">T_max=${fmt(mr.T_max,0)}kg，σ_t=${fmt(mr.sigma_t,1)}，σ_w=${fmt(mr.sigma_w,1)}，σ_z=${fmt(mr.sigma_z,1)}kg/mm²<br>K₁=${ck(mr.K1,K1m)}≥${K1m}，K₂=${ck(mr.K2,2)}≥2.0<br>垂度f=${fmt(f,2)}m（f/L=1/${fmt(L/f,0)}），H=${fmt(mr.H,0)}kg</div></div>`;
+  html+=`<div class="step"><div class="step-title">起重索（${ropeDB[hi].name}，${nparts}跑马）</div><div class="step-body">Q设计=${fmt(Qd,0)}kg，T_q=${fmt(Tq,0)}kg，K₁=${ck(K1hoist,K1h)}≥${K1h}<br>σ_z=${fmt(sigma_z_h,1)}kg/mm²，K₂=${ck(K2hoist,3)}≥3.0</div></div>`;
+  html+=`<div class="step"><div class="step-title">牵引索（${ropeDB[ti].name}）</div><div class="step-body">升角γ=${fmt(tc.gamma,2)}°，t₀=${fmt(tc.t0,0)}，w₁=${fmt(tc.w1,0)}，w₂=${fmt(tc.w2,0)}，w₃=${fmt(tc.w3,0)}kg<br>t_max=${fmt(tmax,0)}kg，K₁=${ck(K1tract,K1t)}≥${K1t}，σ_z=${fmt(sigma_z_t,1)}kg/mm²，K₂=${ck(K2tract,3)}≥3.0</div></div>`;
+  html+=`<div style="margin-top:12px"><button class="btn btn-success" onclick="exportVerifyBook()" style="font-size:14px;padding:9px 22px">📄 导出计算书（Word）</button></div></div>`;
+  lastVerifyParams={L,h,nc,phi,nparts,K1m,K1h,K1t,q_add,f,fmax_input:fin,
+    mainRopeName:ropeDB[mi].name,mainTp:mTp,mainFk:mFk,mainW:mW,mainSigma:mSig,mainEk:ropeDB[mi].Ek,mainDs:ropeDB[mi].ds||0,
+    hoistRope:ropeDB[hi],hoistTp:hTp,hoistRopeName:ropeDB[hi].name,
+    tractRope:ropeDB[ti],tractTp:tTp,tractRopeName:ropeDB[ti].name,adv};
+  lastVerifyResults={mr,K1_hoist:K1hoist,K2_hoist:K2hoist,sigma_z_h,K1_tract:K1tract,K2_tract:K2tract,sigma_z_t,t_max:tmax,T_q:Tq,Q_max:Qmax,Q_design:Qd,tc};
+  document.getElementById('verify-result').innerHTML=html;
+  updateDiagrams('v-elev','v-plan',{L,h,elev_A:0,elev_B:h,towerH_A:f+12,towerH_B:f+12,f_max:f,mainRopeName:ropeDB[mi].name,nc,hoistRopeName:ropeDB[hi].name,nparts,tractRopeName:ropeDB[ti].name,phi_A:mr.phi_A,phi_B:mr.phi_B,Q_t:Qmax,obstElev:0,clearance:2});
+}
+
+// ===== 计算书 =====
+function docStyle(){return`<style>
+body{font-family:"宋体",serif;font-size:12pt;line-height:1.9;margin:2.5cm 2.5cm 2.5cm 2.8cm}
+h1{font-size:16pt;font-weight:bold;text-align:center;border-bottom:2pt solid #000;padding-bottom:8pt;margin-bottom:14pt}
+h2{font-size:13pt;font-weight:bold;margin-top:18pt;margin-bottom:4pt}
+h3{font-size:12pt;font-weight:bold;margin-top:12pt;margin-bottom:4pt}
+table{border-collapse:collapse;width:100%;margin:6pt 0}
+th,td{border:1pt solid #555;padding:4pt 7pt;font-size:11pt}
+th{background:#d0daea;font-weight:bold;text-align:center}
+td{text-align:center}td.l{text-align:left}
+.ind{margin-left:1.8cm}.ind2{margin-left:3cm}
+p{margin:3pt 0}
+.ok{color:green;font-weight:bold}.fail{color:red;font-weight:bold}
+.formula{font-family:"Times New Roman",serif;font-size:11pt;margin:4pt 0 4pt 1.8cm}
+.box{border:1pt solid #888;padding:6pt 10pt;margin:8pt 0;background:#f8f8f8}
+</style>`;}
+function docHdr(){return`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">${docStyle()}</head><body>`;}
+function ck(v,lim){return v>=lim?`<span class="ok">✓(${v.toFixed(2)}≥${lim})</span>`:`<span class="fail">✗(${v.toFixed(2)}&lt;${lim})</span>`;}
+function fmtKg(v){return(+v).toFixed(0);}
+function signBlock(){const date=new Date().toLocaleDateString('zh-CN');return`<div style="border:1pt solid #aaa;padding:8pt;margin-top:26pt"><table><tr><td width="18%">编制：</td><td style="width:22%;border-bottom:1pt solid #000">&nbsp;</td><td width="12%">校核：</td><td style="width:22%;border-bottom:1pt solid #000">&nbsp;</td><td width="10%">日期：</td><td style="border-bottom:1pt solid #000">${date}</td></tr></table></div><p style="font-size:9pt;color:#888;margin-top:14pt;text-align:center">缆索吊计算程序v15.0 | 周继祖《缆索吊车》1981版 | 仅供参考，正式工程请专业工程师审核</p>`;}
+
+function buildCalcBookHTML(p,r){
+  const{L,h,Q_t,phi,fRatio,nc,q_add,towerH_A,towerH_B,eA,eB,K1m,K1h,K1t,adv}=p;
+  const{mr,mrope,mnc,hoistResult:hRes,tractResult:tRes,f,S}=r;
+  const date=new Date().toLocaleDateString('zh-CN');
+  const Qd_net=Q_t*(1+phi),Qd=Qd_net+(adv?.G_hook||0);
+  if(!mr||!mrope)return docHdr()+'<h1>缆索吊设计计算书</h1><p>计算失败，请检查参数。</p></body></html>';
+
+  // ---- 承载索 ----
+  const tgA=(mr.q*L+mr.Q)/(2*mr.H)-h/L;
+  const tgB=(mr.q*L+mr.Q)/(2*mr.H)+h/L;
+  const pA=Math.atan(tgA)*180/Math.PI,pB=Math.atan(tgB)*180/Math.PI;
+  const VT_ratio=mr.Q/(2*mr.T_max);
+
+  // ---- 起重索 ----
+  let sfp_lines='',sum_fp=0;
+  if(hRes){for(let i=0;i<hRes.nparts;i++){const v=1/Math.pow(1.04,i);sum_fp+=v;sfp_lines+=`1/1.04<sup>${i}</sup> = ${v.toFixed(4)}&nbsp;`;}}
+
+  // ---- 牵引索 ----
+  const ta=adv||{};
+  const la=ta.la||30,Dpulley=ta.D_pulley||500;
+
+  let body=docHdr();
+  body+=`<h1>缆索吊设计计算书</h1>
+<table>
+<tr><td class="l" width="20%"><b>工程名称</b></td><td class="l" colspan="3">（填写工程名称）</td></tr>
+<tr><td class="l"><b>计算内容</b></td><td class="l">主索、起重索、牵引索及塔架高度设计</td><td class="l" width="12%"><b>日期</b></td><td class="l" width="16%">${date}</td></tr>
+<tr><td class="l"><b>计算依据</b></td><td class="l" colspan="3">周继祖《缆索吊车》1981年版</td></tr>
+<tr><td class="l"><b>编制</b></td><td class="l"></td><td class="l"><b>校核</b></td><td class="l"></td></tr>
+</table>
+
+<h2>一、设计资料</h2>
+<table><tr><th>参数名称</th><th>符号</th><th>数值</th><th>单位</th><th>说明</th></tr>
+<tr><td class="l">水平跨径</td><td>L</td><td>${L}</td><td>m</td><td class="l">两塔架中心水平距离</td></tr>
+<tr><td class="l">两端高差</td><td>h</td><td>${h}</td><td>m</td><td class="l">高端减低端</td></tr>
+<tr><td class="l">最大净吊装荷载</td><td>Q<sub>净</sub></td><td>${(Q_t/1000).toFixed(1)}</td><td>t</td><td class="l">不含吊具</td></tr>
+<tr><td class="l">冲击系数</td><td>φ</td><td>${phi}</td><td>—</td><td class="l">动荷放大系数</td></tr>
+<tr><td class="l">吊钩+动滑轮重</td><td>G<sub>钩</sub></td><td>${(adv?.G_hook||0)}</td><td>kg</td><td class="l"></td></tr>
+<tr><td class="l">设计荷载（含冲击）</td><td>Q<sub>设计</sub></td><td>${fmtKg(Qd)}</td><td>kg</td><td class="l">= (Q净+G钩)×(1+φ) = (${fmtKg(Q_t)}+${adv?.G_hook||0})×${(1+phi).toFixed(2)}</td></tr>
+<tr><td class="l">承载索根数</td><td>n<sub>c</sub></td><td>${mnc}</td><td>根</td><td class="l"></td></tr>
+<tr><td class="l">相对垂度</td><td>f/L</td><td>1/${(1/fRatio).toFixed(0)}</td><td>—</td><td class="l">推荐1/20~1/30</td></tr>
+</table>
+
+<h2>二、缆索系统计算</h2>
+<h3>（一）承载索计算</h3>
+<p><b>1. 选用钢索：${mrope.name}，每组 ${mnc} 根</b></p>
+<table><tr><th>d (mm)</th><th>d<sub>s</sub>钢丝(mm)</th><th>单重 q₁(kg/m)</th><th>F<sub>K</sub>(mm²)</th><th>T<sub>p</sub>(kg)</th><th>σ'<sub>b</sub>(kg/mm²)</th><th>E<sub>K</sub>(kg/mm²)</th></tr>
+<tr><td>${mrope.d}</td><td>${mrope.ds||'—'}</td><td>${mrope.w}</td><td>${mrope.Fk}</td><td>${mrope.Tp}</td><td>${mrope.sigma_b}</td><td>${mrope.Ek}</td></tr>
+</table>
+
+<p><b>2. 载荷计算</b></p>
+<p class="ind">（1）均布载荷 q（每根承载索）</p>
+<p class="formula">q = q<sub>1</sub>（承载索自重）+ q<sub>2</sub>（附加均布载荷）/n<sub>c</sub></p>
+<p class="formula">= ${mrope.w} + ${q_add}/${mnc} = <b>${mr.q.toFixed(3)} kg/m</b></p>
+
+<p class="ind">（2）集中载荷 Q（每根承载索分担）</p>
+<p class="formula">Q = Q<sub>设计</sub> / n<sub>c</sub> = ${fmtKg(Qd)} / ${mnc} = <b>${mr.Q.toFixed(0)} kg</b></p>
+
+<p><b>3. 水平张力</b></p>
+<p class="ind">按抛物线近似，f = L/(1/${(1/fRatio).toFixed(0)}) = ${f.toFixed(2)} m</p>
+<p class="formula">H = q·L²/(8f) + Q·L/(4f)</p>
+<p class="formula">= ${mr.q.toFixed(3)}×${L}²/(8×${f.toFixed(2)}) + ${mr.Q.toFixed(0)}×${L}/(4×${f.toFixed(2)})</p>
+<p class="formula">= ${(mr.q*L*L/(8*f)).toFixed(0)} + ${(mr.Q*L/(4*f)).toFixed(0)} = <b>${mr.H.toFixed(0)} kg</b></p>
+
+<p><b>4. 支座反力与最大张力</b></p>
+<p class="formula">V<sub>A</sub> = qL/2 + Q/2 − H·h/L = ${mr.V_A.toFixed(0)} kg（甲端）</p>
+<p class="formula">V<sub>B</sub> = qL/2 + Q/2 + H·h/L = ${mr.q.toFixed(3)}×${L}/2 + ${mr.Q.toFixed(0)}/2 + ${mr.H.toFixed(0)}×${h}/${L} = <b>${mr.V_B.toFixed(0)} kg</b>（乙端，控制）</p>
+<p class="formula">T<sub>max</sub> = √(H² + V<sub>B</sub>²) = √(${mr.H.toFixed(0)}² + ${mr.V_B.toFixed(0)}²) = <b>${mr.T_max.toFixed(0)} kg</b></p>
+
+<p><b>5. 安全系数验算</b></p>
+<p class="ind">（1）拉力安全系数</p>
+<p class="formula">K<sub>1</sub> = T<sub>p</sub> / T<sub>max</sub> = ${mrope.Tp} / ${mr.T_max.toFixed(0)} = <b>${mr.K1.toFixed(2)}</b> ${ck(mr.K1,K1m)}（要求≥${K1m}）</p>
+
+<p class="ind">（2）应力安全系数</p>
+<p class="ind2">拉伸应力：σ<sub>t</sub> = T<sub>max</sub>/F<sub>K</sub> = ${mr.T_max.toFixed(0)}/${mrope.Fk} = ${mr.sigma_t.toFixed(2)} kg/mm²</p>
+<p class="ind2">弯曲应力（走行轮压）：σ<sub>w</sub> = (Q/2)·√(E<sub>K</sub>/(T<sub>max</sub>·F<sub>K</sub>))</p>
+<p class="ind2">= (${mr.Q.toFixed(0)}/2)·√(${mrope.Ek}/(${mr.T_max.toFixed(0)}×${mrope.Fk})) = ${mr.sigma_w.toFixed(2)} kg/mm²</p>
+<p class="formula">σ<sub>z</sub> = σ<sub>t</sub> + σ<sub>w</sub> = ${mr.sigma_t.toFixed(2)} + ${mr.sigma_w.toFixed(2)} = <b>${mr.sigma_z.toFixed(2)} kg/mm²</b></p>
+<p class="formula">K<sub>2</sub> = σ'<sub>b</sub>/σ<sub>z</sub> = ${mrope.sigma_b}/${mr.sigma_z.toFixed(2)} = <b>${mr.K2.toFixed(2)}</b> ${ck(mr.K2,2)}（要求≥2.0）</p>
+
+<p><b>6. 轮压比</b></p>
+<p class="formula">V/T = Q/(2·T<sub>max</sub>) = ${mr.Q.toFixed(0)}/(2×${mr.T_max.toFixed(0)}) = 1/${(mr.T_max*2/mr.Q).toFixed(1)}</p>
+<p class="ind">（要求在1/25～1/40之间）</p>
+
+<p><b>7. 最大垂度</b></p>
+<p class="ind">（已由 f/L=1/${(1/fRatio).toFixed(0)} 给定：f = L×f/L = ${L}×${fRatio} = <b>${f.toFixed(2)} m</b>）</p>
+<p class="formula">相对垂度 f/L = ${f.toFixed(2)}/${L} = 1/${(L/f).toFixed(1)}（推荐1/20～1/30，√）</p>
+
+<p><b>8. 支座处切线倾角</b></p>
+<p class="formula">tgφ<sub>A</sub> = (qL+Q)/(2H) − h/L = (${mr.q.toFixed(3)}×${L}+${mr.Q.toFixed(0)})/(2×${mr.H.toFixed(0)}) − ${h}/${L} = ${tgA.toFixed(4)}</p>
+<p class="formula">φ<sub>A</sub> = <b>${pA.toFixed(2)}°</b></p>
+<p class="formula">tgφ<sub>B</sub> = (qL+Q)/(2H) + h/L = ${tgB.toFixed(4)}</p>
+<p class="formula">φ<sub>B</sub> = <b>${pB.toFixed(2)}°</b></p>
+<p class="ind">单根承载索长度 ≈ <b>${S} m</b>（含两端余量15m）</p>
+
+<h3>（二）牵引索计算</h3>
+${tRes?`<p><b>选用钢索：${tRes.rope.name}</b>，F = ${tRes.rope.Fk} mm²，T<sub>p</sub> = ${tRes.rope.Tp} kg，d<sub>s</sub> = ${tRes.rope.ds||'—'} mm，q<sub>牵</sub> = ${tRes.rope.w} kg/m</p>
+
+<p><b>1. 最大升角 γ</b></p>
+<p class="ind">防磨段长度 l<sub>a</sub> = ${tRes.la} m，工作水平力 H = ${mr.H.toFixed(0)} kg</p>
+<p class="formula">tgγ = h/L + (L−2l<sub>a</sub>)/(2H)·(q+Q/L)</p>
+<p class="formula">= ${h}/${L} + (${L}−2×${tRes.la})/(2×${mr.H.toFixed(0)})·(${mr.q.toFixed(3)}+${mr.Q.toFixed(0)}/${L})</p>
+<p class="formula">= ${tRes.tg_g.toFixed(4)}</p>
+<p class="formula">γ = <b>${tRes.gamma.toFixed(2)}°</b></p>
+
+<p><b>2. 初张力 t<sub>0</sub>（防磨段自重引起）</b></p>
+<p class="ind">防磨段自然下垂 f<sub>a</sub> = 0.01·l<sub>a</sub> = 0.01×${tRes.la} = <b>${tRes.fa.toFixed(2)} m</b></p>
+<p class="formula">t<sub>0</sub> = q<sub>牵</sub>·l<sub>a</sub>²/(8·f<sub>a</sub>) = ${tRes.rope.w}×${tRes.la}²/(8×${tRes.fa.toFixed(2)}) = <b>${tRes.t0.toFixed(0)} kg</b></p>
+
+<p><b>3. 坡度阻力 w<sub>1</sub></b></p>
+<p class="formula">w<sub>1</sub> = 2·Q<sub>设计</sub>·sinγ = 2×${fmtKg(Qd)}×sin${tRes.gamma.toFixed(2)}° = <b>${tRes.w1.toFixed(0)} kg</b></p>
+
+<p><b>4. 摩擦阻力 w<sub>2</sub></b></p>
+<p class="ind">走行轮参数：D = ${(tRes.R*2).toFixed(0)} mm，ρ = ${ta.rho_w||25} mm，μ<sub>1</sub> = ${ta.mu1||0.012}，μ<sub>0</sub> = ${ta.mu0||0.6} mm</p>
+<p class="formula">f<sub>m</sub> = μ<sub>1</sub>·ρ/R + μ<sub>0</sub>/R = ${ta.mu1||0.012}×${ta.rho_w||25}/${tRes.R} + ${ta.mu0||0.6}/${tRes.R} = <b>${tRes.fm.toFixed(4)}</b></p>
+<p class="formula">w<sub>2</sub> = 2·f<sub>m</sub>·Q<sub>设计</sub>·cosγ = 2×${tRes.fm.toFixed(4)}×${fmtKg(Qd)}×cos${tRes.gamma.toFixed(2)}° = <b>${tRes.w2.toFixed(0)} kg</b></p>
+
+<p><b>5. 滑轮转动阻力 w<sub>3</sub></b></p>
+<p class="ind">起重+牵引滑轮总数 a+b = ${tRes.ab}，滑轮阻力系数 f<sub>p</sub> = 1.04</p>
+<p class="formula">w<sub>3</sub> = (t<sub>0</sub>+w<sub>1</sub>+w<sub>2</sub>)·(f<sub>p</sub><sup>a+b</sup>−1) = (${tRes.t0.toFixed(0)}+${tRes.w1.toFixed(0)}+${tRes.w2.toFixed(0)})·(1.04<sup>${tRes.ab}</sup>−1) = <b>${tRes.w3.toFixed(0)} kg</b></p>
+
+<p><b>6. 最大张力</b></p>
+<p class="formula">t<sub>max</sub> = t<sub>0</sub>+w<sub>1</sub>+w<sub>2</sub>+w<sub>3</sub> = ${tRes.t0.toFixed(0)}+${tRes.w1.toFixed(0)}+${tRes.w2.toFixed(0)}+${tRes.w3.toFixed(0)} = <b>${tRes.t_max.toFixed(0)} kg</b></p>
+
+<p><b>7. 拉力安全系数</b></p>
+<p class="formula">K<sub>1</sub> = T<sub>p</sub>/t<sub>max</sub> = ${tRes.rope.Tp}/${tRes.t_max.toFixed(0)} = <b>${tRes.K1.toFixed(2)}</b> ${ck(tRes.K1,K1t)}（要求≥${K1t}）</p>
+
+<p><b>8. 应力安全系数</b></p>
+<p class="formula">σ<sub>z</sub> = t<sub>max</sub>/F + E<sub>K</sub>·d<sub>s</sub>/D = ${tRes.t_max.toFixed(0)}/${tRes.rope.Fk} + ${tRes.rope.Ek}×${tRes.rope.ds||'—'}/${ta.D_pulley||500} = <b>${tRes.sigma_z.toFixed(2)} kg/mm²</b></p>
+<p class="formula">K<sub>2</sub> = σ'<sub>b</sub>/σ<sub>z</sub> = ${tRes.rope.sigma_b}/${tRes.sigma_z.toFixed(2)} = <b>${tRes.K2.toFixed(2)}</b> ${ck(tRes.K2,3)}（要求≥3.0）</p>`:'<p>未选定牵引索。</p>'}
+
+<h3>（三）起重索计算</h3>
+${hRes?`<p><b>选用钢索：${hRes.rope.name}</b>，${hRes.nparts} 跑马绳，F = ${hRes.rope.Fk} mm²，T<sub>p</sub> = ${hRes.rope.Tp} kg，d<sub>s</sub> = ${hRes.rope.ds||'—'} mm</p>
+
+<p><b>1. 起重索计算荷载</b></p>
+<p class="formula">Q = Q<sub>设计</sub> = (Q<sub>净</sub>+G<sub>钩</sub>)·(1+φ) = (${fmtKg(Q_t)}+${adv?.G_hook||0})×${(1+phi).toFixed(2)} = <b>${fmtKg(Qd)} kg</b></p>
+
+<p><b>2. 进入绞车卷筒的拉力（滑轮组计算）</b></p>
+<p class="ind">滑轮阻力系数 f<sub>p</sub> = 1.04，跑马绳数 n = ${hRes.nparts}</p>
+<p class="formula">Σ(1/f<sub>p</sub><sup>i</sup>), i=0~${hRes.nparts-1}：</p>
+<p class="ind2">${sfp_lines}</p>
+<p class="formula">Σ = ${hRes.sum_fp.toFixed(4)}</p>
+<p class="formula">T<sub>q</sub> = Q/Σ = ${fmtKg(Qd)}/${hRes.sum_fp.toFixed(4)} = <b>${hRes.T_q.toFixed(0)} kg</b></p>
+<p class="ind">省力系数 μ = T<sub>q</sub>/Q = ${(hRes.T_q/Qd).toFixed(3)}</p>
+
+<p><b>3. 拉力安全系数</b></p>
+<p class="formula">K<sub>1</sub> = T<sub>p</sub>/T<sub>q</sub> = ${hRes.rope.Tp}/${hRes.T_q.toFixed(0)} = <b>${hRes.K1.toFixed(2)}</b> ${ck(hRes.K1,K1h)}（要求≥${K1h}）</p>
+
+<p><b>4. 应力安全系数</b></p>
+<p class="formula">σ<sub>z</sub> = T<sub>q</sub>/F<sub>K</sub> + E<sub>K</sub>·d<sub>s</sub>/D = ${hRes.T_q.toFixed(0)}/${hRes.rope.Fk} + ${hRes.rope.Ek}×${hRes.rope.ds||'—'}/${Dpulley} = <b>${hRes.sigma_z.toFixed(2)} kg/mm²</b></p>
+<p class="formula">K<sub>2</sub> = σ'<sub>b</sub>/σ<sub>z</sub> = ${hRes.rope.sigma_b}/${hRes.sigma_z.toFixed(2)} = <b>${hRes.K2.toFixed(2)}</b> ${ck(hRes.K2,3)}（要求≥3.0）</p>`:'<p>未选定起重索。</p>'}
+
+<h2>三、塔架高度</h2>
+<p>甲端塔架高度 H<sub>甲</sub> ≥ <b>${towerH_A.toFixed(1)} m</b>（塔顶标高 ▽${(eA+towerH_A).toFixed(2)} m）</p>
+<p>乙端塔架高度 H<sub>乙</sub> ≥ <b>${towerH_B.toFixed(1)} m</b>（塔顶标高 ▽${(eB+towerH_B).toFixed(2)} m）</p>
+<p>（塔架按 f<sub>max</sub>+障碍物净距+跑车高度等综合确定，具体计算另见专项设计）</p>
+
+<h2>四、计算汇总</h2>
+<table><tr><th>索类</th><th>规格</th><th>数量/配置</th><th>T<sub>p</sub>(kg)</th><th>T<sub>max</sub>或t<sub>max</sub>(kg)</th><th>K<sub>1</sub></th><th>K<sub>2</sub></th><th>结论</th></tr>
+<tr><td class="l">承载索</td><td>${mrope.name}</td><td>${mnc}根，≈${S}m/根</td><td>${mrope.Tp}</td><td>${mr.T_max.toFixed(0)}</td><td>${mr.K1.toFixed(2)}</td><td>${mr.K2.toFixed(2)}</td><td>${mr.K1>=K1m&&mr.K2>=2?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+<tr><td class="l">起重索</td><td>${hRes?hRes.rope.name:'—'}</td><td>${hRes?hRes.nparts+'跑马':'—'}</td><td>${hRes?hRes.rope.Tp:'—'}</td><td>${hRes?hRes.T_q.toFixed(0):'—'}</td><td>${hRes?hRes.K1.toFixed(2):'—'}</td><td>${hRes?hRes.K2.toFixed(2):'—'}</td><td>${hRes&&hRes.K1>=K1h?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+<tr><td class="l">牵引索</td><td>${tRes?tRes.rope.name:'—'}</td><td>循环牵引</td><td>${tRes?tRes.rope.Tp:'—'}</td><td>${tRes?tRes.t_max.toFixed(0):'—'}</td><td>${tRes?tRes.K1.toFixed(2):'—'}</td><td>${tRes?tRes.K2.toFixed(2):'—'}</td><td>${tRes&&tRes.K1>=K1t?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+</table>
+<p><b>注：</b>塔架强度与稳定、锚碇、缆风索须另行专项计算。本计算书为辅助工具，不能代替正式施工方案。</p>
+${signBlock()}</body></html>`;
+  return body;
+}
+function buildVerifyBookHTML(p,r){
+  const{L,h,nc,phi,nparts,K1m,K1h,K1t,q_add,f,mainRopeName,mainTp,mainFk,mainW,mainSigma,mainEk,mainDs,
+        hoistRope,hoistTp,hoistRopeName,tractRope,tractTp,tractRopeName,adv}=p;
+  const{mr,K1_hoist,K2_hoist,sigma_z_h,K1_tract,K2_tract,sigma_z_t,t_max,T_q,Q_max,Q_design,tc}=r;
+  const date=new Date().toLocaleDateString('zh-CN');
+  const ta=adv||{};
+  const Dpulley=ta.D_pulley||500;
+  // 起重索σ各项
+  const sigma_t_h=T_q/hoistRope.Fk,sigma_w_h=hoistRope.Ek*(hoistRope.ds||0.9)/Dpulley;
+  // 滑轮组展开
+  let sfp_lines='',sum_fp=0;
+  for(let i=0;i<nparts;i++){const v=1/Math.pow(1.04,i);sum_fp+=v;sfp_lines+=`1/1.04<sup>${i}</sup>=${v.toFixed(4)}&nbsp;&nbsp;`;}
+  // tgA, tgB
+  const tgA=(mr.q*L+mr.Q)/(2*mr.H)-h/L,tgB=(mr.q*L+mr.Q)/(2*mr.H)+h/L;
+  const pA=Math.atan(tgA)*180/Math.PI,pB=Math.atan(tgB)*180/Math.PI;
+
+  let body=docHdr();
+  body+=`<h1>缆索吊验算计算书</h1>
+<table>
+<tr><td class="l" width="20%"><b>工程名称</b></td><td class="l" colspan="3">（填写工程名称）</td></tr>
+<tr><td class="l"><b>计算内容</b></td><td class="l">缆索系统验算及最大安全起吊荷载确定</td><td class="l" width="12%"><b>日期</b></td><td class="l" width="16%">${date}</td></tr>
+<tr><td class="l"><b>计算依据</b></td><td class="l" colspan="3">周继祖《缆索吊车》1981年版</td></tr>
+<tr><td class="l"><b>编制</b></td><td class="l"></td><td class="l"><b>校核</b></td><td class="l"></td></tr>
+</table>
+
+<h2>一、方案参数</h2>
+<table><tr><th>项目</th><th>符号/规格</th><th>值</th><th>单位</th></tr>
+<tr><td class="l">水平跨径</td><td>L</td><td>${L}</td><td>m</td></tr>
+<tr><td class="l">两端高差</td><td>h</td><td>${h}</td><td>m</td></tr>
+<tr><td class="l">主索</td><td>${mainRopeName}×${nc}根</td><td>T<sub>p</sub>=${mainTp}，F<sub>K</sub>=${mainFk}，σ'<sub>b</sub>=${mainSigma}</td><td>kg，mm²，kg/mm²</td></tr>
+<tr><td class="l">主索垂度</td><td>f</td><td>${f.toFixed(2)}</td><td>m（f/L=1/${(L/f).toFixed(1)}）</td></tr>
+<tr><td class="l">附加均布荷载</td><td>q<sub>附加</sub></td><td>${q_add}</td><td>kg/m（含起重索、牵引索等）</td></tr>
+<tr><td class="l">冲击系数</td><td>φ</td><td>${phi}</td><td>—</td></tr>
+<tr><td class="l">起重索</td><td>${hoistRopeName}，${nparts}跑马</td><td>T<sub>p</sub>=${hoistTp}，F=${hoistRope.Fk}，d<sub>s</sub>=${hoistRope.ds||'—'}</td><td>kg，mm²，mm</td></tr>
+<tr><td class="l">牵引索</td><td>${tractRopeName}</td><td>T<sub>p</sub>=${tractTp}，F=${tractRope.Fk}，d<sub>s</sub>=${tractRope.ds||'—'}</td><td>kg，mm²，mm</td></tr>
+</table>
+
+<h2>二、验算结论</h2>
+<div style="border:2pt solid #2e7d32;padding:12pt;text-align:center;margin:12pt 0;background:#f1f8e9">
+<p style="font-size:14pt;font-weight:bold;color:#1b5e20">最大安全起吊荷载 Q<sub>max</sub> = ${(Q_max/1000).toFixed(2)} t（${Q_max.toFixed(0)} kg）</p>
+</div>
+
+<h2>三、缆索系统验算（Q = Q<sub>max</sub>）</h2>
+
+<h3>（一）主索验算</h3>
+<p><b>1. 载荷</b></p>
+<p class="formula">q = ${mainW}（承载索自重）+ ${q_add}/${nc} = <b>${mr.q.toFixed(3)} kg/m</b></p>
+<p class="formula">Q设计 = Q<sub>max</sub>×(1+φ) = ${fmtKg(Q_max)}×${(1+phi).toFixed(2)} = <b>${fmtKg(Q_design)} kg</b></p>
+<p class="formula">Q（每根分担）= ${fmtKg(Q_design)}/${nc} = <b>${mr.Q.toFixed(0)} kg</b></p>
+
+<p><b>2. 水平张力</b></p>
+<p class="formula">H = q·L²/(8f) + Q·L/(4f) = ${mr.q.toFixed(3)}×${L}²/(8×${f.toFixed(2)}) + ${mr.Q.toFixed(0)}×${L}/(4×${f.toFixed(2)}) = <b>${mr.H.toFixed(0)} kg</b></p>
+
+<p><b>3. 最大张力（控制截面：高端乙端）</b></p>
+<p class="formula">V<sub>B</sub> = qL/2 + Q/2 + H·h/L = ${mr.q.toFixed(3)}×${L}/2 + ${mr.Q.toFixed(0)}/2 + ${mr.H.toFixed(0)}×${h}/${L} = <b>${mr.V_B.toFixed(0)} kg</b></p>
+<p class="formula">T<sub>max</sub> = √(H²+V<sub>B</sub>²) = √(${mr.H.toFixed(0)}²+${mr.V_B.toFixed(0)}²) = <b>${mr.T_max.toFixed(0)} kg</b></p>
+
+<p><b>4. 安全系数</b></p>
+<p class="formula">K<sub>1</sub> = T<sub>p</sub>/T<sub>max</sub> = ${mainTp}/${mr.T_max.toFixed(0)} = <b>${mr.K1.toFixed(2)}</b> ${ck(mr.K1,K1m)}（要求≥${K1m}）</p>
+<p class="formula">σ<sub>t</sub> = T<sub>max</sub>/F<sub>K</sub> = ${mr.T_max.toFixed(0)}/${mainFk} = ${mr.sigma_t.toFixed(2)} kg/mm²</p>
+<p class="formula">σ<sub>w</sub> = (Q/2)·√(E<sub>K</sub>/(T<sub>max</sub>·F<sub>K</sub>)) = (${mr.Q.toFixed(0)}/2)·√(${mainEk}/(${mr.T_max.toFixed(0)}×${mainFk})) = ${mr.sigma_w.toFixed(2)} kg/mm²</p>
+<p class="formula">σ<sub>z</sub> = σ<sub>t</sub>+σ<sub>w</sub> = ${mr.sigma_t.toFixed(2)}+${mr.sigma_w.toFixed(2)} = <b>${mr.sigma_z.toFixed(2)} kg/mm²</b></p>
+<p class="formula">K<sub>2</sub> = σ'<sub>b</sub>/σ<sub>z</sub> = ${mainSigma}/${mr.sigma_z.toFixed(2)} = <b>${mr.K2.toFixed(2)}</b> ${ck(mr.K2,2)}（要求≥2.0）</p>
+
+<p><b>5. 支座切线倾角</b></p>
+<p class="formula">φ<sub>A</sub> = ${pA.toFixed(2)}°，φ<sub>B</sub> = ${pB.toFixed(2)}°</p>
+
+<h3>（二）牵引索验算（${tractRopeName}）</h3>
+<p class="formula">升角 γ = ${tc?tc.gamma.toFixed(2)+'°':'—'}，初张力 t<sub>0</sub> = ${tc?tc.t0.toFixed(0):'—'} kg</p>
+<p class="formula">坡度阻力 w<sub>1</sub> = ${tc?tc.w1.toFixed(0):'—'} kg，摩擦阻力 w<sub>2</sub> = ${tc?tc.w2.toFixed(0):'—'} kg，滑轮阻力 w<sub>3</sub> = ${tc?tc.w3.toFixed(0):'—'} kg</p>
+<p class="formula">t<sub>max</sub> = t<sub>0</sub>+w<sub>1</sub>+w<sub>2</sub>+w<sub>3</sub> = <b>${t_max.toFixed(0)} kg</b></p>
+<p class="formula">K<sub>1</sub> = T<sub>p</sub>/t<sub>max</sub> = ${tractTp}/${t_max.toFixed(0)} = <b>${K1_tract.toFixed(2)}</b> ${ck(K1_tract,K1t)}（要求≥${K1t}）</p>
+<p class="formula">σ<sub>z</sub> = t<sub>max</sub>/F + E<sub>K</sub>·d<sub>s</sub>/D = ${t_max.toFixed(0)}/${tractRope.Fk} + ${tractRope.Ek}×${tractRope.ds||'—'}/${Dpulley} = <b>${sigma_z_t.toFixed(2)} kg/mm²</b></p>
+<p class="formula">K<sub>2</sub> = σ'<sub>b</sub>/σ<sub>z</sub> = ${tractRope.sigma_b}/${sigma_z_t.toFixed(2)} = <b>${K2_tract.toFixed(2)}</b> ${ck(K2_tract,3)}（要求≥3.0）</p>
+
+<h3>（三）起重索验算（${hoistRopeName}，${nparts}跑马）</h3>
+<p><b>1. 计算荷载</b></p>
+<p class="formula">Q = Q<sub>设计</sub> = ${fmtKg(Q_design)} kg</p>
+<p><b>2. 滑轮组拉力</b></p>
+<p class="formula">Σ(1/f<sub>p</sub><sup>i</sup>)：${sfp_lines}Σ = ${sum_fp.toFixed(4)}</p>
+<p class="formula">T<sub>q</sub> = Q/Σ = ${fmtKg(Q_design)}/${sum_fp.toFixed(4)} = <b>${T_q.toFixed(0)} kg</b></p>
+<p><b>3. 安全系数</b></p>
+<p class="formula">K<sub>1</sub> = T<sub>p</sub>/T<sub>q</sub> = ${hoistTp}/${T_q.toFixed(0)} = <b>${K1_hoist.toFixed(2)}</b> ${ck(K1_hoist,K1h)}（要求≥${K1h}）</p>
+<p class="formula">σ<sub>z</sub> = T<sub>q</sub>/F<sub>K</sub> + E<sub>K</sub>·d<sub>s</sub>/D = ${T_q.toFixed(0)}/${hoistRope.Fk} + ${hoistRope.Ek}×${hoistRope.ds||'—'}/${Dpulley} = <b>${sigma_z_h.toFixed(2)} kg/mm²</b></p>
+<p class="formula">K<sub>2</sub> = σ'<sub>b</sub>/σ<sub>z</sub> = ${hoistRope.sigma_b}/${sigma_z_h.toFixed(2)} = <b>${K2_hoist.toFixed(2)}</b> ${ck(K2_hoist,3)}（要求≥3.0）</p>
+
+<h2>四、验算汇总</h2>
+<table><tr><th>索类</th><th>规格</th><th>最大张力(kg)</th><th>K<sub>1</sub></th><th>σ<sub>z</sub>(kg/mm²)</th><th>K<sub>2</sub></th><th>结论</th></tr>
+<tr><td class="l">主索</td><td>${mainRopeName}×${nc}根</td><td>${mr.T_max.toFixed(0)}</td><td>${mr.K1.toFixed(2)}</td><td>${mr.sigma_z.toFixed(2)}</td><td>${mr.K2.toFixed(2)}</td><td>${mr.K1>=K1m&&mr.K2>=2?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+<tr><td class="l">起重索</td><td>${hoistRopeName}，${nparts}跑马</td><td>${T_q.toFixed(0)}</td><td>${K1_hoist.toFixed(2)}</td><td>${sigma_z_h.toFixed(2)}</td><td>${K2_hoist.toFixed(2)}</td><td>${K1_hoist>=K1h?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+<tr><td class="l">牵引索</td><td>${tractRopeName}</td><td>${t_max.toFixed(0)}</td><td>${K1_tract.toFixed(2)}</td><td>${sigma_z_t.toFixed(2)}</td><td>${K2_tract.toFixed(2)}</td><td>${K1_tract>=K1t?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+</table>
+${signBlock()}</body></html>`;
+  return body;
+}
+
+// ===== 塔架验算 =====
+function gTW(id){return +(document.getElementById(id)?.value||0);}
+function sv(id,v){const el=document.getElementById(id);if(el)el.value=typeof v==='number'?+v.toFixed(3):v;}
+
+// 从设计模块自动填入塔架参数
+// ===== 重置函数 =====
+function resetDesign(){
+  const d={'d_L':200,'d_h':0,'d_Q':5,'d_phi':0.25,'d_fL':'0.04','d_nc':0,
+    'd_Gtrolley':0,'d_qadd':2.5,'d_elev_A':0,'d_elev_B':0,'d_obstElev':0,'d_clearance':2,
+    'd_K1main':3.0,'d_K1hoist':5.0,'d_K1tract':4.0,
+    'd_Ghook':0,'d_la':30,'d_Dwheel':500,'d_rhowheel':25,'d_mu1':0.012,'d_mu0':0.6,'d_ab':10,'d_Dpulley':500};
+  Object.entries(d).forEach(([id,v])=>sv(id,v));
+  document.getElementById('design-result').innerHTML=
+    '<div class="card"><div class="card-header">💡 计算结果</div><div class="card-body" style="color:#999;text-align:center;padding:32px">填入参数后点击"开始计算"</div></div>';
+  updateDiagrams('d-elev','d-plan',designDP());
+}
+function resetVerify(){
+  const d={'v_L':200,'v_h':0,'v_nc':4,'v_fmax':'','v_qadd':2.5,'v_phi':0.25,
+    'v_K1main':3.0,'v_K1hoist':5.0,'v_K1tract':4.0,
+    'v_Ghook':0,'v_la':30,'v_Dwheel':500,'v_rhowheel':25,'v_mu1':0.012,'v_mu0':0.6,'v_ab':10,'v_Dpulley':500};
+  Object.entries(d).forEach(([id,v])=>sv(id,v));
+  // selects with default index
+  ['v_mainRope','v_hoistRope','v_tractRope'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  const np=document.getElementById('v_nparts');if(np)np.value='4';
+  fillVerifyRope('main');fillVerifyRope('hoist');fillVerifyRope('tract');
+  document.getElementById('verify-result').innerHTML=
+    '<div class="card"><div class="card-header">💡 验算结果</div><div class="card-body" style="color:#999;text-align:center;padding:32px">填入方案参数后点击"开始验算"</div></div>';
+  updateDiagrams('v-elev','v-plan',verifyDP());
+}
+function resetTower(){
+  const d={'tw_nc':4,'tw_tmax':2473,'tw_Tq':3199,'tw_t0':656,
+    'tw_TA':20000,'tw_phiA':7.0,'tw_HA':30,
+    'tw_TB':29042,'tw_phiB':7.2,'tw_HB':34,
+    'tw_alpha':30,'tw_w0':50,'tw_fric':0.25,'tw_Kreq':1.3,
+    'tw_BA':6,'tw_W1A':40,'tw_W2A':4,'tw_FA':40,
+    'tw_yVFA':28,'tw_XVFA':4,'tw_psiA':30,'tw_xiA':25,'tw_nFA':2,'tw_KFA':3.5,
+    'tw_BB':6,'tw_W1B':50,'tw_W2B':4,'tw_FB':50,
+    'tw_yVFB':32,'tw_XVFB':4,'tw_psiB':30,'tw_xiB':25,'tw_nFB':2,'tw_KFB':3.5};
+  Object.entries(d).forEach(([id,v])=>sv(id,v));
+  ['tw_ropeFA','tw_ropeFB'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  document.getElementById('tw-linked-info').textContent='尚未关联缆索系统计算结果，请在设计模块计算后点击"🏗 → 填入塔架验算"按钮。也可在下方手动填写。';
+  document.getElementById('tower-result').innerHTML=
+    '<div class="card"><div class="card-header">💡 塔架验算结果</div><div class="card-body" style="color:#999;text-align:center;padding:32px">填入参数后点击"计算两端塔架"</div></div>';
+  drawTowerSVGs();
+}
+
+function applyDesignToTower(){
+  if(!lastDesignParams||!lastDesignResults){alert('请先在设计模块完成计算');return;}
+  const p=lastDesignParams,r=lastDesignResults;
+  const mr=r.mr,hRes=r.hoistResult,tRes=r.tractResult;
+  if(!mr){alert('设计计算未产生有效结果');return;}
+  // 公共参数
+  sv('tw_nc',r.mnc);
+  sv('tw_tmax',tRes?tRes.t_max.toFixed(0):0);
+  sv('tw_Tq',hRes?hRes.T_q.toFixed(0):0);
+  sv('tw_t0',tRes?tRes.t0.toFixed(0):0);
+  // 甲端（低端A）
+  sv('tw_TA',r.T_A.toFixed(0));
+  sv('tw_phiA',mr.phi_A.toFixed(2));
+  sv('tw_HA',r.tHA.toFixed(1));
+  // 乙端（高端B）— T_max来自高端
+  sv('tw_TB',mr.T_max.toFixed(0));
+  sv('tw_phiB',mr.phi_B.toFixed(2));
+  sv('tw_HB',r.tHB.toFixed(1));
+  // 更新信息显示
+  document.getElementById('tw-linked-info').innerHTML=
+    `<span style="color:#1a7a1a;font-weight:600">✓ 已关联设计计算结果</span>
+     跨径L=${p.L}m，高差h=${p.h}m，主索${r.mrope?r.mrope.name:''}×${r.mnc}根，
+     T_max(乙)=${mr.T_max.toFixed(0)}kg，T_A(甲)=${r.T_A.toFixed(0)}kg，
+     f=${r.f.toFixed(2)}m，H甲=${r.tHA.toFixed(1)}m，H乙=${r.tHB.toFixed(1)}m`;
+  drawTowerSVGs();
+  showTab('tower',document.querySelector('.sidebar nav button:nth-child(3)'));
+  alert('已填入！请补充塔架几何参数后点击"计算两端塔架"。');
+}
+
+// Build tower SVG for one tower: side='A'|'B'
+function buildTowerElevSVG(side){
+  const SW=440,SH=355,ML=55,MR=20,MT=22,MB=72;
+  const Ht=(side==='A'?gTW('tw_HA'):gTW('tw_HB')) || 33.8;
+  const B=(side==='A'?gTW('tw_BA'):gTW('tw_BB')) || 6;
+  const phi=side==='A'?gTW('tw_phiA'):gTW('tw_phiB');
+  const T=side==='A'?gTW('tw_TA'):gTW('tw_TB');
+  const label=side==='A'?'甲端（低端）':'乙端（高端）';
+  // swap old function signature to use local vars
+  const phiB_=phi, alpha_=gTW('tw_alpha'), psi_d_=side==='A'?gTW('tw_psiA'):gTW('tw_psiB'),
+    xi_d_=side==='A'?gTW('tw_xiA'):gTW('tw_xiB'),
+    yVF_=side==='A'?gTW('tw_yVFA'):gTW('tw_yVFB'),
+    XVF_=side==='A'?gTW('tw_XVFA'):gTW('tw_XVFB');
+  return _buildOneTowerSVG({SW,SH,ML,MR,MT,MB,Ht,B,phiB:phiB_,alpha:alpha_,psi_d:psi_d_,xi_d:xi_d_,yVF:yVF_,XVF:XVF_,T,label,side});
+}
+function _buildOneTowerSVG({SW,SH,ML,MR,MT,MB,Ht,B,phiB,alpha,psi_d,xi_d,yVF,XVF,T,label,side}){
+  const W=SW-ML-MR,H=SH-MT-MB;
+  const phiBr=phiB*Math.PI/180,alphar=alpha*Math.PI/180;
+  // tower in SVG coords
+  const bw=W*0.22,btop=bw*0.5;
+  const tx=(ML+W*0.38),ty_bot=MT+H,ty_top=MT;
+  const hl=bw/2,hr=btop/2;
+  let g='';
+  // ground
+  g+=`<line x1="${ML}" y1="${ty_bot}" x2="${ML+W}" y2="${ty_bot}" stroke="#888" stroke-width="1.5"/>`;
+  // hatching
+  for(let i=0;i<8;i++)g+=`<line x1="${ML+i*14}" y1="${ty_bot}" x2="${ML+i*14-10}" y2="${ty_bot+10}" stroke="#888" stroke-width="1"/>`;
+  // tower left/right legs
+  g+=`<line x1="${tx-hl}" y1="${ty_bot}" x2="${tx-hr}" y2="${ty_top}" stroke="#1a3a5c" stroke-width="3"/>`;
+  g+=`<line x1="${tx+hl}" y1="${ty_bot}" x2="${tx+hr}" y2="${ty_top}" stroke="#1a3a5c" stroke-width="3"/>`;
+  // cross bracing (simplified)
+  const n=4;
+  for(let i=0;i<=n;i++){
+    const t=i/n,y=ty_bot+(ty_top-ty_bot)*t;
+    const lx=tx-(hl+(hr-hl)*t),rx=tx+(hl+(hr-hl)*t);
+    g+=`<line x1="${lx}" y1="${y}" x2="${rx}" y2="${y}" stroke="#1a3a5c" stroke-width="1.2"/>`;
+  }
+  // top cap
+  g+=`<line x1="${tx-hr-4}" y1="${ty_top}" x2="${tx+hr+4}" y2="${ty_top}" stroke="#1a3a5c" stroke-width="4"/>`;
+  // base (压重)
+  g+=`<rect x="${tx-hl-6}" y="${ty_bot}" width="${bw+12}" height="10" fill="#aab" stroke="#556" stroke-width="1"/>`;
+  g+=`<text x="${tx}" y="${ty_bot+20}" text-anchor="middle" font-size="9" fill="#334" font-family="微软雅黑">W₂（压重）</text>`;
+  const sid2=side||'';
+  // tower self-weight arrow (down)
+  const cx=tx,cy_mid=(ty_top+ty_bot)/2;
+  g+=`<line x1="${cx}" y1="${ty_top+8}" x2="${cx}" y2="${cy_mid}" stroke="#884400" stroke-width="1.5" marker-end="url(#tw_da${sid2})"/>`;
+  g+=`<text x="${cx+4}" y="${(ty_top+cy_mid)/2}" font-size="9" fill="#884400" font-family="微软雅黑">W₁</text>`;
+  // 承载索 going left-up (span direction) at phi
+  const span_len=W*0.45,anc_len=W*0.35;
+  const px=tx-hr,py=ty_top;
+  const cxEnd=px-span_len*Math.cos(phiBr),cyEnd=py-span_len*Math.sin(phiBr);
+  const phiLabel=side==='A'?'φ_A':'φ_B';
+  const tLabel=side==='A'?'T_A':'T_max';
+  g+=`<line x1="${px}" y1="${py}" x2="${cxEnd}" y2="${cyEnd}" stroke="#cc2200" stroke-width="2" marker-end="url(#tw_ra${sid2})"/>`;
+  g+=`<text x="${cxEnd+2}" y="${cyEnd-4}" font-size="9" fill="#cc2200" font-family="微软雅黑">承载索 ${tLabel}</text>`;
+  // label φ
+  const arc_r=22;
+  g+=`<path d="M ${px-arc_r} ${py} A ${arc_r} ${arc_r} 0 0 0 ${px-arc_r*Math.cos(phiBr)} ${py-arc_r*Math.sin(phiBr)}" fill="none" stroke="#cc2200" stroke-width="1"/>`;
+  g+=`<text x="${px-arc_r-12}" y="${py-8}" font-size="8.5" fill="#cc2200" font-family="serif">${phiLabel}</text>`;
+  // 锚固索 going right-down at alpha
+  const axEnd=px+anc_len*Math.cos(alphar),ayEnd=py+anc_len*Math.sin(alphar);
+  g+=`<line x1="${px}" y1="${py}" x2="${axEnd}" y2="${ayEnd}" stroke="#0055cc" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#tw_ba${sid2})"/>`;
+  g+=`<text x="${axEnd+2}" y="${ayEnd+4}" font-size="9" fill="#0055cc" font-family="微软雅黑">锚固索</text>`;
+  // label α
+  g+=`<path d="M ${px+18} ${py} A 18 18 0 0 1 ${px+18*Math.cos(alphar)} ${py+18*Math.sin(alphar)}" fill="none" stroke="#0055cc" stroke-width="1"/>`;
+  g+=`<text x="${px+22}" y="${py+14}" font-size="8.5" fill="#0055cc" font-family="serif">α</text>`;
+  // 风缆索 — right of tower, going down-right
+  const vfY=ty_bot+(ty_top-ty_bot)*(yVF/Ht);
+  const vfX=tx+hr*(yVF/Ht<1?(1-yVF/Ht)*2:0);
+  const psi_r=(psi_d||30)*Math.PI/180;
+  const xi_r=(xi_d||25)*Math.PI/180;
+  const fcLen=W*0.32;
+  const fcXe=vfX+fcLen*Math.cos(psi_r)*Math.cos(xi_r);
+  const fcYe=vfY+fcLen*Math.sin(xi_r);
+  g+=`<line x1="${vfX}" y1="${vfY}" x2="${fcXe}" y2="${fcYe}" stroke="#227722" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#tw_ga${sid2})"/>`;
+  g+=`<text x="${fcXe-2}" y="${fcYe+12}" font-size="9" fill="#227722" font-family="微软雅黑">风缆索 T_F</text>`;
+  // 风缆索附着点标记 + y_VF 尺寸标注
+  g+=`<circle cx="${vfX}" cy="${vfY}" r="3.5" fill="#227722" opacity="0.85"/>`;
+  // 垂直虚线 从附着点到地面
+  const dimRx=tx+hl+28;
+  g+=`<line x1="${vfX}" y1="${vfY}" x2="${dimRx}" y2="${vfY}" stroke="#227722" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.7"/>`;
+  g+=`<line x1="${dimRx}" y1="${vfY}" x2="${dimRx}" y2="${ty_bot}" stroke="#227722" stroke-width="1" stroke-dasharray="2,2"/>`;
+  // 上下端刻度短线
+  g+=`<line x1="${dimRx-4}" y1="${vfY}" x2="${dimRx+4}" y2="${vfY}" stroke="#227722" stroke-width="1"/>`;
+  g+=`<line x1="${dimRx-4}" y1="${ty_bot}" x2="${dimRx+4}" y2="${ty_bot}" stroke="#227722" stroke-width="1"/>`;
+  // y_VF 标注文字 (旋转90°竖排)
+  const yvfMid=(vfY+ty_bot)/2;
+  g+=`<text x="${dimRx+14}" y="${yvfMid}" text-anchor="middle" font-size="8" fill="#227722" font-family="微软雅黑" transform="rotate(90,${dimRx+14},${yvfMid})">y_VF=${yVF}m</text>`;
+  // X_VF 水平标注：塔底下方，示意风缆索锚固水平距
+  const xvfScale=Math.min(W*0.35,50); // 示意长度（不按比例）
+  const xvfGndY=ty_bot+38;
+  g+=`<text x="${tx-hl}" y="${xvfGndY-4}" font-size="7.5" fill="#227722" font-family="微软雅黑">塔中心线</text>`;
+  g+=`<line x1="${tx}" y1="${ty_bot}" x2="${tx}" y2="${xvfGndY+4}" stroke="#227722" stroke-width="0.7" stroke-dasharray="3,2"/>`;
+  g+=`<line x1="${tx}" y1="${xvfGndY}" x2="${tx+xvfScale}" y2="${xvfGndY}" stroke="#227722" stroke-width="1.2" marker-end="url(#tw_ga${sid2})"/>`;
+  g+=`<line x1="${tx}" y1="${xvfGndY-3}" x2="${tx}" y2="${xvfGndY+3}" stroke="#227722" stroke-width="1"/>`;
+  g+=`<text x="${tx+xvfScale/2}" y="${xvfGndY+10}" text-anchor="middle" font-size="8" fill="#227722" font-family="微软雅黑">←X_VF=${XVF||'?'}m（至锚固点，示意）→</text>`;
+  // wind load arrows on left face
+  const nw=4;
+  for(let i=0;i<nw;i++){
+    const yy=ty_top+H*0.1+i*H*0.22;
+    g+=`<line x1="${ML+8}" y1="${yy}" x2="${tx-hl-(yy-ty_top)*(hl-hr)/H-4}" y2="${yy}" stroke="#669" stroke-width="1.2" marker-end="url(#tw_wa${sid2})"/>`;
+  }
+  g+=`<text x="${ML+4}" y="${ty_top+H*0.45}" text-anchor="middle" font-size="9" fill="#669" font-family="微软雅黑" transform="rotate(-90,${ML+4},${ty_top+H*0.45})">风载 w₀</text>`;
+  // V arrow (net vertical down at base)
+  const vxb=tx+hl+18,vyb_top=ty_bot-30;
+  g+=`<line x1="${vxb}" y1="${vyb_top}" x2="${vxb}" y2="${ty_bot-4}" stroke="#880000" stroke-width="1.8" marker-end="url(#tw_da${sid2})"/>`;
+  g+=`<text x="${vxb+4}" y="${(vyb_top+ty_bot)/2}" font-size="9" fill="#880000" font-family="微软雅黑">ΣV</text>`;
+  // H arrow (horizontal at tower head)
+  const hxa=tx-hr-28,hya=ty_top+12;
+  g+=`<line x1="${hxa}" y1="${hya}" x2="${tx-hr-4}" y2="${hya}" stroke="#880000" stroke-width="1.8" marker-end="url(#tw_ra${sid2})"/>`;
+  g+=`<text x="${hxa-2}" y="${hya-4}" font-size="9" fill="#880000" font-family="微软雅黑">ΣH</text>`;
+  // H_t dimension
+  g+=`<line x1="${ML}" y1="${ty_top}" x2="${ML}" y2="${ty_bot}" stroke="#555" stroke-width="1" stroke-dasharray="3,2"/>`;
+  g+=`<text x="${ML-4}" y="${(ty_top+ty_bot)/2}" text-anchor="middle" font-size="9" fill="#444" transform="rotate(-90,${ML-4},${(ty_top+ty_bot)/2})" font-family="微软雅黑">H=${Ht}m</text>`;
+  // B dimension
+  g+=`<line x1="${tx-hl}" y1="${ty_bot+4}" x2="${tx-hl}" y2="${ty_bot+14}" stroke="#555" stroke-width="1"/>`;
+  g+=`<line x1="${tx+hl}" y1="${ty_bot+4}" x2="${tx+hl}" y2="${ty_bot+14}" stroke="#555" stroke-width="1"/>`;
+  g+=`<line x1="${tx-hl}" y1="${ty_bot+10}" x2="${tx+hl}" y2="${ty_bot+10}" stroke="#555" stroke-width="1" marker-start="url(#tw_pa${sid2})" marker-end="url(#tw_pa${sid2})"/>`;
+  g+=`<text x="${tx}" y="${ty_bot+26}" text-anchor="middle" font-size="9" fill="#444" font-family="微软雅黑">B=${B}m</text>`;
+
+  // label
+  const sid=side||'';
+  g+=`<text x="${ML+W/2}" y="${MT-6}" text-anchor="middle" font-size="10" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑">${label||''}</text>`;
+  const defs=`<defs>
+  <marker id="tw_da${sid}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#880000"/></marker>
+  <marker id="tw_ra${sid}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#cc2200"/></marker>
+  <marker id="tw_ba${sid}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0055cc"/></marker>
+  <marker id="tw_ga${sid}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#227722"/></marker>
+  <marker id="tw_wa${sid}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#669"/></marker>
+  <marker id="tw_pa${sid}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,6 L6,3 L0,0 Z" fill="#555"/></marker>
+  </defs>`;
+  /* 以绘图区中心为缩放基准，存入 data 属性 */
+  const dcx=ML+W/2, dcy=MT+H/2;
+  /* 用自然像素尺寸，CSS max-width/max-height 负责约束，避免 height:100% 截底 */
+  return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}" data-sw="${SW}" data-sh="${SH}" data-cx="${dcx}" data-cy="${dcy}">${defs}${g}</svg>`;
+}
+
+function drawTowerSVGs(){
+  const elA=document.getElementById('tw-A'),elB=document.getElementById('tw-B');
+  if(elA)elA.innerHTML=buildTowerElevSVG('A');
+  if(elB)elB.innerHTML=buildTowerElevSVG('B');
+}
+
+/* ---- 塔架缩放（viewBox 方案，框不动，内容居中缩放）---- */
+const _twZoom={A:1,B:1};
+function zoomTower(side,delta){
+  if(delta===0){_twZoom[side]=1;}
+  else{_twZoom[side]=Math.max(0.35,Math.min(3,+(_twZoom[side]+delta).toFixed(2)));}
+  const svg=document.querySelector('#tw-'+side+' svg');
+  if(!svg)return;
+  const sw=+svg.dataset.sw, sh=+svg.dataset.sh;
+  const cx=+svg.dataset.cx, cy=+svg.dataset.cy;
+  if(_twZoom[side]===1){
+    svg.setAttribute('viewBox',`0 0 ${sw} ${sh}`);
+    return;
+  }
+  const vw=sw/_twZoom[side], vh=sh/_twZoom[side];
+  /* viewBox 以绘图内容中心为锚点缩放 */
+  svg.setAttribute('viewBox',`${cx-vw/2} ${cy-vh/2} ${vw} ${vh}`);
+}
+
+let lastTowerParams=null,lastTowerResults=null;
+function exportTowerBook(){if(!lastTowerParams||!lastTowerResults){alert('请先执行塔架验算');return;}downloadDoc(buildTowerBookHTML(lastTowerParams,lastTowerResults),'缆索吊塔架验算计算书.doc');}
+
+function calcOneTower(T,phi,Ht,B,W1,W2,Fw,nc,tmax,Tq,t0,alpha,w0,f_sl,Kreq,yVF,psi_d,xi_d,XVF){
+  const phiBr=phi*Math.PI/180,alphar=alpha*Math.PI/180;
+  const psi_r=(psi_d||30)*Math.PI/180,xi_r=(xi_d||25)*Math.PI/180;
+  const V_I=nc*T*(Math.sin(phiBr)+Math.sin(alphar))/1000;
+  const H_I=nc*T*(Math.cos(phiBr)-Math.cos(alphar))/1000;
+  const T_rope=tmax+t0+Tq;
+  const v_rope=T_rope*Math.sin(phiBr)/1000;
+  const h_rope=T_rope*Math.cos(phiBr)/1000;
+  const P_wind=1.4*1.4*w0*Fw/1000;
+  const M_wind=P_wind*Ht/2;
+  const sumV_I=V_I+v_rope+W1+W2;
+  const sumH_I=H_I+h_rope+P_wind;
+  const M_stab_I=sumV_I*B/2;
+  const M_over_I=H_I*Ht+h_rope*Ht+M_wind;
+  const K01=M_stab_I/M_over_I;
+  const Kc_I=f_sl*sumV_I/sumH_I;
+  const V_II=2*V_I,H_II=2*H_I,v_rope_II=2*v_rope,h_rope_II=2*h_rope;
+  const sumV_II=V_II+v_rope_II+W1+W2;
+  const sumH_II=H_II+h_rope_II;
+  const M_stab_II=sumV_II*B/2;
+  const M_over_II=H_II*Ht+h_rope_II*Ht;
+  const K01_II=M_stab_II/M_over_II;
+  const Kc_II=f_sl*sumV_II/sumH_II;
+  const Wx_needed=K01<Kreq?(Kreq*M_over_I-M_stab_I+W2*B/2)/(B/2):0;
+  const VF_unit=Math.sin(psi_r)*Math.cos(xi_r);
+  const HF_unit=Math.cos(psi_r)*Math.cos(xi_r);
+  const T_F_denom=2*(VF_unit*XVF+HF_unit*yVF);
+  const T_F=T_F_denom>0.01?(Kreq*M_over_I-M_stab_I+W2*B/2)/T_F_denom:null;
+  return{V_I,H_I,v_rope,h_rope,P_wind,M_wind,sumV_I,sumH_I,M_stab_I,M_over_I,K01,Kc_I,
+    V_II,H_II,sumV_II,sumH_II,M_stab_II,M_over_II,K01_II,Kc_II,Wx_needed,T_F,VF_unit,HF_unit};
+}
+
+function runTower(){
+  // Shared params
+  const nc=gTW('tw_nc')||4,tmax=gTW('tw_tmax'),Tq=gTW('tw_Tq'),t0=gTW('tw_t0');
+  const alpha=gTW('tw_alpha')||30,w0=gTW('tw_w0')||50,f_sl=gTW('tw_fric')||0.25,Kreq=gTW('tw_Kreq')||1.3;
+  // 甲端A params
+  const TA=gTW('tw_TA'),phiA=gTW('tw_phiA'),HA=gTW('tw_HA')||30;
+  const BA=gTW('tw_BA')||6,W1A=gTW('tw_W1A')||40,W2A=gTW('tw_W2A')||4,FA=gTW('tw_FA')||40;
+  const yVFA=gTW('tw_yVFA')||28,XVFA=gTW('tw_XVFA')||4,psiA=gTW('tw_psiA')||30,xiA=gTW('tw_xiA')||25;
+  // 乙端B params
+  const TB=gTW('tw_TB'),phiB=gTW('tw_phiB'),HB=gTW('tw_HB')||34;
+  const BB=gTW('tw_BB')||6,W1B=gTW('tw_W1B')||50,W2B=gTW('tw_W2B')||4,FB=gTW('tw_FB')||50;
+  const yVFB=gTW('tw_yVFB')||32,XVFB=gTW('tw_XVFB')||4,psiB=gTW('tw_psiB')||30,xiB=gTW('tw_xiB')||25;
+
+  // 风缆索型号与根数
+  const ropeIdxFA=+document.getElementById('tw_ropeFA').value,nFA=gTW('tw_nFA')||2,KFA=gTW('tw_KFA')||3.5;
+  const ropeIdxFB=+document.getElementById('tw_ropeFB').value,nFB=gTW('tw_nFB')||2,KFB=gTW('tw_KFB')||3.5;
+  const ropeFa=ropeDB[ropeIdxFA]||ropeDB[0],ropeFb=ropeDB[ropeIdxFB]||ropeDB[0];
+
+  const rA=calcOneTower(TA,phiA,HA,BA,W1A,W2A,FA,nc,tmax,Tq,t0,alpha,w0,f_sl,Kreq,yVFA,psiA,xiA,XVFA);
+  const rB=calcOneTower(TB,phiB,HB,BB,W1B,W2B,FB,nc,tmax,Tq,t0,alpha,w0,f_sl,Kreq,yVFB,psiB,xiB,XVFB);
+
+  // 每根风缆索张力
+  const TF_A=rA.T_F!==null?Math.max(0,rA.T_F):0;
+  const TF_B=rB.T_F!==null?Math.max(0,rB.T_F):0;
+  const TF_per_A=nFA>0?TF_A/nFA:0;   // t → kg×1000
+  const TF_per_B=nFB>0?TF_B/nFB:0;
+  const KF_A=TF_per_A>0.001?ropeFa.Tp/(TF_per_A*1000):Infinity;
+  const KF_B=TF_per_B>0.001?ropeFb.Tp/(TF_per_B*1000):Infinity;
+
+  const ok=(v,lim)=>v>=lim?`<span class="ok">✓ ${v.toFixed(2)}≥${lim}</span>`:`<span class="fail">✗ ${v.toFixed(2)}&lt;${lim}</span>`;
+  const ft=v=>v.toFixed(2);
+
+  function windCableHTML(TF_tot,TF_per,n,rope,K,Kreq_f,label){
+    if(TF_tot<=0.001) return`<div style="color:#1a7a1a;margin-top:6px">✓ 无需风缆索（自重满足倾覆稳定）</div>`;
+    const KStr=isFinite(K)?ok(K,Kreq_f):`<span class="ok">∞（T_F≤0）</span>`;
+    return`<div style="margin-top:6px;padding:8px;background:#f5f8ff;border-radius:5px;font-size:12px">
+      风缆索总张力 T_F = <b>${ft(TF_tot)} t</b><br>
+      选用钢索：<b>${rope.name}</b>（T_p = ${rope.Tp} kg），共 <b>${n} 根</b>（两侧对称布置）<br>
+      每根张力 = T_F / n = ${ft(TF_tot)} / ${n} = <b>${ft(TF_per)} t = ${(TF_per*1000).toFixed(0)} kg</b><br>
+      安全系数 K_F = T_p / T_F_per = ${rope.Tp} / ${(TF_per*1000).toFixed(0)} = ${KStr}（要求≥${Kreq_f}）
+    </div>`;
+  }
+
+  function oneTowerSummaryHTML(r,label,T,phi,Ht,B,W1,W2,Fw,Kreq,f_sl,TF_tot,TF_per,n,rope,KF,KFreq){
+    return`<div class="step"><div class="step-title">${label}</div><div class="step-body">
+      <b>主索张力</b> T=${T.toFixed(0)} kg，φ=${phi}°，H塔=${Ht}m，B=${B}m，W₁=${W1}t，W₂=${W2}t，F_w=${Fw}m²<br>
+      <b>载荷组合I（单组+风）：</b>ΣV=${ft(r.sumV_I)}t，ΣH=${ft(r.sumH_I)}t<br>
+      &nbsp;&nbsp;倾覆 K₀₁=${ok(r.K01,Kreq)}（M稳=${ft(r.M_stab_I)} t·m，M覆=${ft(r.M_over_I)} t·m）<br>
+      &nbsp;&nbsp;滑移 K_c=${ok(r.Kc_I,Kreq)}<br>
+      <b>载荷组合II（双组无风）：</b>ΣV=${ft(r.sumV_II)}t，ΣH=${ft(r.sumH_II)}t<br>
+      &nbsp;&nbsp;倾覆 K₀₁=${ok(r.K01_II,Kreq)}，滑移 K_c=${ok(r.Kc_II,Kreq)}
+      ${r.K01<Kreq&&TF_tot<=0.001?`<br><span class="fail">⚠ 组合I倾覆不足，需增压重 W_x≥${ft(r.Wx_needed)}t 或设置风缆索</span>`:''}
+      ${windCableHTML(TF_tot,TF_per,n,rope,KF,KFreq,label)}
+    </div></div>`;
+  }
+
+  let html=`<div class="card"><div class="card-header">🏗 两端塔架验算结果</div><div class="card-body">`;
+  html+=oneTowerSummaryHTML(rA,'甲端塔架（低端）',TA,phiA,HA,BA,W1A,W2A,FA,Kreq,f_sl,TF_A,TF_per_A,nFA,ropeFa,KF_A,KFA);
+  html+=oneTowerSummaryHTML(rB,'乙端塔架（高端）',TB,phiB,HB,BB,W1B,W2B,FB,Kreq,f_sl,TF_B,TF_per_B,nFB,ropeFb,KF_B,KFB);
+  html+=`<div style="margin-top:12px">
+    <button class="btn btn-success" onclick="exportTowerBook()" style="font-size:14px;padding:9px 22px">📄 导出两端塔架计算书（Word）</button>
+  </div></div></div>`;
+
+  lastTowerParams={nc,tmax,Tq,t0,alpha,w0,f_sl,Kreq,
+    A:{T:TA,phi:phiA,Ht:HA,B:BA,W1:W1A,W2:W2A,Fw:FA,yVF:yVFA,XVF:XVFA,psi_d:psiA,xi_d:xiA,nF:nFA,KF:KFA,rope:ropeFa},
+    B:{T:TB,phi:phiB,Ht:HB,B:BB,W1:W1B,W2:W2B,Fw:FB,yVF:yVFB,XVF:XVFB,psi_d:psiB,xi_d:xiB,nF:nFB,KF:KFB,rope:ropeFb}};
+  lastTowerResults={rA,rB,TF_per_A,TF_per_B,KF_A,KF_B};
+  document.getElementById('tower-result').innerHTML=html;
+  drawTowerSVGs();
+}
+
+function buildOneTowerSection(sec_num,label,pTwr,r,nc,tmax,Tq,t0,alpha,w0,Kreq,f_sl){
+  const{T,phi,Ht,B,W1,W2,Fw,yVF,XVF,psi_d,xi_d,nF,KF,rope:ropeF}=pTwr;
+  const{V_I,H_I,v_rope,h_rope,P_wind,M_wind,sumV_I,sumH_I,M_stab_I,M_over_I,K01,Kc_I,
+    V_II,H_II,sumV_II,sumH_II,M_stab_II,M_over_II,K01_II,Kc_II,Wx_needed,T_F,VF_unit,HF_unit}=r;
+  const ft2=v=>(+v).toFixed(2),fk=v=>(+v).toFixed(0);
+  const ck=(v,lim)=>v>=lim?`<span class="ok">✓(${v.toFixed(2)}≥${lim})</span>`:`<span class="fail">✗(${v.toFixed(2)}&lt;${lim})</span>`;
+  const phiBr=phi*Math.PI/180,alphar=alpha*Math.PI/180;
+  const T_rope=tmax+t0+Tq;
+  return`
+<h2>${sec_num}、${label}塔架验算</h2>
+<h3>（一）参数</h3>
+<table><tr><th>项目</th><th>符号</th><th>值</th><th>单位</th><th>说明</th></tr>
+<tr><td class="l">主索张力（每根）</td><td>T</td><td>${fk(T)}</td><td>kg</td><td>来自缆索系统计算</td></tr>
+<tr><td class="l">承载索切线倾角</td><td>φ</td><td>${phi}</td><td>°</td><td>${label}支座切线角</td></tr>
+<tr><td class="l">锚固索倾角</td><td>α</td><td>${alpha}</td><td>°</td><td>地锚至塔顶，对水平夹角</td></tr>
+<tr><td class="l">主索根数</td><td>n<sub>c</sub></td><td>${nc}</td><td>根</td><td>本侧塔架主索总根数</td></tr>
+<tr><td class="l">牵引索最大张力</td><td>t<sub>max</sub></td><td>${fk(tmax)}</td><td>kg</td><td></td></tr>
+<tr><td class="l">起重索绞车端张力</td><td>T<sub>q</sub></td><td>${fk(Tq)}</td><td>kg</td><td></td></tr>
+<tr><td class="l">牵引索初张力</td><td>t<sub>0</sub></td><td>${fk(t0)}</td><td>kg</td><td>防磨段初张力</td></tr>
+<tr><td class="l">塔架高度</td><td>H</td><td>${Ht}</td><td>m</td><td>来自缆索系统设计</td></tr>
+<tr><td class="l">塔架底宽</td><td>B</td><td>${B}</td><td>m</td><td>两柱脚中心距</td></tr>
+<tr><td class="l">塔架自重</td><td>W₁</td><td>${W1}</td><td>t</td><td></td></tr>
+<tr><td class="l">底部压重</td><td>W₂</td><td>${W2}</td><td>t</td><td></td></tr>
+<tr><td class="l">基本风压</td><td>w₀</td><td>${w0}</td><td>kg/m²</td><td></td></tr>
+<tr><td class="l">迎风面积</td><td>F<sub>w</sub></td><td>${Fw}</td><td>m²</td><td></td></tr>
+</table>
+
+<h3>（二）主索作用力（第Ⅰ种，单组工作）</h3>
+<p class="formula">V<sub>I</sub> = n<sub>c</sub>·T·(sinφ+sinα) = ${nc}×${fk(T)}×(sin${phi}°+sin${alpha}°)</p>
+<p class="formula">= ${nc}×${fk(T)}×(${Math.sin(phiBr).toFixed(4)}+${Math.sin(alphar).toFixed(4)}) = <b>${ft2(V_I)} t</b></p>
+<p class="formula">H<sub>I</sub> = n<sub>c</sub>·T·(cosφ−cosα) = ${nc}×${fk(T)}×(${Math.cos(phiBr).toFixed(4)}−${Math.cos(alphar).toFixed(4)}) = <b>${ft2(H_I)} t</b></p>
+
+<h3>（三）绳索作用力</h3>
+<p class="formula">T<sub>绳</sub> = t<sub>max</sub>+t₀+T<sub>q</sub> = ${fk(tmax)}+${fk(t0)}+${fk(Tq)} = <b>${fk(T_rope)} kg</b></p>
+<p class="formula">v = T<sub>绳</sub>·sinφ = ${fk(T_rope)}×${Math.sin(phiBr).toFixed(4)} = <b>${ft2(v_rope)} t</b></p>
+<p class="formula">h = T<sub>绳</sub>·cosφ = ${fk(T_rope)}×${Math.cos(phiBr).toFixed(4)} = <b>${ft2(h_rope)} t</b></p>
+
+<h3>（四）风载</h3>
+<p class="formula">P = 1.40×1.40×${w0}×${Fw}/1000 = <b>${ft2(P_wind)} t</b>，M<sub>风</sub> = ${ft2(P_wind)}×${Ht}/2 = <b>${ft2(M_wind)} t·m</b></p>
+
+<h3>（五）稳定验算</h3>
+<p><b>第Ⅰ种载荷组合</b>（单组+风）</p>
+<p class="formula">ΣV = ${ft2(V_I)}+${ft2(v_rope)}+${W1}+${W2} = <b>${ft2(sumV_I)} t</b></p>
+<p class="formula">ΣH = ${ft2(H_I)}+${ft2(h_rope)}+${ft2(P_wind)} = <b>${ft2(sumH_I)} t</b></p>
+<p class="formula">ΣM<sub>y</sub> = ${ft2(sumV_I)}×${B}/2 = <b>${ft2(M_stab_I)} t·m</b></p>
+<p class="formula">ΣM<sub>d</sub> = (${ft2(H_I)}+${ft2(h_rope)})×${Ht}+${ft2(M_wind)} = <b>${ft2(M_over_I)} t·m</b></p>
+<p class="formula">K₀₁ = ${ft2(M_stab_I)}/${ft2(M_over_I)} = <b>${ft2(K01)}</b> ${ck(K01,Kreq)}（要求≥${Kreq}）</p>
+<p class="formula">K<sub>c</sub> = ${f_sl}×${ft2(sumV_I)}/${ft2(sumH_I)} = <b>${ft2(Kc_I)}</b> ${ck(Kc_I,Kreq)}（要求≥${Kreq}）</p>
+${K01<Kreq?`<p class="formula" style="color:#c00">⚠ 倾覆不稳定！需增压重 W<sub>x</sub>≥<b>${ft2(Wx_needed)} t</b> 或设置风缆索</p>`:''}
+
+<p><b>第Ⅱ种载荷组合</b>（两组无风）</p>
+<p class="formula">ΣM<sub>y</sub> = <b>${ft2(M_stab_II)} t·m</b>，ΣM<sub>d</sub> = <b>${ft2(M_over_II)} t·m</b></p>
+<p class="formula">K₀₁ = ${ft2(K01_II)} ${ck(K01_II,Kreq)}，K<sub>c</sub> = ${ft2(Kc_II)} ${ck(Kc_II,Kreq)}</p>
+
+<h3>（六）风缆索张力及选型</h3>
+${T_F!==null?`<p class="formula">V<sub>F</sub>=sinψ·cosξ=sin${psi_d}°·cos${xi_d}°=${VF_unit.toFixed(4)}，H<sub>F</sub>=cosψ·cosξ=${HF_unit.toFixed(4)}</p>
+<p class="formula">T<sub>F</sub> = (K<sub>req</sub>×ΣM<sub>d</sub>−ΣM<sub>y</sub>)/(2(V<sub>F</sub>·X<sub>VF</sub>+H<sub>F</sub>·y<sub>VF</sub>))</p>
+<p class="formula">= (${Kreq}×${ft2(M_over_I)}−${ft2(M_stab_I)})/(2×(${VF_unit.toFixed(4)}×${XVF}+${HF_unit.toFixed(4)}×${yVF}))</p>
+<p class="formula">= <b>${ft2(Math.max(0,T_F))} t</b>${Math.max(0,T_F)<=0?' &nbsp;（ΣM<sub>y</sub>≥K×ΣM<sub>d</sub>，自重满足，无需风缆索）':''}</p>
+${Math.max(0,T_F)>0.001&&ropeF?`<p><b>风缆索选型验算</b></p>
+<table><tr><th>项目</th><th>符号</th><th>值</th><th>单位</th><th>说明</th></tr>
+<tr><td class="l">风缆索总张力</td><td>T<sub>F</sub></td><td>${ft2(Math.max(0,T_F))}</td><td>t</td><td>由力矩平衡确定</td></tr>
+<tr><td class="l">风缆索根数</td><td>n<sub>F</sub></td><td>${nF||2}</td><td>根</td><td>两侧对称布置</td></tr>
+<tr><td class="l">每根张力</td><td>T<sub>F/根</sub></td><td>${ft2(Math.max(0,T_F)/(nF||2))}</td><td>t</td><td>= T<sub>F</sub> / n<sub>F</sub> = ${ft2(Math.max(0,T_F))}/${nF||2}</td></tr>
+<tr><td class="l">每根张力（kg）</td><td></td><td>${(Math.max(0,T_F)/(nF||2)*1000).toFixed(0)}</td><td>kg</td><td></td></tr>
+<tr><td class="l">选用钢索</td><td>—</td><td colspan="2">${ropeF.name}（T<sub>p</sub>=${ropeF.Tp} kg，d=${ropeF.d} mm，F<sub>K</sub>=${ropeF.Fk} mm²）</td><td></td></tr>
+<tr><td class="l">安全系数</td><td>K<sub>F</sub></td><td>${(ropeF.Tp/(Math.max(0,T_F)/(nF||2)*1000)).toFixed(2)}</td><td>—</td><td>= T<sub>p</sub>/T<sub>F/根</sub> ≥ ${KF||3.5} ${(ropeF.Tp/(Math.max(0,T_F)/(nF||2)*1000))>=(KF||3.5)?'<span class="ok">✓</span>':'<span class="fail">✗</span>'}</td></tr>
+</table>`:''}
+`:'<p>（未提供风缆索几何参数）</p>'}
+`;
+}
+
+function buildTowerBookHTML(p,r){
+  const{nc,tmax,Tq,t0,alpha,w0,f_sl,Kreq,A,B:pB}=p;
+  const{rA,rB}=r;
+  const ft2=v=>(+v).toFixed(2);
+  const ck=(v,lim)=>v>=lim?'<span class="ok">✓</span>':'<span class="fail">✗</span>';
+  const date=new Date().toLocaleDateString('zh-CN');
+  let body=docHdr();
+  body+=`<h1>缆索吊两端塔架验算计算书</h1>
+<table>
+<tr><td class="l" width="20%"><b>工程名称</b></td><td class="l" colspan="3">（填写工程名称）</td></tr>
+<tr><td class="l"><b>计算内容</b></td><td class="l">甲端（低端）& 乙端（高端）塔架稳定性验算</td><td class="l" width="12%"><b>日期</b></td><td class="l" width="16%">${date}</td></tr>
+<tr><td class="l"><b>计算依据</b></td><td class="l" colspan="3">周继祖《缆索吊车》1981年版 §7-1</td></tr>
+<tr><td class="l"><b>编制</b></td><td class="l"></td><td class="l"><b>校核</b></td><td class="l"></td></tr>
+</table>
+
+<h2>一、公共参数</h2>
+<table><tr><th>项目</th><th>符号</th><th>值</th><th>单位</th><th>说明</th></tr>
+<tr><td class="l">主索根数（每端）</td><td>n<sub>c</sub></td><td>${nc}</td><td>根</td><td>两端相同</td></tr>
+<tr><td class="l">牵引索最大张力</td><td>t<sub>max</sub></td><td>${tmax}</td><td>kg</td><td>同一组绳索走行两端</td></tr>
+<tr><td class="l">起重索绞车端张力</td><td>T<sub>q</sub></td><td>${Tq}</td><td>kg</td><td></td></tr>
+<tr><td class="l">牵引索初张力</td><td>t<sub>0</sub></td><td>${t0}</td><td>kg</td><td></td></tr>
+<tr><td class="l">锚固索倾角</td><td>α</td><td>${alpha}</td><td>°</td><td>两端均取此值</td></tr>
+<tr><td class="l">基本风压</td><td>w₀</td><td>${w0}</td><td>kg/m²</td><td></td></tr>
+<tr><td class="l">摩擦系数</td><td>f</td><td>${f_sl}</td><td>—</td><td></td></tr>
+<tr><td class="l">稳定系数要求</td><td>K<sub>req</sub></td><td>${Kreq}</td><td>—</td><td></td></tr>
+</table>
+
+${buildOneTowerSection('二','甲端（低端）',A,rA,nc,tmax,Tq,t0,alpha,w0,Kreq,f_sl)}
+${buildOneTowerSection('三','乙端（高端）',pB,rB,nc,tmax,Tq,t0,alpha,w0,Kreq,f_sl)}
+
+<h2>四、验算汇总</h2>
+<table>
+<tr><th>塔架端</th><th>验算项目</th><th>载荷组合</th><th>计算值</th><th>要求</th><th>结论</th></tr>
+<tr><td class="l" rowspan="4">甲端（低端）</td>
+  <td class="l">倾覆 K₀₁</td><td>Ⅰ（有风）</td><td>${ft2(rA.K01)}</td><td>≥${Kreq}</td><td>${ck(rA.K01,Kreq)}</td></tr>
+<tr><td class="l">倾覆 K₀₁</td><td>Ⅱ（双组无风）</td><td>${ft2(rA.K01_II)}</td><td>≥${Kreq}</td><td>${ck(rA.K01_II,Kreq)}</td></tr>
+<tr><td class="l">滑移 K<sub>c</sub></td><td>Ⅰ（有风）</td><td>${ft2(rA.Kc_I)}</td><td>≥${Kreq}</td><td>${ck(rA.Kc_I,Kreq)}</td></tr>
+<tr><td class="l">滑移 K<sub>c</sub></td><td>Ⅱ（双组无风）</td><td>${ft2(rA.Kc_II)}</td><td>≥${Kreq}</td><td>${ck(rA.Kc_II,Kreq)}</td></tr>
+<tr><td class="l" rowspan="4">乙端（高端）</td>
+  <td class="l">倾覆 K₀₁</td><td>Ⅰ（有风）</td><td>${ft2(rB.K01)}</td><td>≥${Kreq}</td><td>${ck(rB.K01,Kreq)}</td></tr>
+<tr><td class="l">倾覆 K₀₁</td><td>Ⅱ（双组无风）</td><td>${ft2(rB.K01_II)}</td><td>≥${Kreq}</td><td>${ck(rB.K01_II,Kreq)}</td></tr>
+<tr><td class="l">滑移 K<sub>c</sub></td><td>Ⅰ（有风）</td><td>${ft2(rB.Kc_I)}</td><td>≥${Kreq}</td><td>${ck(rB.Kc_I,Kreq)}</td></tr>
+<tr><td class="l">滑移 K<sub>c</sub></td><td>Ⅱ（双组无风）</td><td>${ft2(rB.Kc_II)}</td><td>≥${Kreq}</td><td>${ck(rB.Kc_II,Kreq)}</td></tr>
+</table>
+${signBlock()}</body></html>`;
+  return body;
+}
+
+// ===== 初始化 =====
+renderDB();refreshSelects();
+fillVerifyRope('main');fillVerifyRope('hoist');fillVerifyRope('tract');
+updateDiagrams('d-elev','d-plan',designDP());
+updateDiagrams('v-elev','v-plan',verifyDP());
+drawTowerSVGs();
+
+/* =====================================================
+   沿线受力分析
+   升角（仰斜角）：重物两侧主索与水平面的夹角
+   按 周继祖《缆索吊车》1981 第7章公式推导
+   ===================================================== */
+function saToggleMode(){
+  const m=document.getElementById('sa-mode').value;
+  document.getElementById('sa-n-div').style.display=m==='equal'?'flex':'none';
+  document.getElementById('sa-step-div').style.display=m==='step'?'flex':'none';
+}
+
+function runStressAnalysis(){
+  const L=+document.getElementById('d_L').value||200;
+  const h=+document.getElementById('d_h').value||0;
+  const fR=+document.getElementById('d_fL').value||0.04;
+  const f=L*fR; // max sag
+  const Q=+document.getElementById('d_Q').value||5;
+  const phi_imp=+document.getElementById('d_phi').value||0.25;
+  const nc=Math.max(1,+document.getElementById('d_nc').value||4);
+  const qadd=+document.getElementById('d_qadd').value||2.5; // kg/m (total, all cables)
+
+  const Qd=Q*1000*(1+phi_imp);   // 设计总荷载 kg（含冲击）
+  const Qpc=Qd/nc;                // 每根主索承担荷载 kg
+  const qpc=qadd/nc;              // 每根主索承担均布荷载 kg/m
+
+  // 主索水平张力（每根，抛物线近似）
+  // H = q*L²/(8f)
+  const H=qpc*L*L/(8*f);
+
+  // 无荷载时两端升角（主索悬挂角，相对水平）
+  // 甲端（A/低端）：tanφA = (4f - h)/L
+  // 乙端（B/高端）：tanφB = (4f + h)/L
+  const tanA0=(4*f-h)/L;
+  const tanB0=(4*f+h)/L;
+
+  // 分析位置列表
+  const mode=document.getElementById('sa-mode').value;
+  const pos=[];
+  if(mode==='equal'){
+    const n=Math.max(5,Math.min(200,+document.getElementById('sa-n').value||20));
+    for(let i=0;i<=n;i++) pos.push(i*L/n);
+  } else {
+    const step=Math.max(0.1,+document.getElementById('sa-step').value||5);
+    for(let x=0;x<=L+0.0001;x+=step) pos.push(Math.min(x,L));
+    if(pos[pos.length-1]<L) pos.push(L);
+  }
+
+  // 计算各位置受力
+  const pts=pos.map(x=>{
+    // 各端竖向分力（每根主索）
+    const VA=H*tanA0+Qpc*(L-x)/L;  // 甲端
+    const VB=H*tanB0+Qpc*x/L;      // 乙端
+
+    // 全部nc根主索合计张力（kg→t）
+    const TA=nc*Math.sqrt(H*H+VA*VA)/1000;
+    const TB=nc*Math.sqrt(H*H+VB*VB)/1000;
+
+    // 两端升角（主索与水平夹角，°）
+    const phiA=Math.atan2(VA,H)*180/Math.PI;
+    const phiB=Math.atan2(VB,H)*180/Math.PI;
+
+    // ---- 重物两侧升角 ----
+    // 无荷载主索在x处高度（相对于甲端挂点，向下为负）
+    // y(x) = h*x/L - 4f*(x/L)*(1-x/L)  [下垂为负]
+    const y0=h*x/L-4*f*(x/L)*(1-x/L);
+    // 集中荷载引起的附加下垂（每根）
+    const delta=H>0.001?Qpc*x*(L-x)/(H*L):0;
+    const yl=y0-delta; // 荷载点高度（相对甲端挂点）
+
+    // 左升角 αL：荷载点到甲端挂点（0,0）的弦线与水平夹角
+    // 甲端挂点在 (0,0)，荷载点在 (x, yl)
+    // 甲端挂点高于荷载点 → 索从荷载向左上方延伸
+    const aL=x>0.01?Math.atan2(-yl,x)*180/Math.PI:phiA;
+
+    // 右升角 αR：荷载点到乙端挂点（L,h）的弦线与水平夹角
+    const aR=x<L-0.01?Math.atan2(h-yl,L-x)*180/Math.PI:phiB;
+
+    return{x,TA,TB,phiA,phiB,aL,aR};
+  });
+
+  renderSAChart(pts,L,f,Qd);
+  renderSATable(pts);
+}
+
+function renderSAChart(pts,L,f,Qd){
+  const SW=700,SH=320,ML=62,MR=54,MT=42,MB=48;
+  const PW=SW-ML-MR,PH=SH-MT-MB;
+
+  const showTA=document.getElementById('sa-chk-TA').checked;
+  const showTB=document.getElementById('sa-chk-TB').checked;
+  const showAL=document.getElementById('sa-chk-aL').checked;
+  const showAR=document.getElementById('sa-chk-aR').checked;
+
+  const allT=[];
+  if(showTA) pts.forEach(p=>allT.push(p.TA));
+  if(showTB) pts.forEach(p=>allT.push(p.TB));
+  const allA=[];
+  if(showAL) pts.forEach(p=>allA.push(p.aL));
+  if(showAR) pts.forEach(p=>allA.push(p.aR));
+
+  const Tmin=0,Tmax=allT.length?Math.ceil(Math.max(...allT)*1.15)||10:10;
+  const Amin=allA.length?Math.floor(Math.min(...allA)*0.9)||0:0;
+  const Amax=allA.length?Math.ceil(Math.max(...allA)*1.15)||20:20;
+
+  const xS=x=>ML+PW*x/L;
+  const yT=t=>MT+PH*(1-(t-Tmin)/(Tmax-Tmin||1));
+  const yA=a=>MT+PH*(1-(a-Amin)/(Amax-Amin||1));
+
+  let g=`<rect width="${SW}" height="${SH}" fill="#f8f9fc" rx="3"/>`;
+
+  // 网格 & 左轴刻度（张力，t）
+  const nT=5;
+  for(let i=0;i<=nT;i++){
+    const t=Tmin+(Tmax-Tmin)*i/nT;
+    const y=yT(t);
+    g+=`<line x1="${ML}" y1="${y}" x2="${SW-MR}" y2="${y}" stroke="${i===0?'#aaa':'#e4e4e4'}" stroke-width="${i===0?1.2:.7}"/>`;
+    g+=`<text x="${ML-5}" y="${y+3.5}" text-anchor="end" font-size="9" fill="#2455a4">${t.toFixed(1)}</text>`;
+  }
+  // 右轴刻度（角度，°）
+  const nA=5;
+  for(let i=0;i<=nA;i++){
+    const a=Amin+(Amax-Amin)*i/nA;
+    const y=yA(a);
+    g+=`<text x="${SW-MR+4}" y="${y+3.5}" text-anchor="start" font-size="9" fill="#c05000">${a.toFixed(1)}</text>`;
+  }
+  // X轴刻度
+  const nX=Math.min(10,Math.floor(L/10));
+  for(let i=0;i<=nX;i++){
+    const xv=L*i/nX;
+    const xp=xS(xv);
+    g+=`<line x1="${xp}" y1="${MT}" x2="${xp}" y2="${MT+PH}" stroke="#e8e8e8" stroke-width=".7"/>`;
+    g+=`<text x="${xp}" y="${MT+PH+13}" text-anchor="middle" font-size="9" fill="#666">${xv.toFixed(0)}</text>`;
+  }
+
+  // 坐标轴
+  g+=`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${MT+PH}" stroke="#2455a4" stroke-width="1.5"/>`;
+  g+=`<line x1="${ML}" y1="${MT+PH}" x2="${SW-MR}" y2="${MT+PH}" stroke="#555" stroke-width="1.5"/>`;
+  g+=`<line x1="${SW-MR}" y1="${MT}" x2="${SW-MR}" y2="${MT+PH}" stroke="#c05000" stroke-width="1.5"/>`;
+
+  // 轴标题
+  g+=`<text x="${ML-42}" y="${MT+PH/2}" text-anchor="middle" font-size="10" fill="#2455a4" font-family="微软雅黑,sans-serif" transform="rotate(-90,${ML-42},${MT+PH/2})">主索张力 (t)</text>`;
+  g+=`<text x="${SW-MR+42}" y="${MT+PH/2}" text-anchor="middle" font-size="10" fill="#c05000" font-family="微软雅黑,sans-serif" transform="rotate(90,${SW-MR+42},${MT+PH/2})">升角 (°)</text>`;
+  g+=`<text x="${ML+PW/2}" y="${SH-6}" text-anchor="middle" font-size="10" fill="#555" font-family="微软雅黑,sans-serif">重物距甲端水平距 x (m)</text>`;
+
+  // 折线
+  function poly(arr,color,dash,w=2){
+    if(!arr.length) return '';
+    return`<polyline points="${arr.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="${w}" stroke-dasharray="${dash}" stroke-linejoin="round"/>`;
+  }
+  if(showTA) g+=poly(pts.map(p=>[xS(p.x),yT(p.TA)]),'#2455a4','');
+  if(showTB) g+=poly(pts.map(p=>[xS(p.x),yT(p.TB)]),'#c62828','');
+  if(showAL) g+=poly(pts.map(p=>[xS(p.x),yA(p.aL)]),'#2e7d32','7,3',1.8);
+  if(showAR) g+=poly(pts.map(p=>[xS(p.x),yA(p.aR)]),'#c05000','7,3',1.8);
+
+  // 图例
+  const legs=[
+    showTA&&['甲端张力 T_A (t)','#2455a4',''],
+    showTB&&['乙端张力 T_B (t)','#c62828',''],
+    showAL&&['左侧升角 α_L (°)','#2e7d32','7,3'],
+    showAR&&['右侧升角 α_R (°)','#c05000','7,3'],
+  ].filter(Boolean);
+  let lx=ML+8,ly=MT+14;
+  legs.forEach(([lb,col,da])=>{
+    g+=`<line x1="${lx}" y1="${ly-3}" x2="${lx+20}" y2="${ly-3}" stroke="${col}" stroke-width="2" stroke-dasharray="${da}"/>`;
+    g+=`<text x="${lx+24}" y="${ly}" font-size="9.5" fill="#333" font-family="微软雅黑,sans-serif">${lb}</text>`;
+    lx+=lb.length*6+36;
+    if(lx>SW-MR-100){lx=ML+8;ly+=14;}
+  });
+
+  // 标题
+  g+=`<text x="${ML+PW/2}" y="${MT-16}" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1a3a5c" font-family="微软雅黑,sans-serif">沿线受力分析  L=${L}m  f=${f.toFixed(1)}m  Q_d=${(Qd/1000).toFixed(2)}t</text>`;
+  g+=`<rect x="1" y="1" width="${SW-2}" height="${SH-2}" fill="none" stroke="#ccc" stroke-width="1" rx="3"/>`;
+
+  document.getElementById('sa-chart-area').innerHTML=
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}" style="max-width:100%;display:block;margin:auto">${g}</svg>`;
+}
+
+function renderSATable(pts){
+  // 抽样最多25行
+  const step=Math.max(1,Math.floor(pts.length/25));
+  const rows=pts.filter((_,i)=>i%step===0||i===pts.length-1);
+  let h=`<div style="overflow-x:auto;margin-top:12px">
+<table style="width:100%;font-size:11px;border-collapse:collapse;text-align:center">
+<thead><tr style="background:#2455a4;color:#fff">
+<th style="padding:5px 8px;white-space:nowrap">x (m)</th>
+<th>T_A (t)</th><th>T_B (t)</th>
+<th>φ_A (°)<br><span style="font-size:9px;font-weight:normal">甲端升角</span></th>
+<th>φ_B (°)<br><span style="font-size:9px;font-weight:normal">乙端升角</span></th>
+<th>α_L (°)<br><span style="font-size:9px;font-weight:normal">左侧升角</span></th>
+<th>α_R (°)<br><span style="font-size:9px;font-weight:normal">右侧升角</span></th>
+</tr></thead><tbody>`;
+  rows.forEach((p,i)=>{
+    const bg=i%2===0?'#fff':'#f4f6fb';
+    const xPct=(p.x/pts[pts.length-1].x*100).toFixed(0);
+    h+=`<tr style="background:${bg}">
+<td style="padding:3px 6px;font-weight:600">${p.x.toFixed(1)}<br><span style="font-size:9px;color:#999">${p.x.toFixed(0)==='0'?'甲端':p.x.toFixed(0)===pts[pts.length-1].x.toFixed(0)?'乙端':''}</span></td>
+<td style="color:#2455a4;font-weight:600">${p.TA.toFixed(3)}</td>
+<td style="color:#c62828;font-weight:600">${p.TB.toFixed(3)}</td>
+<td>${p.phiA.toFixed(2)}</td>
+<td>${p.phiB.toFixed(2)}</td>
+<td style="color:#2e7d32">${p.aL.toFixed(2)}</td>
+<td style="color:#c05000">${p.aR.toFixed(2)}</td>
+</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  document.getElementById('sa-table-area').innerHTML=h;
+}
+
+window.addEventListener('scroll',function(){
+  document.getElementById('backToTop').classList.toggle('show', window.scrollY>200);
+},{passive:true});
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelector('.content').addEventListener('scroll',function(){
+    document.getElementById('backToTop').classList.toggle('show', this.scrollTop>200);
+  },{passive:true});
+});
+function scrollToTop(){
+  document.querySelector('.content').scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+<button id="backToTop" class="back-to-top" onclick="scrollToTop()" title="返回顶部">↑</button>
+</body>
+</html>
